@@ -10,6 +10,7 @@ export interface Client {
   code?: string;
   taxInfo?: string;
   taxCenter?: string;
+  siteId?: string; // Reference to which site this client belongs to
 }
 
 export interface Product {
@@ -17,6 +18,7 @@ export interface Product {
   reference: string;
   description: string;
   price: number;
+  stock?: Record<string, number>; // Stock by siteId
 }
 
 export interface InvoiceItem {
@@ -38,6 +40,8 @@ export interface Invoice {
   total: number;
   notes?: string;
   status: 'draft' | 'sent' | 'paid' | 'overdue';
+  siteId: string; // Which site issued this invoice
+  cashRegisterId?: string; // If paid at cash register
 }
 
 export interface Quote {
@@ -51,6 +55,7 @@ export interface Quote {
   total: number;
   notes?: string;
   status: 'draft' | 'sent' | 'accepted' | 'rejected';
+  siteId: string; // Which site issued this quote
 }
 
 export interface CompanyInfo {
@@ -80,6 +85,8 @@ export interface RolePermissions {
   products: Permission;
   users: Permission;
   settings: Permission;
+  cashRegister: Permission;
+  sites: Permission;
 }
 
 export interface User {
@@ -91,4 +98,38 @@ export interface User {
   active: boolean;
   createdAt: string;
   lastLogin?: string;
+  siteIds?: string[]; // Sites this user has access to
 }
+
+// New types for cash register and site management
+export interface CashRegister {
+  id: string;
+  name: string;
+  siteId: string;
+  initialAmount: number;
+  currentAmount: number;
+  lastReconciled?: string;
+  status: 'open' | 'closed' | 'reconciling';
+}
+
+export interface CashTransaction {
+  id: string;
+  cashRegisterId: string;
+  amount: number; // Positive for inflow, negative for outflow
+  type: 'sale' | 'refund' | 'adjustment' | 'withdrawal' | 'deposit';
+  reference?: string; // Invoice number or other reference
+  date: string;
+  notes?: string;
+  userId: string; // Who processed this transaction
+}
+
+export interface Site {
+  id: string;
+  name: string;
+  address: string;
+  phone?: string;
+  email?: string;
+  isMainSite: boolean;
+  cashRegisters?: CashRegister[];
+}
+
