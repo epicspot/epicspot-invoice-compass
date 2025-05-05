@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import DataTable from '@/components/DataTable';
 import { Client } from '@/lib/types';
@@ -12,13 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import ClientForm from '@/components/ClientForm';
 import { toast } from "@/components/ui/use-toast";
-
-// Mock data
-const mockClients: Client[] = [
-  { id: '1', name: 'Societe ABC', address: 'Abidjan, Plateau', phone: '0123456789', code: 'CLI001' },
-  { id: '2', name: 'Client XYZ', address: 'Abidjan, Cocody', phone: '9876543210', code: 'CLI002' },
-  { id: '3', name: 'Entreprise DEF', address: 'Abidjan, Treichville', phone: '5555666777', code: 'CLI003' },
-];
+import { useDatabase } from '@/lib/contexts/DatabaseContext';
 
 const columns = [
   { key: 'name', header: 'Nom / Raison sociale' },
@@ -28,52 +22,100 @@ const columns = [
 ];
 
 const Clients = () => {
-  const [clients, setClients] = useState<Client[]>(mockClients);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState<string | null>(null);
+  const { db, isInitialized } = useDatabase();
   
-  const handleCreateClient = (client: Partial<Client>) => {
-    const newClient = {
-      ...client,
-      id: String(Date.now()),
-    } as Client;
+  // Load clients from the database
+  useEffect(() => {
+    const loadClients = async () => {
+      if (!isInitialized) return;
+      
+      try {
+        setIsLoading(true);
+        const clientsList = await db.clients.getAll();
+        setClients(clientsList);
+      } catch (error) {
+        console.error("Error loading clients:", error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger les clients",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
     
-    setClients([...clients, newClient]);
-    setIsCreating(false);
-    
-    toast({
-      title: "Client créé",
-      description: `Le client ${newClient.name} a été créé avec succès.`,
-      variant: "default",
-    });
+    loadClients();
+  }, [db, isInitialized]);
+  
+  const handleCreateClient = async (client: Partial<Client>) => {
+    try {
+      const newClient = await db.clients.add(client as Omit<Client, 'id'>);
+      setClients([...clients, newClient]);
+      setIsCreating(false);
+      
+      toast({
+        title: "Client créé",
+        description: `Le client ${newClient.name} a été créé avec succès.`,
+        variant: "default",
+      });
+    } catch (error) {
+      console.error("Error creating client:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de créer le client",
+        variant: "destructive",
+      });
+    }
   };
   
-  const handleEditClient = (client: Partial<Client>) => {
-    const updatedClients = clients.map(c => 
-      c.id === client.id ? { ...c, ...client } : c
-    );
+  const handleEditClient = async (client: Partial<Client>) => {
+    if (!client.id) return;
     
-    setClients(updatedClients);
-    setIsEditing(null);
-    
-    toast({
-      title: "Client modifié",
-      description: `Le client ${client.name} a été modifié avec succès.`,
-      variant: "default",
-    });
+    try {
+      const updatedClient = await db.clients.update(client as Client);
+      setClients(clients.map(c => c.id === client.id ? updatedClient : c));
+      setIsEditing(null);
+      
+      toast({
+        title: "Client modifié",
+        description: `Le client ${client.name} a été modifié avec succès.`,
+        variant: "default",
+      });
+    } catch (error) {
+      console.error("Error updating client:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de modifier le client",
+        variant: "destructive",
+      });
+    }
   };
   
-  const handleDeleteClient = (id: string) => {
+  const handleDeleteClient = async (id: string) => {
     const clientToDelete = clients.find(c => c.id === id);
-    const updatedClients = clients.filter(c => c.id !== id);
     
-    setClients(updatedClients);
-    
-    toast({
-      title: "Client supprimé",
-      description: `Le client ${clientToDelete?.name} a été supprimé.`,
-      variant: "destructive",
-    });
+    try {
+      await db.clients.delete(id);
+      setClients(clients.filter(c => c.id !== id));
+      
+      toast({
+        title: "Client supprimé",
+        description: `Le client ${clientToDelete?.name} a été supprimé.`,
+        variant: "destructive",
+      });
+    } catch (error) {
+      console.error("Error deleting client:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer le client",
+        variant: "destructive",
+      });
+    }
   };
   
   const actions = (client: Client) => (
@@ -152,6 +194,7 @@ const Clients = () => {
         data={clients} 
         columns={columns} 
         actions={actions}
+        isLoading={isLoading}
       />
     </div>
   );
