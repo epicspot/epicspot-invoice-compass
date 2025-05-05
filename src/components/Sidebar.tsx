@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React from 'react';
+import { useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   FileText, 
@@ -12,13 +12,21 @@ import {
   X,
   UserCog
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import Logo from './Logo';
-import { cn } from '@/lib/utils';
+
+import {
+  Sidebar as SidebarRoot,
+  SidebarProvider,
+  SidebarContent,
+  SidebarHeader,
+  SidebarFooter,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+} from '@/components/ui/sidebar';
 
 const Sidebar = () => {
   const location = useLocation();
-  const [collapsed, setCollapsed] = useState(false);
 
   const menuItems = [
     { name: 'Tableau de bord', path: '/dashboard', icon: LayoutDashboard },
@@ -31,52 +39,48 @@ const Sidebar = () => {
   ];
 
   return (
-    <div className={cn(
-      "bg-sidebar min-h-screen z-10 transition-all duration-300 flex flex-col",
-      collapsed ? "w-16" : "w-64"
-    )}>
-      <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
-        {!collapsed && <Logo />}
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="text-sidebar-foreground hover:bg-sidebar-accent"
-          onClick={() => setCollapsed(!collapsed)}
-        >
-          {collapsed ? <Menu size={20} /> : <X size={20} />}
-        </Button>
-      </div>
-      <nav className="flex-1 p-2">
-        <ul className="space-y-1">
-          {menuItems.map((item) => {
-            const isActive = location.pathname === item.path;
-            return (
-              <li key={item.path}>
-                <Link 
-                  to={item.path} 
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
-                    isActive 
-                      ? "bg-sidebar-primary text-sidebar-primary-foreground" 
-                      : "text-sidebar-foreground hover:bg-sidebar-accent"
-                  )}
-                >
-                  <item.icon size={20} />
-                  {!collapsed && <span>{item.name}</span>}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
-      <div className="p-4 border-t border-sidebar-border">
-        {!collapsed && (
+    <SidebarProvider defaultOpen={true}>
+      <SidebarRoot>
+        <SidebarHeader className="border-b border-sidebar-border flex items-center justify-between p-4">
+          <Logo />
+          <button
+            className="sidebar-trigger block md:hidden"
+            aria-label="Toggle Sidebar"
+          >
+            <Menu size={20} />
+          </button>
+        </SidebarHeader>
+        
+        <SidebarContent className="p-2">
+          <SidebarMenu>
+            {menuItems.map((item) => {
+              const isActive = location.pathname === item.path;
+              
+              return (
+                <SidebarMenuItem key={item.path}>
+                  <SidebarMenuButton 
+                    asChild 
+                    isActive={isActive}
+                    tooltip={item.name}
+                  >
+                    <a href={item.path} className="flex items-center gap-3">
+                      <item.icon size={20} />
+                      <span>{item.name}</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            })}
+          </SidebarMenu>
+        </SidebarContent>
+        
+        <SidebarFooter className="p-4 border-t border-sidebar-border">
           <div className="text-xs text-sidebar-foreground/70">
             EPICSPOT_CONSULTING
           </div>
-        )}
-      </div>
-    </div>
+        </SidebarFooter>
+      </SidebarRoot>
+    </SidebarProvider>
   );
 };
 
