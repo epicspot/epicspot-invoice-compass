@@ -1,8 +1,16 @@
 
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
+import { useEffect } from "react";
 
 const Layout = () => {
+  const location = useLocation();
+  
+  // Log pour debug à chaque changement de route
+  useEffect(() => {
+    console.log("Current route:", location.pathname);
+  }, [location]);
+
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar />

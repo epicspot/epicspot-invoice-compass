@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   FileText, 
@@ -38,6 +38,7 @@ import {
 
 const Sidebar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [currentSite, setCurrentSite] = useState("site-1");
   const [sites, setSites] = useState<{id: string, name: string}[]>([]);
   const { db, isInitialized } = useDatabase();
@@ -70,6 +71,11 @@ const Sidebar = () => {
     { name: 'Utilisateurs', path: '/users', icon: UserCog },
     { name: 'Paramètres', path: '/settings', icon: Settings },
   ];
+
+  const handleMenuClick = (path: string) => {
+    console.log("Navigating to:", path);
+    navigate(path);
+  };
 
   return (
     <SidebarProvider defaultOpen={true}>
@@ -117,11 +123,12 @@ const Sidebar = () => {
                     asChild 
                     isActive={isActive}
                     tooltip={item.name}
+                    onClick={() => handleMenuClick(item.path)}
                   >
-                    <Link to={item.path} className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 cursor-pointer">
                       <item.icon size={20} />
                       <span>{item.name}</span>
-                    </Link>
+                    </div>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               );

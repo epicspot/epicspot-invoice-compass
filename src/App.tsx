@@ -32,8 +32,8 @@ const router = createHashRouter([
       { path: "invoices", element: <Invoices /> },
       { path: "quotes", element: <Quotes /> },
       { path: "users", element: <Users /> },
-      { path: "cash-registers", element: <CashRegisters /> },
-      { path: "settings", element: <Settings /> }
+      { path: "settings", element: <Settings /> },
+      { path: "cash-registers", element: <CashRegisters /> }
     ]
   }
 ]);
