@@ -9,7 +9,8 @@ import {
   Package, 
   Settings,
   Menu,
-  X
+  X,
+  UserCog
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Logo from './Logo';
@@ -25,6 +26,7 @@ const Sidebar = () => {
     { name: 'Devis', path: '/quotes', icon: FileCheck },
     { name: 'Clients', path: '/clients', icon: Users },
     { name: 'Produits', path: '/products', icon: Package },
+    { name: 'Utilisateurs', path: '/users', icon: UserCog },
     { name: 'Paramètres', path: '/settings', icon: Settings },
   ];
 

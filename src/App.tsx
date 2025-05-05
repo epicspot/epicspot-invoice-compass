@@ -11,6 +11,8 @@ import Invoices from "./pages/Invoices";
 import Quotes from "./pages/Quotes";
 import Clients from "./pages/Clients";
 import Products from "./pages/Products";
+import Users from "./pages/Users";
+import Settings from "./pages/Settings";
 import Sidebar from "./components/Sidebar";
 
 const queryClient = new QueryClient();
@@ -31,6 +33,8 @@ const App = () => (
               <Route path="/quotes" element={<Quotes />} />
               <Route path="/clients" element={<Clients />} />
               <Route path="/products" element={<Products />} />
+              <Route path="/users" element={<Users />} />
+              <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </div>

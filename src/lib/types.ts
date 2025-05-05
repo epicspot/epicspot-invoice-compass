@@ -63,3 +63,32 @@ export interface CompanyInfo {
   taxId?: string;
   bankAccount?: string;
 }
+
+export type Role = 'admin' | 'manager' | 'accountant' | 'viewer';
+
+export interface Permission {
+  create: boolean;
+  read: boolean;
+  update: boolean;
+  delete: boolean;
+}
+
+export interface RolePermissions {
+  invoices: Permission;
+  quotes: Permission;
+  clients: Permission;
+  products: Permission;
+  users: Permission;
+  settings: Permission;
+}
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: Role;
+  avatar?: string;
+  active: boolean;
+  createdAt: string;
+  lastLogin?: string;
+}
