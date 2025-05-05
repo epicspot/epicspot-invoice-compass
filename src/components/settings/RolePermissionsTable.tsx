@@ -40,7 +40,9 @@ const RolePermissionsTable: React.FC<RolePermissionsTableProps> = ({ initialRole
     clients: "Clients",
     products: "Produits",
     users: "Utilisateurs",
-    settings: "Paramètres"
+    settings: "Paramètres",
+    cashRegister: "Caisses",
+    sites: "Sites"
   };
 
   const actionLabels: Record<keyof Permission, string> = {
