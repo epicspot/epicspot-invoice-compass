@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { FileText, FileCheck, Users, Package, TrendingUp } from 'lucide-react';
+import { FileText, FileCheck, Users, Package } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import DashboardCard from '@/components/DashboardCard';
 import DataTable from '@/components/DataTable';
@@ -153,7 +153,6 @@ const Dashboard = () => {
             <DataTable 
               data={mockRecentInvoices} 
               columns={invoiceColumns} 
-              searchable={false}
             />
           </CardContent>
         </Card>
@@ -165,8 +164,7 @@ const Dashboard = () => {
           <CardContent>
             <DataTable 
               data={mockRecentQuotes} 
-              columns={quoteColumns}
-              searchable={false} 
+              columns={quoteColumns} 
             />
           </CardContent>
         </Card>
