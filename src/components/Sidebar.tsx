@@ -107,7 +107,9 @@ const Sidebar = () => {
         <SidebarContent className="p-2">
           <SidebarMenu>
             {menuItems.map((item) => {
-              const isActive = location.pathname === item.path;
+              // Vérifier si le chemin actuel commence par le chemin de l'élément du menu
+              const isActive = location.pathname === item.path || 
+                             (item.path !== '/' && location.pathname.startsWith(item.path));
               
               return (
                 <SidebarMenuItem key={item.path}>
