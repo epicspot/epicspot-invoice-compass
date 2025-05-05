@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useLocation, Link } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   FileText, 
@@ -15,6 +15,7 @@ import {
   CreditCard
 } from 'lucide-react';
 import Logo from './Logo';
+import { useDatabase } from '@/lib/contexts/DatabaseContext';
 
 import {
   Sidebar as SidebarRoot,
@@ -38,12 +39,26 @@ import {
 const Sidebar = () => {
   const location = useLocation();
   const [currentSite, setCurrentSite] = useState("site-1");
+  const [sites, setSites] = useState<{id: string, name: string}[]>([]);
+  const { db, isInitialized } = useDatabase();
 
-  // Mock sites for dropdown
-  const sites = [
-    { id: "site-1", name: "Siège Paris" },
-    { id: "site-2", name: "Succursale Lyon" }
-  ];
+  useEffect(() => {
+    if (isInitialized) {
+      const loadSites = async () => {
+        try {
+          const allSites = await db.sites.getAll();
+          setSites(allSites.map(site => ({
+            id: site.id,
+            name: site.name
+          })));
+        } catch (error) {
+          console.error("Error loading sites:", error);
+        }
+      };
+      
+      loadSites();
+    }
+  }, [isInitialized, db]);
 
   const menuItems = [
     { name: 'Tableau de bord', path: '/dashboard', icon: LayoutDashboard },
@@ -101,10 +116,10 @@ const Sidebar = () => {
                     isActive={isActive}
                     tooltip={item.name}
                   >
-                    <a href={item.path} className="flex items-center gap-3">
+                    <Link to={item.path} className="flex items-center gap-3">
                       <item.icon size={20} />
                       <span>{item.name}</span>
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               );

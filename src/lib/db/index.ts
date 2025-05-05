@@ -115,6 +115,8 @@ export const initializeDatabase = async () => {
   // Check if we already have sites
   const siteCount = await db.count('sites');
   if (siteCount === 0) {
+    console.log("Initializing database with default data...");
+    
     // Add a default site
     const defaultSite: Site = {
       id: 'site-1',
@@ -172,5 +174,93 @@ export const initializeDatabase = async () => {
     for (const product of products) {
       await db.add('products', product);
     }
+
+    // Add default invoices
+    const invoices: Invoice[] = [
+      { 
+        id: '1', 
+        number: 'FACT-2025-0001', 
+        date: '2025-05-01', 
+        client: clients[0], 
+        items: [
+          { id: '1', product: products[0], quantity: 15, amount: 1500000 },
+          { id: '2', product: products[1], quantity: 20, amount: 1000000 }
+        ],
+        subtotal: 2500000,
+        tax: 0,
+        total: 2500000,
+        status: 'paid',
+        siteId: 'site-1'
+      },
+      { 
+        id: '2', 
+        number: 'FACT-2025-0002', 
+        date: '2025-05-02', 
+        client: clients[1], 
+        items: [
+          { id: '3', product: products[1], quantity: 17, amount: 850000 }
+        ],
+        subtotal: 850000,
+        tax: 0,
+        total: 850000,
+        status: 'sent',
+        siteId: 'site-1'
+      },
+      { 
+        id: '3', 
+        number: 'FACT-2025-0003', 
+        date: '2025-05-04', 
+        client: clients[2], 
+        items: [
+          { id: '4', product: products[2], quantity: 16, amount: 1200000 }
+        ],
+        subtotal: 1200000,
+        tax: 0,
+        total: 1200000,
+        status: 'draft',
+        siteId: 'site-1'
+      }
+    ];
+    
+    for (const invoice of invoices) {
+      await db.add('invoices', invoice);
+    }
+
+    // Add default quotes
+    const quotes: Quote[] = [
+      { 
+        id: '1', 
+        number: 'DEVIS-2025-0001', 
+        date: '2025-05-01', 
+        client: clients[0], 
+        items: [
+          { id: '1', product: products[0], quantity: 20, amount: 2000000 },
+          { id: '2', product: products[1], quantity: 20, amount: 1000000 }
+        ],
+        subtotal: 3000000,
+        total: 3000000,
+        status: 'accepted',
+        siteId: 'site-1'
+      },
+      { 
+        id: '2', 
+        number: 'DEVIS-2025-0002', 
+        date: '2025-05-03', 
+        client: clients[1], 
+        items: [
+          { id: '3', product: products[1], quantity: 35, amount: 1750000 }
+        ],
+        subtotal: 1750000,
+        total: 1750000,
+        status: 'sent',
+        siteId: 'site-1'
+      }
+    ];
+    
+    for (const quote of quotes) {
+      await db.add('quotes', quote);
+    }
+
+    console.log("Database initialized with default data.");
   }
 };
