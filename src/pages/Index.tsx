@@ -9,8 +9,10 @@ const Index = () => {
 
   useEffect(() => {
     if (isInitialized) {
-      // Force redirect to dashboard when database is initialized
+      console.log("Database initialized, redirecting to dashboard");
       navigate('/dashboard');
+    } else {
+      console.log("Database not initialized yet");
     }
   }, [navigate, isInitialized]);
 

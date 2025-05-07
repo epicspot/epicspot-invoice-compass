@@ -52,6 +52,11 @@ const Sidebar = () => {
             id: site.id,
             name: site.name
           })));
+          
+          // If sites loaded but no current site is selected, set the first one
+          if (allSites.length > 0 && currentSite === "site-1") {
+            setCurrentSite(allSites[0].id);
+          }
         } catch (error) {
           console.error("Error loading sites:", error);
         }
@@ -59,7 +64,7 @@ const Sidebar = () => {
       
       loadSites();
     }
-  }, [isInitialized, db]);
+  }, [isInitialized, db, currentSite]);
 
   const menuItems = [
     { name: 'Tableau de bord', path: '/dashboard', icon: LayoutDashboard },
