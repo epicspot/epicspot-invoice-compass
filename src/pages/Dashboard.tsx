@@ -1,12 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
-import { FileText, FileCheck, Users, Package } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import DashboardCard from '@/components/DashboardCard';
-import DataTable from '@/components/DataTable';
-import { Invoice, Quote } from '@/lib/types';
 import { useDatabase } from '@/lib/contexts/DatabaseContext';
 import { useToast } from "@/hooks/use-toast";
+import { Invoice, Quote } from '@/lib/types';
+import StatsCards from '@/components/dashboard/StatsCards';
+import RecentInvoicesTable from '@/components/dashboard/RecentInvoicesTable';
+import RecentQuotesTable from '@/components/dashboard/RecentQuotesTable';
 
 const Dashboard = () => {
   const [recentInvoices, setRecentInvoices] = useState<Partial<Invoice>[]>([]);
@@ -61,9 +60,6 @@ const Dashboard = () => {
             new Date(quote.date) >= startOfMonth
           );
           
-          // Calculate new clients this month
-          // For simplicity, we'll just show the total clients for now
-          
           setDashboardStats({
             totalInvoices: allInvoices.reduce((sum, invoice) => sum + invoice.total, 0),
             totalQuotes: allQuotes.reduce((sum, quote) => sum + quote.total, 0),
@@ -89,86 +85,6 @@ const Dashboard = () => {
       loadData();
     }
   }, [isInitialized, db, toast]);
-
-  const invoiceColumns = [
-    { key: 'number', header: 'Numéro' },
-    { key: 'date', header: 'Date' },
-    { 
-      key: 'client', 
-      header: 'Client',
-      cell: (item: Partial<Invoice>) => item.client?.name
-    },
-    { 
-      key: 'total', 
-      header: 'Total',
-      cell: (item: Partial<Invoice>) => `${(item.total || 0).toLocaleString()} FCFA`
-    },
-    { 
-      key: 'status', 
-      header: 'Statut',
-      cell: (item: Partial<Invoice>) => {
-        const statusClasses = {
-          draft: 'bg-gray-200 text-gray-800',
-          sent: 'bg-blue-100 text-blue-800',
-          paid: 'bg-green-100 text-green-800',
-          overdue: 'bg-red-100 text-red-800',
-        };
-        
-        const statusLabels = {
-          draft: 'Brouillon',
-          sent: 'Envoyée',
-          paid: 'Payée',
-          overdue: 'En retard',
-        };
-        
-        return (
-          <span className={`${statusClasses[item.status || 'draft']} px-2 py-1 rounded-full text-xs font-medium`}>
-            {statusLabels[item.status || 'draft']}
-          </span>
-        );
-      }
-    },
-  ];
-
-  const quoteColumns = [
-    { key: 'number', header: 'Numéro' },
-    { key: 'date', header: 'Date' },
-    { 
-      key: 'client', 
-      header: 'Client',
-      cell: (item: Partial<Quote>) => item.client?.name
-    },
-    { 
-      key: 'total', 
-      header: 'Total',
-      cell: (item: Partial<Quote>) => `${(item.total || 0).toLocaleString()} FCFA`
-    },
-    { 
-      key: 'status', 
-      header: 'Statut',
-      cell: (item: Partial<Quote>) => {
-        const statusClasses = {
-          draft: 'bg-gray-200 text-gray-800',
-          sent: 'bg-blue-100 text-blue-800',
-          accepted: 'bg-green-100 text-green-800',
-          rejected: 'bg-red-100 text-red-800',
-        };
-        
-        const statusLabels = {
-          draft: 'Brouillon',
-          sent: 'Envoyé',
-          accepted: 'Accepté',
-          rejected: 'Refusé',
-        };
-        
-        return (
-          <span className={`${statusClasses[item.status || 'draft']} px-2 py-1 rounded-full text-xs font-medium`}>
-            {statusLabels[item.status || 'draft']}
-          </span>
-        );
-      }
-    },
-  ];
 
   const currentDate = new Date().toLocaleDateString('fr-FR', {
     day: '2-digit',
@@ -197,60 +113,14 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <DashboardCard 
-          title="Total factures" 
-          value={formatCurrency(dashboardStats.totalInvoices)} 
-          description={`${dashboardStats.monthlyInvoices} factures émises ce mois`}
-          icon={<FileText />}
-          trend={{ value: dashboardStats.monthlyInvoices > 0 ? 12 : 0, isPositive: dashboardStats.monthlyInvoices > 0 }}
-        />
-        <DashboardCard 
-          title="Total devis" 
-          value={formatCurrency(dashboardStats.totalQuotes)} 
-          description={`${dashboardStats.monthlyQuotes} devis émis ce mois`}
-          icon={<FileCheck />}
-          trend={{ value: dashboardStats.monthlyQuotes > 0 ? 5 : 0, isPositive: dashboardStats.monthlyQuotes > 0 }}
-        />
-        <DashboardCard 
-          title="Clients actifs" 
-          value={dashboardStats.totalClients.toString()} 
-          description="Clients enregistrés"
-          icon={<Users />}
-          trend={{ value: dashboardStats.newClients, isPositive: true }}
-        />
-        <DashboardCard 
-          title="Produits/Services" 
-          value={dashboardStats.totalProducts.toString()} 
-          description="Catalogue de produits et services"
-          icon={<Package />}
-        />
-      </div>
+      <StatsCards 
+        dashboardStats={dashboardStats} 
+        formatCurrency={formatCurrency} 
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Factures récentes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <DataTable 
-              data={recentInvoices} 
-              columns={invoiceColumns}
-            />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Devis récents</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <DataTable 
-              data={recentQuotes}
-              columns={quoteColumns}
-            />
-          </CardContent>
-        </Card>
+        <RecentInvoicesTable invoices={recentInvoices} />
+        <RecentQuotesTable quotes={recentQuotes} />
       </div>
     </div>
   );
