@@ -2,7 +2,7 @@
 export const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat("fr-FR", {
     style: "currency",
-    currency: "EUR"
+    currency: "XOF"
   }).format(amount);
 };
 
@@ -40,4 +40,25 @@ export const getStatusLabel = (status: string) => {
     default:
       return status;
   }
+};
+
+export const formatInvoiceStatus = (status: 'draft' | 'sent' | 'paid' | 'overdue') => {
+  const statusClasses = {
+    draft: 'bg-gray-200 text-gray-800',
+    sent: 'bg-blue-100 text-blue-800',
+    paid: 'bg-green-100 text-green-800',
+    overdue: 'bg-red-100 text-red-800',
+  };
+  
+  const statusLabels = {
+    draft: 'Brouillon',
+    sent: 'Envoyée',
+    paid: 'Payée',
+    overdue: 'En retard',
+  };
+  
+  return {
+    className: statusClasses[status],
+    label: statusLabels[status]
+  };
 };
