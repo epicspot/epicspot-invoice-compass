@@ -19,13 +19,14 @@ import { DatabaseProvider } from "./lib/contexts/DatabaseContext";
 // Create React Query client
 const queryClient = new QueryClient();
 
+// Utiliser createHashRouter au lieu de createBrowserRouter pour une meilleure compatibilité
 const router = createHashRouter([
   {
     path: "/",
     element: <Layout />,
     errorElement: <NotFound />,
     children: [
-      { index: true, element: <Index /> },
+      { index: true, element: <Dashboard /> }, // Changer l'index pour Dashboard directement
       { path: "dashboard", element: <Dashboard /> },
       { path: "clients", element: <Clients /> },
       { path: "products", element: <Products /> },

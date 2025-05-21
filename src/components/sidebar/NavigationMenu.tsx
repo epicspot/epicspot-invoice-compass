@@ -35,7 +35,7 @@ const NavigationMenu = ({ onItemClick, currentPath = '' }: NavigationMenuProps) 
   ];
 
   const handleMenuClick = (path: string) => {
-    console.log("Navigating to:", path);
+    console.log("Navigation Menu: Clicking path:", path);
     if (onItemClick) {
       onItemClick(path);
     }
@@ -44,9 +44,8 @@ const NavigationMenu = ({ onItemClick, currentPath = '' }: NavigationMenuProps) 
   return (
     <SidebarMenu>
       {menuItems.map((item) => {
-        // Vérifier si le chemin actuel commence par le chemin de l'élément du menu
-        const isActive = currentPath === item.path || 
-                      (item.path !== '/' && currentPath.startsWith(item.path));
+        // Simplifier la vérification pour une route active
+        const isActive = currentPath === item.path;
         
         return (
           <SidebarMenuItem key={item.path}>

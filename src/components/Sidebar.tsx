@@ -28,17 +28,29 @@ const Sidebar = () => {
       const loadSites = async () => {
         try {
           const allSites = await db.sites.getAll();
-          setSites(allSites.map(site => ({
-            id: site.id,
-            name: site.name
-          })));
-          
-          // If sites loaded but no current site is selected, set the first one
-          if (allSites.length > 0 && currentSite === "site-1") {
-            setCurrentSite(allSites[0].id);
+          if (allSites && allSites.length > 0) {
+            setSites(allSites.map(site => ({
+              id: site.id,
+              name: site.name
+            })));
+            
+            // Si sites loaded but no current site is selected, set the first one
+            if (allSites.length > 0 && currentSite === "site-1") {
+              setCurrentSite(allSites[0].id);
+            }
+          } else {
+            console.log("No sites found or sites array is empty");
+            // Ajouter des sites par défaut si aucun n'est trouvé
+            setSites([
+              { id: "site-default", name: "Site par défaut" }
+            ]);
           }
         } catch (error) {
           console.error("Error loading sites:", error);
+          // Sites par défaut en cas d'erreur
+          setSites([
+            { id: "site-default", name: "Site par défaut" }
+          ]);
         }
       };
       
@@ -47,7 +59,12 @@ const Sidebar = () => {
   }, [isInitialized, db, currentSite]);
 
   const handleMenuClick = (path: string) => {
-    navigate(path);
+    console.log("Navigation requested to:", path);
+    try {
+      navigate(path);
+    } catch (error) {
+      console.error("Navigation error:", error);
+    }
   };
 
   return (
