@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import DataTable from '@/components/DataTable';
 import { Product } from '@/lib/types';
@@ -12,72 +12,132 @@ import {
 } from '@/components/ui/dropdown-menu';
 import ProductForm from '@/components/ProductForm';
 import { toast } from "@/components/ui/use-toast";
-
-// Mock data
-const mockProducts: Product[] = [
-  { id: '1', reference: 'P1', description: 'Produit 1', price: 100000 },
-  { id: '2', reference: 'P2', description: 'Service mensuel', price: 50000 },
-  { id: '3', reference: 'P3', description: 'Consultation', price: 75000 },
-];
-
-const columns = [
-  { key: 'reference', header: 'Référence' },
-  { key: 'description', header: 'Description' },
-  { 
-    key: 'price', 
-    header: 'Prix unitaire',
-    cell: (item: Product) => `${item.price.toLocaleString()} FCFA`
-  },
-];
+import { useDatabase } from '@/lib/contexts/DatabaseContext';
 
 const Products = () => {
-  const [products, setProducts] = useState<Product[]>(mockProducts);
+  const [products, setProducts] = useState<Product[]>([]);
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const { db, isInitialized } = useDatabase();
   
-  const handleCreateProduct = (product: Partial<Product>) => {
-    const newProduct = {
-      ...product,
-      id: String(Date.now()),
-    } as Product;
-    
-    setProducts([...products, newProduct]);
-    setIsCreating(false);
-    
-    toast({
-      title: "Produit créé",
-      description: `Le produit ${newProduct.reference} a été créé avec succès.`,
-      variant: "default",
-    });
+  // Load products from database
+  useEffect(() => {
+    if (isInitialized) {
+      const loadProducts = async () => {
+        try {
+          setIsLoading(true);
+          const allProducts = await db.products.getAll();
+          setProducts(allProducts);
+        } catch (error) {
+          console.error("Error loading products:", error);
+          toast({
+            title: "Erreur",
+            description: "Impossible de charger les produits.",
+            variant: "destructive",
+          });
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
+      loadProducts();
+    }
+  }, [isInitialized, db.products]);
+  
+  const handleCreateProduct = async (product: Partial<Product>) => {
+    try {
+      setIsLoading(true);
+      const newProduct = await db.products.add(product as Omit<Product, 'id'>);
+      
+      setProducts([...products, newProduct]);
+      setIsCreating(false);
+      
+      toast({
+        title: "Produit créé",
+        description: `Le produit ${newProduct.reference} a été créé avec succès.`,
+        variant: "default",
+      });
+    } catch (error) {
+      console.error("Error creating product:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de créer le produit.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
   
-  const handleEditProduct = (product: Partial<Product>) => {
-    const updatedProducts = products.map(p => 
-      p.id === product.id ? { ...p, ...product } : p
-    );
-    
-    setProducts(updatedProducts);
-    setIsEditing(null);
-    
-    toast({
-      title: "Produit modifié",
-      description: `Le produit ${product.reference} a été modifié avec succès.`,
-      variant: "default",
-    });
+  const handleEditProduct = async (product: Partial<Product>) => {
+    try {
+      if (!product.id) return;
+      
+      setIsLoading(true);
+      const updatedProduct = await db.products.update(product as Product);
+      
+      const updatedProducts = products.map(p => 
+        p.id === product.id ? updatedProduct : p
+      );
+      
+      setProducts(updatedProducts);
+      setIsEditing(null);
+      
+      toast({
+        title: "Produit modifié",
+        description: `Le produit ${product.reference} a été modifié avec succès.`,
+        variant: "default",
+      });
+    } catch (error) {
+      console.error("Error updating product:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de modifier le produit.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
   
-  const handleDeleteProduct = (id: string) => {
-    const productToDelete = products.find(p => p.id === id);
-    const updatedProducts = products.filter(p => p.id !== id);
-    
-    setProducts(updatedProducts);
-    
-    toast({
-      title: "Produit supprimé",
-      description: `Le produit ${productToDelete?.reference} a été supprimé.`,
-      variant: "destructive",
-    });
+  const handleDeleteProduct = async (id: string) => {
+    try {
+      const productToDelete = products.find(p => p.id === id);
+      if (!productToDelete) return;
+      
+      setIsLoading(true);
+      await db.products.delete(id);
+      
+      const updatedProducts = products.filter(p => p.id !== id);
+      setProducts(updatedProducts);
+      
+      toast({
+        title: "Produit supprimé",
+        description: `Le produit ${productToDelete.reference} a été supprimé.`,
+        variant: "destructive",
+      });
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer le produit.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
+  
+  const columns = [
+    { key: 'reference', header: 'Référence' },
+    { key: 'description', header: 'Description' },
+    { 
+      key: 'price', 
+      header: 'Prix unitaire',
+      cell: (item: Product) => `${item.price.toLocaleString()} FCFA`
+    },
+  ];
   
   const actions = (product: Product) => (
     <div className="flex justify-end">
@@ -121,7 +181,10 @@ const Products = () => {
   if (isCreating) {
     return (
       <div className="p-6">
-        <ProductForm onSubmit={handleCreateProduct} />
+        <ProductForm 
+          onSubmit={handleCreateProduct} 
+          isLoading={isLoading} 
+        />
       </div>
     );
   }
@@ -134,6 +197,7 @@ const Products = () => {
         <ProductForm 
           initialProduct={productToEdit} 
           onSubmit={handleEditProduct} 
+          isLoading={isLoading}
         />
       </div>
     );
@@ -155,6 +219,7 @@ const Products = () => {
         data={products} 
         columns={columns} 
         actions={actions}
+        isLoading={isLoading}
       />
     </div>
   );
