@@ -22,6 +22,8 @@ const Sidebar = () => {
   const [currentSite, setCurrentSite] = useState("site-1");
   const [sites, setSites] = useState<{id: string, name: string}[]>([]);
   const { db, isInitialized } = useDatabase();
+  // État pour contrôler l'ouverture de la sidebar mobile
+  const [openMobile, setOpenMobile] = useState(false);
 
   useEffect(() => {
     if (isInitialized) {
@@ -62,6 +64,8 @@ const Sidebar = () => {
     console.log("Navigation requested to:", path);
     try {
       navigate(path);
+      // Fermer la sidebar mobile après la navigation
+      setOpenMobile(false);
     } catch (error) {
       console.error("Navigation error:", error);
     }
@@ -76,6 +80,7 @@ const Sidebar = () => {
             <button
               className="sidebar-trigger block md:hidden"
               aria-label="Toggle Sidebar"
+              onClick={() => setOpenMobile(!openMobile)}
             >
               <Menu size={20} className="text-white" />
             </button>

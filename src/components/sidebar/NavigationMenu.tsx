@@ -45,7 +45,8 @@ const NavigationMenu = ({ onItemClick, currentPath = '' }: NavigationMenuProps) 
     <SidebarMenu>
       {menuItems.map((item) => {
         // Simplifier la vérification pour une route active
-        const isActive = currentPath === item.path;
+        const isActive = currentPath === item.path || 
+                        (item.path !== '/' && currentPath.startsWith(item.path));
         
         return (
           <SidebarMenuItem key={item.path}>

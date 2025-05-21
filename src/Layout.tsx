@@ -11,8 +11,9 @@ const Layout = () => {
     console.log("Current route:", location.pathname);
   }, [location]);
 
-  // Si l'URL contient un hashtag, rediriger vers la bonne route
-  if (location.hash) {
+  // Si l'URL contient un hashtag dans le pathname, rediriger vers la bonne route
+  // Mais on vérifie que ce n'est pas le hashtag de base du hashRouter
+  if (location.hash && !location.hash.startsWith('#/')) {
     const targetRoute = location.hash.substring(1); // Remove the # character
     console.log("Redirecting from hash to path:", targetRoute);
     return <Navigate to={targetRoute} replace />;
