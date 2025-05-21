@@ -1,19 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  FileText, 
-  FileCheck,
-  Users, 
-  Package, 
-  Settings,
-  Menu,
-  X,
-  UserCog,
-  Building,
-  CreditCard
-} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Menu } from 'lucide-react';
 import Logo from './Logo';
 import { useDatabase } from '@/lib/contexts/DatabaseContext';
 
@@ -23,21 +11,12 @@ import {
   SidebarContent,
   SidebarHeader,
   SidebarFooter,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
 } from '@/components/ui/sidebar';
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import SiteSelector from './sidebar/SiteSelector';
+import NavigationMenu from './sidebar/NavigationMenu';
 
 const Sidebar = () => {
-  const location = useLocation();
   const navigate = useNavigate();
   const [currentSite, setCurrentSite] = useState("site-1");
   const [sites, setSites] = useState<{id: string, name: string}[]>([]);
@@ -66,19 +45,7 @@ const Sidebar = () => {
     }
   }, [isInitialized, db, currentSite]);
 
-  const menuItems = [
-    { name: 'Tableau de bord', path: '/dashboard', icon: LayoutDashboard },
-    { name: 'Factures', path: '/invoices', icon: FileText },
-    { name: 'Devis', path: '/quotes', icon: FileCheck },
-    { name: 'Clients', path: '/clients', icon: Users },
-    { name: 'Produits', path: '/products', icon: Package },
-    { name: 'Caisses', path: '/cash-registers', icon: CreditCard },
-    { name: 'Utilisateurs', path: '/users', icon: UserCog },
-    { name: 'Paramètres', path: '/settings', icon: Settings },
-  ];
-
   const handleMenuClick = (path: string) => {
-    console.log("Navigating to:", path);
     navigate(path);
   };
 
@@ -96,49 +63,15 @@ const Sidebar = () => {
             </button>
           </div>
           
-          <div className="w-full">
-            <Select value={currentSite} onValueChange={setCurrentSite}>
-              <SelectTrigger className="w-full bg-sidebar text-sidebar-foreground border-sidebar-border">
-                <div className="flex items-center">
-                  <Building className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="Sélectionnez un site" />
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                {sites.map((site) => (
-                  <SelectItem key={site.id} value={site.id}>
-                    {site.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <SiteSelector
+            currentSite={currentSite}
+            setCurrentSite={setCurrentSite}
+            sites={sites}
+          />
         </SidebarHeader>
         
         <SidebarContent className="p-2">
-          <SidebarMenu>
-            {menuItems.map((item) => {
-              // Vérifier si le chemin actuel commence par le chemin de l'élément du menu
-              const isActive = location.pathname === item.path || 
-                             (item.path !== '/' && location.pathname.startsWith(item.path));
-              
-              return (
-                <SidebarMenuItem key={item.path}>
-                  <SidebarMenuButton 
-                    asChild 
-                    isActive={isActive}
-                    tooltip={item.name}
-                    onClick={() => handleMenuClick(item.path)}
-                  >
-                    <div className="flex items-center gap-3 cursor-pointer">
-                      <item.icon size={20} />
-                      <span>{item.name}</span>
-                    </div>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              );
-            })}
-          </SidebarMenu>
+          <NavigationMenu onItemClick={handleMenuClick} />
         </SidebarContent>
         
         <SidebarFooter className="p-4 border-t border-sidebar-border">
