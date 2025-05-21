@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import DataTable from '@/components/DataTable';
@@ -6,9 +5,10 @@ import { Invoice } from '@/lib/types';
 
 interface RecentInvoicesTableProps {
   invoices: Partial<Invoice>[];
+  isLoading?: boolean;
 }
 
-const RecentInvoicesTable = ({ invoices }: RecentInvoicesTableProps) => {
+const RecentInvoicesTable = ({ invoices, isLoading = false }: RecentInvoicesTableProps) => {
   const columns = [
     { key: 'number', header: 'Numéro' },
     { key: 'date', header: 'Date' },
@@ -58,6 +58,7 @@ const RecentInvoicesTable = ({ invoices }: RecentInvoicesTableProps) => {
         <DataTable 
           data={invoices} 
           columns={columns}
+          isLoading={isLoading}
         />
       </CardContent>
     </Card>

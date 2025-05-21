@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import DataTable from '@/components/DataTable';
@@ -6,9 +5,10 @@ import { Quote } from '@/lib/types';
 
 interface RecentQuotesTableProps {
   quotes: Partial<Quote>[];
+  isLoading?: boolean;
 }
 
-const RecentQuotesTable = ({ quotes }: RecentQuotesTableProps) => {
+const RecentQuotesTable = ({ quotes, isLoading = false }: RecentQuotesTableProps) => {
   const columns = [
     { key: 'number', header: 'Numéro' },
     { key: 'date', header: 'Date' },
@@ -58,6 +58,7 @@ const RecentQuotesTable = ({ quotes }: RecentQuotesTableProps) => {
         <DataTable 
           data={quotes}
           columns={columns}
+          isLoading={isLoading}
         />
       </CardContent>
     </Card>
