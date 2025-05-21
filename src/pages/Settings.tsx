@@ -87,7 +87,7 @@ const initialSites: Site[] = [
 
 const Settings = () => {
   return (
-    <div className="p-6 space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6">
       <h1 className="text-3xl font-bold">Paramètres</h1>
       
       <Tabs defaultValue="company">

@@ -22,8 +22,10 @@ const Layout = () => {
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
       <Sidebar />
-      <main className="flex-1 overflow-auto p-2 md:p-6">
-        <Outlet />
+      <main className="flex-1 overflow-auto">
+        <div className="max-w-5xl mx-auto p-4 md:p-6">
+          <Outlet />
+        </div>
       </main>
     </div>
   );
