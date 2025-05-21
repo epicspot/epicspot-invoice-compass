@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import DataTable from '@/components/DataTable';
@@ -27,7 +28,7 @@ const RecentQuotesTable = ({ quotes, isLoading = false }: RecentQuotesTableProps
       header: 'Statut',
       cell: (item: Partial<Quote>) => {
         const statusClasses = {
-          draft: 'bg-gray-200 text-gray-800',
+          draft: 'bg-gray-100 text-gray-800',
           sent: 'bg-blue-100 text-blue-800',
           accepted: 'bg-green-100 text-green-800',
           rejected: 'bg-red-100 text-red-800',
@@ -50,9 +51,9 @@ const RecentQuotesTable = ({ quotes, isLoading = false }: RecentQuotesTableProps
   ];
   
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Devis récents</CardTitle>
+    <Card className="shadow-sm border border-gray-200">
+      <CardHeader className="bg-gray-50 border-b border-gray-200">
+        <CardTitle className="text-lg font-semibold text-gray-800">Devis récents</CardTitle>
       </CardHeader>
       <CardContent>
         <DataTable 

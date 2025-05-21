@@ -19,7 +19,7 @@ const SiteSelector = ({ currentSite, setCurrentSite, sites }: SiteSelectorProps)
   return (
     <div className="w-full">
       <Select value={currentSite} onValueChange={setCurrentSite}>
-        <SelectTrigger className="w-full bg-sidebar text-sidebar-foreground border-sidebar-border">
+        <SelectTrigger className="w-full bg-white/10 text-white border-white/20 focus:ring-white/30">
           <div className="flex items-center">
             <Building className="mr-2 h-4 w-4" />
             <SelectValue placeholder="Sélectionnez un site" />

@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   FileText, 
@@ -20,12 +19,10 @@ import {
 
 interface NavigationMenuProps {
   onItemClick?: (path: string) => void;
+  currentPath?: string;
 }
 
-const NavigationMenu = ({ onItemClick }: NavigationMenuProps) => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  
+const NavigationMenu = ({ onItemClick, currentPath = '' }: NavigationMenuProps) => {
   const menuItems = [
     { name: 'Tableau de bord', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Factures', path: '/invoices', icon: FileText },
@@ -41,8 +38,6 @@ const NavigationMenu = ({ onItemClick }: NavigationMenuProps) => {
     console.log("Navigating to:", path);
     if (onItemClick) {
       onItemClick(path);
-    } else {
-      navigate(path);
     }
   };
 
@@ -50,8 +45,8 @@ const NavigationMenu = ({ onItemClick }: NavigationMenuProps) => {
     <SidebarMenu>
       {menuItems.map((item) => {
         // Vérifier si le chemin actuel commence par le chemin de l'élément du menu
-        const isActive = location.pathname === item.path || 
-                      (item.path !== '/' && location.pathname.startsWith(item.path));
+        const isActive = currentPath === item.path || 
+                      (item.path !== '/' && currentPath.startsWith(item.path));
         
         return (
           <SidebarMenuItem key={item.path}>
@@ -61,7 +56,7 @@ const NavigationMenu = ({ onItemClick }: NavigationMenuProps) => {
               tooltip={item.name}
               onClick={() => handleMenuClick(item.path)}
             >
-              <div className="flex items-center gap-3 cursor-pointer">
+              <div className={`flex items-center gap-3 cursor-pointer p-2 rounded-md transition-colors ${isActive ? 'bg-sidebar-accent text-white font-medium' : 'hover:bg-sidebar-accent/50'}`}>
                 <item.icon size={20} />
                 <span>{item.name}</span>
               </div>

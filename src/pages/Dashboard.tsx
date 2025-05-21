@@ -15,10 +15,10 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="p-4 md:p-6 space-y-6">
+      <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Tableau de bord</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Tableau de bord</h1>
           <p className="text-muted-foreground">{currentDate}</p>
         </div>
       </div>

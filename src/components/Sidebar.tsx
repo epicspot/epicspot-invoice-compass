@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Menu } from 'lucide-react';
 import Logo from './Logo';
 import { useDatabase } from '@/lib/contexts/DatabaseContext';
@@ -18,6 +18,7 @@ import NavigationMenu from './sidebar/NavigationMenu';
 
 const Sidebar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [currentSite, setCurrentSite] = useState("site-1");
   const [sites, setSites] = useState<{id: string, name: string}[]>([]);
   const { db, isInitialized } = useDatabase();
@@ -52,14 +53,14 @@ const Sidebar = () => {
   return (
     <SidebarProvider defaultOpen={true}>
       <SidebarRoot>
-        <SidebarHeader className="border-b border-sidebar-border flex flex-col items-start justify-between p-4 gap-4">
+        <SidebarHeader className="border-b border-sidebar-border bg-epic-blue flex flex-col items-start justify-between p-4 gap-4">
           <div className="flex w-full items-center justify-between">
             <Logo />
             <button
               className="sidebar-trigger block md:hidden"
               aria-label="Toggle Sidebar"
             >
-              <Menu size={20} />
+              <Menu size={20} className="text-white" />
             </button>
           </div>
           
@@ -70,12 +71,15 @@ const Sidebar = () => {
           />
         </SidebarHeader>
         
-        <SidebarContent className="p-2">
-          <NavigationMenu onItemClick={handleMenuClick} />
+        <SidebarContent className="p-2 bg-sidebar">
+          <NavigationMenu 
+            onItemClick={handleMenuClick}
+            currentPath={location.pathname}
+          />
         </SidebarContent>
         
-        <SidebarFooter className="p-4 border-t border-sidebar-border">
-          <div className="text-xs text-sidebar-foreground/70">
+        <SidebarFooter className="p-4 border-t border-sidebar-border bg-sidebar">
+          <div className="text-xs text-sidebar-foreground/70 text-center">
             EPICSPOT_CONSULTING
           </div>
         </SidebarFooter>
