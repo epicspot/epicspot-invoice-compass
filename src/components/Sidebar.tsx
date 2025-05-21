@@ -1,9 +1,20 @@
 
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Menu } from 'lucide-react';
+import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import { 
+  LayoutDashboard, 
+  FileText, 
+  FileCheck,
+  Users, 
+  Package, 
+  Settings,
+  Menu,
+  X,
+  UserCog,
+  Building,
+  CreditCard
+} from 'lucide-react';
 import Logo from './Logo';
-import { useDatabase } from '@/lib/contexts/DatabaseContext';
 
 import {
   Sidebar as SidebarRoot,
@@ -11,97 +22,98 @@ import {
   SidebarContent,
   SidebarHeader,
   SidebarFooter,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
 } from '@/components/ui/sidebar';
 
-import SiteSelector from './sidebar/SiteSelector';
-import NavigationMenu from './sidebar/NavigationMenu';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const Sidebar = () => {
-  const navigate = useNavigate();
   const location = useLocation();
   const [currentSite, setCurrentSite] = useState("site-1");
-  const [sites, setSites] = useState<{id: string, name: string}[]>([]);
-  const { db, isInitialized } = useDatabase();
-  // État pour contrôler l'ouverture de la sidebar mobile
-  const [openMobile, setOpenMobile] = useState(false);
 
-  useEffect(() => {
-    if (isInitialized) {
-      const loadSites = async () => {
-        try {
-          const allSites = await db.sites.getAll();
-          if (allSites && allSites.length > 0) {
-            setSites(allSites.map(site => ({
-              id: site.id,
-              name: site.name
-            })));
-            
-            // Si sites loaded but no current site is selected, set the first one
-            if (allSites.length > 0 && currentSite === "site-1") {
-              setCurrentSite(allSites[0].id);
-            }
-          } else {
-            console.log("No sites found or sites array is empty");
-            // Ajouter des sites par défaut si aucun n'est trouvé
-            setSites([
-              { id: "site-default", name: "Site par défaut" }
-            ]);
-          }
-        } catch (error) {
-          console.error("Error loading sites:", error);
-          // Sites par défaut en cas d'erreur
-          setSites([
-            { id: "site-default", name: "Site par défaut" }
-          ]);
-        }
-      };
-      
-      loadSites();
-    }
-  }, [isInitialized, db, currentSite]);
+  // Mock sites for dropdown
+  const sites = [
+    { id: "site-1", name: "Siège Paris" },
+    { id: "site-2", name: "Succursale Lyon" }
+  ];
 
-  const handleMenuClick = (path: string) => {
-    console.log("Navigation requested to:", path);
-    try {
-      navigate(path);
-      // Fermer la sidebar mobile après la navigation
-      setOpenMobile(false);
-    } catch (error) {
-      console.error("Navigation error:", error);
-    }
-  };
+  const menuItems = [
+    { name: 'Tableau de bord', path: '/dashboard', icon: LayoutDashboard },
+    { name: 'Factures', path: '/invoices', icon: FileText },
+    { name: 'Devis', path: '/quotes', icon: FileCheck },
+    { name: 'Clients', path: '/clients', icon: Users },
+    { name: 'Produits', path: '/products', icon: Package },
+    { name: 'Caisses', path: '/cash-registers', icon: CreditCard },
+    { name: 'Utilisateurs', path: '/users', icon: UserCog },
+    { name: 'Paramètres', path: '/settings', icon: Settings },
+  ];
 
   return (
     <SidebarProvider defaultOpen={true}>
       <SidebarRoot>
-        <SidebarHeader className="border-b border-sidebar-border bg-epic-blue flex flex-col items-start justify-between p-4 gap-4">
+        <SidebarHeader className="border-b border-sidebar-border flex flex-col items-start justify-between p-4 gap-4">
           <div className="flex w-full items-center justify-between">
             <Logo />
             <button
               className="sidebar-trigger block md:hidden"
               aria-label="Toggle Sidebar"
-              onClick={() => setOpenMobile(!openMobile)}
             >
-              <Menu size={20} className="text-white" />
+              <Menu size={20} />
             </button>
           </div>
           
-          <SiteSelector
-            currentSite={currentSite}
-            setCurrentSite={setCurrentSite}
-            sites={sites}
-          />
+          <div className="w-full">
+            <Select value={currentSite} onValueChange={setCurrentSite}>
+              <SelectTrigger className="w-full bg-sidebar text-sidebar-foreground border-sidebar-border">
+                <div className="flex items-center">
+                  <Building className="mr-2 h-4 w-4" />
+                  <SelectValue placeholder="Sélectionnez un site" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                {sites.map((site) => (
+                  <SelectItem key={site.id} value={site.id}>
+                    {site.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </SidebarHeader>
         
-        <SidebarContent className="p-2 bg-sidebar">
-          <NavigationMenu 
-            onItemClick={handleMenuClick}
-            currentPath={location.pathname}
-          />
+        <SidebarContent className="p-2">
+          <SidebarMenu>
+            {menuItems.map((item) => {
+              const isActive = location.pathname === item.path;
+              
+              return (
+                <SidebarMenuItem key={item.path}>
+                  <SidebarMenuButton 
+                    asChild 
+                    isActive={isActive}
+                    tooltip={item.name}
+                  >
+                    <a href={item.path} className="flex items-center gap-3">
+                      <item.icon size={20} />
+                      <span>{item.name}</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            })}
+          </SidebarMenu>
         </SidebarContent>
         
-        <SidebarFooter className="p-4 border-t border-sidebar-border bg-sidebar">
-          <div className="text-xs text-sidebar-foreground/70 text-center">
+        <SidebarFooter className="p-4 border-t border-sidebar-border">
+          <div className="text-xs text-sidebar-foreground/70">
             EPICSPOT_CONSULTING
           </div>
         </SidebarFooter>

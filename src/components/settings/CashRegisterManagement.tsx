@@ -26,7 +26,7 @@ interface CashRegisterManagementProps {
 }
 
 const CashRegisterManagement: React.FC<CashRegisterManagementProps> = ({ siteId }) => {
-  // Mock data for initial cash registers with correct status types
+  // Mock data for initial cash registers
   const initialCashRegisters: CashRegister[] = [
     {
       id: "reg-1",
@@ -35,7 +35,7 @@ const CashRegisterManagement: React.FC<CashRegisterManagementProps> = ({ siteId 
       initialAmount: 100,
       currentAmount: 350.75,
       lastReconciled: "2025-05-04T15:30:00",
-      status: "open" as const
+      status: "open"
     },
     {
       id: "reg-2",
@@ -44,7 +44,7 @@ const CashRegisterManagement: React.FC<CashRegisterManagementProps> = ({ siteId 
       initialAmount: 50,
       currentAmount: 120.25,
       lastReconciled: "2025-05-03T18:45:00",
-      status: "closed" as const
+      status: "closed"
     }
   ];
 

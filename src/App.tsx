@@ -1,55 +1,49 @@
 
-import { RouterProvider, createHashRouter } from "react-router-dom";
-import { ThemeProvider } from "next-themes";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
-import Layout from "./Layout";
-import Dashboard from "@/pages/Dashboard";
-import Index from "@/pages/Index";
-import NotFound from "@/pages/NotFound";
-import Clients from "@/pages/Clients";
-import Products from "@/pages/Products";
-import Invoices from "@/pages/Invoices";
-import Quotes from "@/pages/Quotes";
-import Users from "@/pages/Users";
-import Settings from "@/pages/Settings";
-import CashRegisters from "@/pages/CashRegisters";
-import { DatabaseProvider } from "./lib/contexts/DatabaseContext";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Index from "./pages/Index";
+import NotFound from "./pages/NotFound";
+import Dashboard from "./pages/Dashboard";
+import Invoices from "./pages/Invoices";
+import Quotes from "./pages/Quotes";
+import Clients from "./pages/Clients";
+import Products from "./pages/Products";
+import Users from "./pages/Users";
+import Settings from "./pages/Settings";
+import CashRegisters from "./pages/CashRegisters";
+import Sidebar from "./components/Sidebar";
 
-// Create React Query client
 const queryClient = new QueryClient();
 
-// Utiliser createHashRouter au lieu de createBrowserRouter pour une meilleure compatibilité
-const router = createHashRouter([
-  {
-    path: "/",
-    element: <Layout />,
-    errorElement: <NotFound />,
-    children: [
-      { index: true, element: <Dashboard /> }, // Changer l'index pour Dashboard directement
-      { path: "dashboard", element: <Dashboard /> },
-      { path: "clients", element: <Clients /> },
-      { path: "products", element: <Products /> },
-      { path: "invoices", element: <Invoices /> },
-      { path: "quotes", element: <Quotes /> },
-      { path: "users", element: <Users /> },
-      { path: "settings", element: <Settings /> },
-      { path: "cash-registers", element: <CashRegisters /> }
-    ]
-  }
-]);
-
-function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <DatabaseProvider>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-          <RouterProvider router={router} />
-          <Toaster />
-        </ThemeProvider>
-      </DatabaseProvider>
-    </QueryClientProvider>
-  );
-}
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <BrowserRouter>
+      <TooltipProvider>
+        <div className="flex min-h-screen">
+          <Sidebar />
+          <div className="flex-1 overflow-auto">
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/invoices" element={<Invoices />} />
+              <Route path="/quotes" element={<Quotes />} />
+              <Route path="/clients" element={<Clients />} />
+              <Route path="/products" element={<Products />} />
+              <Route path="/cash-registers" element={<CashRegisters />} />
+              <Route path="/users" element={<Users />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </div>
+        </div>
+        <Toaster />
+        <Sonner />
+      </TooltipProvider>
+    </BrowserRouter>
+  </QueryClientProvider>
+);
 
 export default App;

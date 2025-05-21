@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { Product } from '@/lib/types';
-import { Package, ArrowLeft } from 'lucide-react';
+import { Package } from 'lucide-react';
 
 interface ProductFormProps {
   initialProduct?: Partial<Product>;
@@ -31,21 +31,15 @@ const ProductForm: React.FC<ProductFormProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-3xl mx-auto">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold flex items-center gap-2">
           <Package className="h-5 w-5" />
-          {initialProduct?.id ? 'Modifier le produit / service' : 'Nouveau produit / service'}
+          {initialProduct ? 'Modifier le produit / service' : 'Nouveau produit / service'}
         </h2>
-        <div className="flex gap-2">
-          <Button type="button" variant="outline" onClick={() => window.history.back()}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Retour
-          </Button>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? 'Chargement...' : initialProduct?.id ? 'Mettre à jour' : 'Enregistrer'}
-          </Button>
-        </div>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? 'Chargement...' : initialProduct ? 'Mettre à jour' : 'Enregistrer'}
+        </Button>
       </div>
 
       <Card>

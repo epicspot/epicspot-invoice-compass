@@ -15,7 +15,7 @@ import {
 const CashRegisters = () => {
   const { toast } = useToast();
   
-  // Mock data for cash registers with correct status type
+  // Mock data for cash registers
   const [cashRegisters, setCashRegisters] = useState<CashRegister[]>([
     {
       id: "reg-1",
@@ -24,7 +24,7 @@ const CashRegisters = () => {
       initialAmount: 100,
       currentAmount: 350.75,
       lastReconciled: "2025-05-04T15:30:00",
-      status: "open" as const
+      status: "open"
     },
     {
       id: "reg-2",
@@ -33,7 +33,7 @@ const CashRegisters = () => {
       initialAmount: 50,
       currentAmount: 120.25,
       lastReconciled: "2025-05-03T18:45:00",
-      status: "closed" as const
+      status: "closed"
     }
   ]);
   
@@ -74,7 +74,7 @@ const CashRegisters = () => {
 
   const handleOpenRegister = (register: CashRegister) => {
     if (register.status === "closed") {
-      const updatedRegister = {...register, status: "open" as const};
+      const updatedRegister = {...register, status: "open"};
       setCashRegisters(
         cashRegisters.map(reg => reg.id === register.id ? updatedRegister : reg)
       );
@@ -93,7 +93,7 @@ const CashRegisters = () => {
 
   const handleCloseRegister = (register: CashRegister) => {
     if (register.status === "open") {
-      const updatedRegister = {...register, status: "closed" as const};
+      const updatedRegister = {...register, status: "closed"};
       setCashRegisters(
         cashRegisters.map(reg => reg.id === register.id ? updatedRegister : reg)
       );
@@ -113,7 +113,7 @@ const CashRegisters = () => {
   const handleReconcileRegister = (register: CashRegister) => {
     const updatedRegister = {
       ...register, 
-      status: "reconciling" as const, 
+      status: "reconciling", 
       lastReconciled: new Date().toISOString()
     };
     setCashRegisters(
