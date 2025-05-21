@@ -24,7 +24,7 @@ const CashRegisters = () => {
       initialAmount: 100,
       currentAmount: 350.75,
       lastReconciled: "2025-05-04T15:30:00",
-      status: "open"
+      status: "open" as const // Using 'as const' to ensure TypeScript knows this is a literal
     },
     {
       id: "reg-2",
@@ -33,7 +33,7 @@ const CashRegisters = () => {
       initialAmount: 50,
       currentAmount: 120.25,
       lastReconciled: "2025-05-03T18:45:00",
-      status: "closed"
+      status: "closed" as const // Using 'as const' to ensure TypeScript knows this is a literal
     }
   ]);
   
@@ -74,7 +74,7 @@ const CashRegisters = () => {
 
   const handleOpenRegister = (register: CashRegister) => {
     if (register.status === "closed") {
-      const updatedRegister = {...register, status: "open"};
+      const updatedRegister = {...register, status: "open" as const};
       setCashRegisters(
         cashRegisters.map(reg => reg.id === register.id ? updatedRegister : reg)
       );
@@ -93,7 +93,7 @@ const CashRegisters = () => {
 
   const handleCloseRegister = (register: CashRegister) => {
     if (register.status === "open") {
-      const updatedRegister = {...register, status: "closed"};
+      const updatedRegister = {...register, status: "closed" as const};
       setCashRegisters(
         cashRegisters.map(reg => reg.id === register.id ? updatedRegister : reg)
       );
@@ -113,7 +113,7 @@ const CashRegisters = () => {
   const handleReconcileRegister = (register: CashRegister) => {
     const updatedRegister = {
       ...register, 
-      status: "reconciling", 
+      status: "reconciling" as const, 
       lastReconciled: new Date().toISOString()
     };
     setCashRegisters(

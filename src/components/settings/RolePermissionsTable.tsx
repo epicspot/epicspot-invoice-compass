@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -40,7 +39,9 @@ const RolePermissionsTable: React.FC<RolePermissionsTableProps> = ({ initialRole
     clients: "Clients",
     products: "Produits",
     users: "Utilisateurs",
-    settings: "Paramètres"
+    settings: "Paramètres",
+    cashRegister: "Caisse", // Added missing property
+    sites: "Sites" // Added missing property
   };
 
   const actionLabels: Record<keyof Permission, string> = {
