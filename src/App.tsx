@@ -16,6 +16,7 @@ import Users from "./pages/Users";
 import Settings from "./pages/Settings";
 import CashRegisters from "./pages/CashRegisters";
 import Sidebar from "./components/Sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 const App = () => {
   const queryClientRef = useRef<QueryClient>();
@@ -28,23 +29,25 @@ const App = () => {
     <QueryClientProvider client={queryClientRef.current}>
       <BrowserRouter>
         <TooltipProvider>
-          <div className="flex min-h-screen">
-            <Sidebar />
-            <div className="flex-1 overflow-auto">
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/invoices" element={<Invoices />} />
-                <Route path="/quotes" element={<Quotes />} />
-                <Route path="/clients" element={<Clients />} />
-                <Route path="/products" element={<Products />} />
-                <Route path="/cash-registers" element={<CashRegisters />} />
-                <Route path="/users" element={<Users />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+          <SidebarProvider>
+            <div className="flex min-h-screen w-full">
+              <Sidebar />
+              <div className="flex-1 overflow-auto">
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/invoices" element={<Invoices />} />
+                  <Route path="/quotes" element={<Quotes />} />
+                  <Route path="/clients" element={<Clients />} />
+                  <Route path="/products" element={<Products />} />
+                  <Route path="/cash-registers" element={<CashRegisters />} />
+                  <Route path="/users" element={<Users />} />
+                  <Route path="/settings" element={<Settings />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </div>
             </div>
-          </div>
+          </SidebarProvider>
           <Toaster />
           <Sonner />
         </TooltipProvider>
