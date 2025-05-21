@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useRef } from "react";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
@@ -16,34 +17,40 @@ import Settings from "./pages/Settings";
 import CashRegisters from "./pages/CashRegisters";
 import Sidebar from "./components/Sidebar";
 
-const queryClient = new QueryClient();
+const App = () => {
+  const queryClientRef = useRef<QueryClient>();
+  
+  if (!queryClientRef.current) {
+    queryClientRef.current = new QueryClient();
+  }
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <BrowserRouter>
-      <TooltipProvider>
-        <div className="flex min-h-screen">
-          <Sidebar />
-          <div className="flex-1 overflow-auto">
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/invoices" element={<Invoices />} />
-              <Route path="/quotes" element={<Quotes />} />
-              <Route path="/clients" element={<Clients />} />
-              <Route path="/products" element={<Products />} />
-              <Route path="/cash-registers" element={<CashRegisters />} />
-              <Route path="/users" element={<Users />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+  return (
+    <QueryClientProvider client={queryClientRef.current}>
+      <BrowserRouter>
+        <TooltipProvider>
+          <div className="flex min-h-screen">
+            <Sidebar />
+            <div className="flex-1 overflow-auto">
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/invoices" element={<Invoices />} />
+                <Route path="/quotes" element={<Quotes />} />
+                <Route path="/clients" element={<Clients />} />
+                <Route path="/products" element={<Products />} />
+                <Route path="/cash-registers" element={<CashRegisters />} />
+                <Route path="/users" element={<Users />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </div>
           </div>
-        </div>
-        <Toaster />
-        <Sonner />
-      </TooltipProvider>
-    </BrowserRouter>
-  </QueryClientProvider>
-);
+          <Toaster />
+          <Sonner />
+        </TooltipProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
