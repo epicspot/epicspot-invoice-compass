@@ -17,7 +17,14 @@ function startBackend() {
     FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:8080',
   };
 
-  if (process.env.NODE_ENV === 'development') {
+  if (app.isPackaged) {
+    // En production (app packagée), importer le serveur depuis resources/backend
+    const prodBackendPath = path.join(process.resourcesPath, 'backend', 'server.js');
+    import(pathToFileURL(prodBackendPath).href)
+      .then(() => console.log('Backend démarré (production)'))
+      .catch((err) => console.error('Erreur de démarrage du backend:', err));
+  } else {
+    // En développement, utiliser spawn pour lancer le serveur
     const devBackendPath = path.join(__dirname, '..', 'backend', 'server.js');
     backendProcess = spawn('node', [devBackendPath], { env });
 
@@ -28,12 +35,6 @@ function startBackend() {
     backendProcess.stderr.on('data', (data) => {
       console.error(`Backend Error: ${data}`);
     });
-  } else {
-    // En production, importer directement le serveur ESM depuis resources/backend
-    const prodBackendPath = path.join(process.resourcesPath, 'backend', 'server.js');
-    import(pathToFileURL(prodBackendPath).href)
-      .then(() => console.log('Backend démarré (production)'))
-      .catch((err) => console.error('Erreur de démarrage du backend:', err));
   }
 }
 
@@ -51,7 +52,7 @@ function createWindow() {
   });
 
   // En développement, charger depuis le serveur Vite
-  if (process.env.NODE_ENV === 'development') {
+  if (!app.isPackaged && process.env.NODE_ENV === 'development') {
     mainWindow.loadURL('http://localhost:8080');
     mainWindow.webContents.openDevTools();
   } else {
@@ -60,10 +61,8 @@ function createWindow() {
       ? path.join(process.resourcesPath, 'app.asar', 'dist', 'index.html')
       : path.join(__dirname, '..', 'dist', 'index.html');
     mainWindow.loadFile(indexPath);
+    mainWindow.webContents.openDevTools();
   }
-  
-  // Ouvrir DevTools pour déboguer
-  mainWindow.webContents.openDevTools();
 
   mainWindow.on('closed', () => {
     mainWindow = null;
