@@ -11,7 +11,11 @@ import {
   Menu,
   UserCog,
   Building,
-  CreditCard
+  CreditCard,
+  Users2,
+  PackageSearch,
+  Bell,
+  BarChart3
 } from 'lucide-react';
 import Logo from './Logo';
 
@@ -49,8 +53,12 @@ const Sidebar = () => {
     { name: 'Factures', path: '/invoices', icon: FileText },
     { name: 'Devis', path: '/quotes', icon: FileCheck },
     { name: 'Clients', path: '/clients', icon: Users },
+    { name: 'Prospection', path: '/leads', icon: Users2 },
     { name: 'Produits', path: '/products', icon: Package },
+    { name: 'Inventaire', path: '/inventory', icon: PackageSearch },
     { name: 'Caisses', path: '/cash-registers', icon: CreditCard },
+    { name: 'Relances', path: '/reminders', icon: Bell },
+    { name: 'Rapports', path: '/reports', icon: BarChart3 },
     { name: 'Utilisateurs', path: '/users', icon: UserCog },
     { name: 'Paramètres', path: '/settings', icon: Settings },
   ];

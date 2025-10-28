@@ -15,6 +15,10 @@ import Products from "./pages/Products";
 import Users from "./pages/Users";
 import Settings from "./pages/Settings";
 import CashRegisters from "./pages/CashRegisters";
+import Leads from "./pages/Leads";
+import Inventory from "./pages/Inventory";
+import Reminders from "./pages/Reminders";
+import Reports from "./pages/Reports";
 import Sidebar from "./components/Sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
@@ -39,8 +43,12 @@ const App = () => {
                   <Route path="/invoices" element={<Invoices />} />
                   <Route path="/quotes" element={<Quotes />} />
                   <Route path="/clients" element={<Clients />} />
+                  <Route path="/leads" element={<Leads />} />
                   <Route path="/products" element={<Products />} />
+                  <Route path="/inventory" element={<Inventory />} />
                   <Route path="/cash-registers" element={<CashRegisters />} />
+                  <Route path="/reminders" element={<Reminders />} />
+                  <Route path="/reports" element={<Reports />} />
                   <Route path="/users" element={<Users />} />
                   <Route path="/settings" element={<Settings />} />
                   <Route path="*" element={<NotFound />} />

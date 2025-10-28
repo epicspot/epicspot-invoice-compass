@@ -19,6 +19,9 @@ export interface Product {
   description: string;
   price: number;
   stock?: Record<string, number>; // Stock by siteId
+  minStock?: number; // Seuil d'alerte stock
+  category?: string;
+  taxRate?: number; // Taux de taxe en %
 }
 
 export interface InvoiceItem {
@@ -133,5 +136,61 @@ export interface Site {
   email?: string;
   isMainSite: boolean;
   cashRegisters?: CashRegister[];
+}
+
+// Gestion des leads/prospectus
+export interface Lead {
+  id: string;
+  name: string;
+  company?: string;
+  email?: string;
+  phone: string;
+  address?: string;
+  status: 'new' | 'contacted' | 'qualified' | 'proposal' | 'won' | 'lost';
+  source?: string; // Origine du lead (web, téléphone, etc.)
+  notes?: string;
+  createdAt: string;
+  lastContactDate?: string;
+  assignedTo?: string; // User ID
+  estimatedValue?: number;
+}
+
+// Mouvements de stock
+export interface StockMovement {
+  id: string;
+  productId: string;
+  siteId: string;
+  quantity: number; // Positif pour entrée, négatif pour sortie
+  type: 'purchase' | 'sale' | 'adjustment' | 'transfer' | 'return';
+  reference?: string; // Référence facture/commande
+  date: string;
+  notes?: string;
+  userId: string;
+}
+
+// Relances
+export interface Reminder {
+  id: string;
+  type: 'invoice' | 'quote';
+  documentId: string;
+  documentNumber: string;
+  clientId: string;
+  clientName: string;
+  amount: number;
+  dueDate?: string;
+  status: 'pending' | 'sent' | 'completed' | 'cancelled';
+  attempts: number;
+  lastReminderDate?: string;
+  nextReminderDate?: string;
+  notes?: string;
+}
+
+// Configuration fiscale
+export interface TaxConfig {
+  id: string;
+  name: string;
+  rate: number; // Taux en %
+  isDefault: boolean;
+  country?: string;
 }
 
