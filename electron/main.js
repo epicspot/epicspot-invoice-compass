@@ -56,8 +56,14 @@ function createWindow() {
     mainWindow.webContents.openDevTools();
   } else {
     // En production, charger depuis les fichiers buildés
-    mainWindow.loadFile(path.join(__dirname, '..', 'dist', 'index.html'));
+    const indexPath = app.isPackaged
+      ? path.join(process.resourcesPath, 'app.asar', 'dist', 'index.html')
+      : path.join(__dirname, '..', 'dist', 'index.html');
+    mainWindow.loadFile(indexPath);
   }
+  
+  // Ouvrir DevTools pour déboguer
+  mainWindow.webContents.openDevTools();
 
   mainWindow.on('closed', () => {
     mainWindow = null;
