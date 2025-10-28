@@ -11,14 +11,8 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import ProductForm from '@/components/ProductForm';
-import { toast } from "@/components/ui/use-toast";
-
-// Mock data
-const mockProducts: Product[] = [
-  { id: '1', reference: 'P1', description: 'Produit 1', price: 100000 },
-  { id: '2', reference: 'P2', description: 'Service mensuel', price: 50000 },
-  { id: '3', reference: 'P3', description: 'Consultation', price: 75000 },
-];
+import { toast } from "@/hooks/use-toast";
+import { useProducts } from '@/hooks/useProducts';
 
 const columns = [
   { key: 'reference', header: 'Référence' },
@@ -31,46 +25,35 @@ const columns = [
 ];
 
 const Products = () => {
-  const [products, setProducts] = useState<Product[]>(mockProducts);
+  const { products, createProduct, updateProduct, deleteProduct } = useProducts();
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState<string | null>(null);
   
-  const handleCreateProduct = (product: Partial<Product>) => {
-    const newProduct = {
-      ...product,
-      id: String(Date.now()),
-    } as Product;
-    
-    setProducts([...products, newProduct]);
+  const handleCreateProduct = (productData: Partial<Product>) => {
+    const newProduct = createProduct(productData as Omit<Product, 'id'>);
     setIsCreating(false);
     
     toast({
       title: "Produit créé",
       description: `Le produit ${newProduct.reference} a été créé avec succès.`,
-      variant: "default",
     });
   };
   
-  const handleEditProduct = (product: Partial<Product>) => {
-    const updatedProducts = products.map(p => 
-      p.id === product.id ? { ...p, ...product } : p
-    );
-    
-    setProducts(updatedProducts);
-    setIsEditing(null);
-    
-    toast({
-      title: "Produit modifié",
-      description: `Le produit ${product.reference} a été modifié avec succès.`,
-      variant: "default",
-    });
+  const handleEditProduct = (productData: Partial<Product>) => {
+    if (productData.id) {
+      updateProduct(productData.id, productData);
+      setIsEditing(null);
+      
+      toast({
+        title: "Produit modifié",
+        description: `Le produit ${productData.reference} a été modifié avec succès.`,
+      });
+    }
   };
   
   const handleDeleteProduct = (id: string) => {
     const productToDelete = products.find(p => p.id === id);
-    const updatedProducts = products.filter(p => p.id !== id);
-    
-    setProducts(updatedProducts);
+    deleteProduct(id);
     
     toast({
       title: "Produit supprimé",

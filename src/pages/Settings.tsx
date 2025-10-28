@@ -7,9 +7,10 @@ import {
   TabsTrigger 
 } from "@/components/ui/tabs";
 import CompanyInfoForm from "@/components/settings/CompanyInfoForm";
+import DocumentSettingsForm from "@/components/settings/DocumentSettingsForm";
 import RolePermissionsTable from "@/components/settings/RolePermissionsTable";
 import SiteManagement from "@/components/settings/SiteManagement";
-import { Role, RolePermissions, CompanyInfo, Site } from "@/lib/types";
+import { Role, RolePermissions, Site } from "@/lib/types";
 
 // Mock data for role permissions
 const initialRolePermissions: Record<Role, RolePermissions> = {
@@ -55,35 +56,8 @@ const initialRolePermissions: Record<Role, RolePermissions> = {
   }
 };
 
-// Mock data for company info
-const initialCompanyInfo: CompanyInfo = {
-  name: "EPICSPOT_CONSULTING",
-  address: "123 Business Avenue, Paris 75001",
-  phone: "+33 1 23 45 67 89",
-  email: "contact@epicspot.com",
-  website: "www.epicspot.com",
-  taxId: "FR 12345678901"
-};
-
 // Mock data for sites
-const initialSites: Site[] = [
-  {
-    id: "site-1",
-    name: "Siège Paris",
-    address: "123 Business Avenue, Paris 75001",
-    phone: "+33 1 23 45 67 89",
-    email: "paris@epicspot.com",
-    isMainSite: true
-  },
-  {
-    id: "site-2",
-    name: "Succursale Lyon",
-    address: "45 Rue du Commerce, Lyon 69002",
-    phone: "+33 4 56 78 90 12",
-    email: "lyon@epicspot.com",
-    isMainSite: false
-  }
-];
+const initialSites: Site[] = [];
 
 const Settings = () => {
   return (
@@ -91,14 +65,19 @@ const Settings = () => {
       <h1 className="text-3xl font-bold">Paramètres</h1>
       
       <Tabs defaultValue="company">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="company">Entreprise</TabsTrigger>
+          <TabsTrigger value="documents">Documents</TabsTrigger>
           <TabsTrigger value="roles">Rôles & Permissions</TabsTrigger>
           <TabsTrigger value="sites">Sites</TabsTrigger>
         </TabsList>
         
         <TabsContent value="company" className="mt-6">
-          <CompanyInfoForm initialCompanyInfo={initialCompanyInfo} />
+          <CompanyInfoForm />
+        </TabsContent>
+        
+        <TabsContent value="documents" className="mt-6">
+          <DocumentSettingsForm />
         </TabsContent>
         
         <TabsContent value="roles" className="mt-6">

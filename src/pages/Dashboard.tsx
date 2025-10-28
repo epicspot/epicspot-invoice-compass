@@ -1,22 +1,14 @@
 
 import React from 'react';
-import { FileText, FileCheck, Users, Package, TrendingUp } from 'lucide-react';
+import { FileText, FileCheck, Users, Package } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import DashboardCard from '@/components/DashboardCard';
 import DataTable from '@/components/DataTable';
 import { Invoice, Quote } from '@/lib/types';
-
-// Mock data for dashboard
-const mockRecentInvoices: Partial<Invoice>[] = [
-  { id: '1', number: 'FACT-001', date: '2025-05-01', client: { id: '1', name: 'Societe ABC', address: '', phone: '' }, total: 2500000, status: 'paid' },
-  { id: '2', number: 'FACT-002', date: '2025-05-02', client: { id: '2', name: 'Client XYZ', address: '', phone: '' }, total: 850000, status: 'sent' },
-  { id: '3', number: 'FACT-003', date: '2025-05-04', client: { id: '3', name: 'Entreprise DEF', address: '', phone: '' }, total: 1200000, status: 'draft' },
-];
-
-const mockRecentQuotes: Partial<Quote>[] = [
-  { id: '1', number: 'DEVIS-001', date: '2025-05-01', client: { id: '1', name: 'Societe ABC', address: '', phone: '' }, total: 3000000, status: 'accepted' },
-  { id: '2', number: 'DEVIS-002', date: '2025-05-03', client: { id: '2', name: 'Client XYZ', address: '', phone: '' }, total: 1750000, status: 'sent' },
-];
+import { useInvoices } from '@/hooks/useInvoices';
+import { useQuotes } from '@/hooks/useQuotes';
+import { useClients } from '@/hooks/useClients';
+import { useProducts } from '@/hooks/useProducts';
 
 const invoiceColumns = [
   { key: 'number', header: 'Numéro' },
@@ -99,10 +91,33 @@ const quoteColumns = [
 ];
 
 const Dashboard = () => {
+  const { invoices } = useInvoices();
+  const { quotes } = useQuotes();
+  const { clients } = useClients();
+  const { products } = useProducts();
+  
   const currentDate = new Date().toLocaleDateString('fr-FR', {
     day: '2-digit',
     month: 'long',
     year: 'numeric'
+  });
+  
+  const recentInvoices = invoices.slice(0, 3);
+  const recentQuotes = quotes.slice(0, 3);
+  
+  const totalInvoices = invoices.reduce((sum, inv) => sum + (inv.total || 0), 0);
+  const totalQuotes = quotes.reduce((sum, q) => sum + (q.total || 0), 0);
+  
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+  const monthlyInvoices = invoices.filter(inv => {
+    const invDate = new Date(inv.date);
+    return invDate.getMonth() === currentMonth && invDate.getFullYear() === currentYear;
+  });
+  const monthlyClients = clients.filter(c => {
+    if (!c.id) return false;
+    const createdAt = new Date(parseInt(c.id.split('_')[1]) || 0);
+    return createdAt.getMonth() === currentMonth && createdAt.getFullYear() === currentYear;
   });
 
   return (
@@ -117,28 +132,25 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <DashboardCard 
           title="Total factures" 
-          value="4.550.000 FCFA" 
-          description="7 factures émises ce mois"
+          value={`${totalInvoices.toLocaleString()} FCFA`}
+          description={`${monthlyInvoices.length} factures ce mois`}
           icon={<FileText />}
-          trend={{ value: 12, isPositive: true }}
         />
         <DashboardCard 
           title="Total devis" 
-          value="7.250.000 FCFA" 
-          description="5 devis émis ce mois"
+          value={`${totalQuotes.toLocaleString()} FCFA`}
+          description={`${quotes.length} devis émis`}
           icon={<FileCheck />}
-          trend={{ value: 5, isPositive: true }}
         />
         <DashboardCard 
           title="Clients actifs" 
-          value="12" 
-          description="3 nouveaux clients ce mois"
+          value={clients.length.toString()}
+          description={`${monthlyClients.length} nouveaux ce mois`}
           icon={<Users />}
-          trend={{ value: 15, isPositive: true }}
         />
         <DashboardCard 
           title="Produits/Services" 
-          value="24" 
+          value={products.length.toString()}
           description="Catalogue de produits et services"
           icon={<Package />}
         />
@@ -151,7 +163,7 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <DataTable 
-              data={mockRecentInvoices} 
+              data={recentInvoices} 
               columns={invoiceColumns} 
               searchable={false}
             />
@@ -164,7 +176,7 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <DataTable 
-              data={mockRecentQuotes} 
+              data={recentQuotes} 
               columns={quoteColumns}
               searchable={false} 
             />

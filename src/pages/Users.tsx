@@ -29,44 +29,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-
-const mockUsers: User[] = [
-  {
-    id: "1",
-    name: "Admin User",
-    email: "admin@epicspot.com",
-    role: "admin",
-    active: true,
-    createdAt: "2023-01-01",
-    lastLogin: "2023-05-01"
-  },
-  {
-    id: "2",
-    name: "Manager User",
-    email: "manager@epicspot.com",
-    role: "manager",
-    active: true,
-    createdAt: "2023-02-15",
-    lastLogin: "2023-05-02"
-  },
-  {
-    id: "3",
-    name: "Accountant User",
-    email: "accountant@epicspot.com",
-    role: "accountant",
-    active: true,
-    createdAt: "2023-03-20",
-    lastLogin: "2023-05-03"
-  },
-  {
-    id: "4",
-    name: "Viewer User",
-    email: "viewer@epicspot.com",
-    role: "viewer",
-    active: false,
-    createdAt: "2023-04-10"
-  }
-];
+import { useUsers } from "@/hooks/useUsers";
 
 const getRoleBadge = (role: Role) => {
   const variants: Record<Role, { color: string, icon: React.ReactNode }> = {
@@ -100,33 +63,35 @@ const getRoleBadge = (role: Role) => {
 };
 
 const Users = () => {
-  const [users, setUsers] = useState<User[]>(mockUsers);
+  const { users, createUser, updateUser, deleteUser } = useUsers();
   const [editing, setEditing] = useState<User | null>(null);
   const [openUserForm, setOpenUserForm] = useState(false);
   const { toast } = useToast();
 
-  const handleAddUser = (newUser: User) => {
-    setUsers([...users, { ...newUser, id: Date.now().toString() }]);
+  const handleAddUser = (newUserData: User) => {
+    createUser(newUserData);
     toast({
       title: "Utilisateur créé",
-      description: `${newUser.name} a été ajouté avec succès.`
+      description: `${newUserData.name} a été ajouté avec succès.`
     });
     setOpenUserForm(false);
   };
 
-  const handleUpdateUser = (updatedUser: User) => {
-    setUsers(users.map(user => user.id === updatedUser.id ? updatedUser : user));
-    toast({
-      title: "Utilisateur mis à jour",
-      description: `${updatedUser.name} a été mis à jour avec succès.`
-    });
+  const handleUpdateUser = (updatedUserData: User) => {
+    if (updatedUserData.id) {
+      updateUser(updatedUserData.id, updatedUserData);
+      toast({
+        title: "Utilisateur mis à jour",
+        description: `${updatedUserData.name} a été mis à jour avec succès.`
+      });
+    }
     setEditing(null);
     setOpenUserForm(false);
   };
 
   const handleDeleteUser = (id: string) => {
     const userToDelete = users.find(u => u.id === id);
-    setUsers(users.filter(user => user.id !== id));
+    deleteUser(id);
     toast({
       title: "Utilisateur supprimé",
       description: `${userToDelete?.name} a été supprimé.`,
@@ -135,17 +100,15 @@ const Users = () => {
   };
 
   const handleToggleActive = (id: string) => {
-    setUsers(users.map(user => {
-      if (user.id === id) {
-        const updatedUser = { ...user, active: !user.active };
-        toast({
-          title: updatedUser.active ? "Utilisateur activé" : "Utilisateur désactivé",
-          description: `${user.name} a été ${updatedUser.active ? "activé" : "désactivé"}.`
-        });
-        return updatedUser;
-      }
-      return user;
-    }));
+    const user = users.find(u => u.id === id);
+    if (user) {
+      const newActiveStatus = !user.active;
+      updateUser(id, { active: newActiveStatus });
+      toast({
+        title: newActiveStatus ? "Utilisateur activé" : "Utilisateur désactivé",
+        description: `${user.name} a été ${newActiveStatus ? "activé" : "désactivé"}.`
+      });
+    }
   };
 
   const columns = [

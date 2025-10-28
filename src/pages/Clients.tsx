@@ -11,14 +11,8 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import ClientForm from '@/components/ClientForm';
-import { toast } from "@/components/ui/use-toast";
-
-// Mock data
-const mockClients: Client[] = [
-  { id: '1', name: 'Societe ABC', address: 'Abidjan, Plateau', phone: '0123456789', code: 'CLI001' },
-  { id: '2', name: 'Client XYZ', address: 'Abidjan, Cocody', phone: '9876543210', code: 'CLI002' },
-  { id: '3', name: 'Entreprise DEF', address: 'Abidjan, Treichville', phone: '5555666777', code: 'CLI003' },
-];
+import { toast } from "@/hooks/use-toast";
+import { useClients } from '@/hooks/useClients';
 
 const columns = [
   { key: 'name', header: 'Nom / Raison sociale' },
@@ -28,46 +22,35 @@ const columns = [
 ];
 
 const Clients = () => {
-  const [clients, setClients] = useState<Client[]>(mockClients);
+  const { clients, createClient, updateClient, deleteClient } = useClients();
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState<string | null>(null);
   
-  const handleCreateClient = (client: Partial<Client>) => {
-    const newClient = {
-      ...client,
-      id: String(Date.now()),
-    } as Client;
-    
-    setClients([...clients, newClient]);
+  const handleCreateClient = (clientData: Partial<Client>) => {
+    const newClient = createClient(clientData as Omit<Client, 'id'>);
     setIsCreating(false);
     
     toast({
       title: "Client créé",
       description: `Le client ${newClient.name} a été créé avec succès.`,
-      variant: "default",
     });
   };
   
-  const handleEditClient = (client: Partial<Client>) => {
-    const updatedClients = clients.map(c => 
-      c.id === client.id ? { ...c, ...client } : c
-    );
-    
-    setClients(updatedClients);
-    setIsEditing(null);
-    
-    toast({
-      title: "Client modifié",
-      description: `Le client ${client.name} a été modifié avec succès.`,
-      variant: "default",
-    });
+  const handleEditClient = (clientData: Partial<Client>) => {
+    if (clientData.id) {
+      updateClient(clientData.id, clientData);
+      setIsEditing(null);
+      
+      toast({
+        title: "Client modifié",
+        description: `Le client ${clientData.name} a été modifié avec succès.`,
+      });
+    }
   };
   
   const handleDeleteClient = (id: string) => {
     const clientToDelete = clients.find(c => c.id === id);
-    const updatedClients = clients.filter(c => c.id !== id);
-    
-    setClients(updatedClients);
+    deleteClient(id);
     
     toast({
       title: "Client supprimé",

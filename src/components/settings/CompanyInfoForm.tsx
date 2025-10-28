@@ -1,28 +1,20 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { CompanyInfo } from "@/lib/types";
+import { useCompanyInfo } from "@/hooks/useCompanyInfo";
 
-interface CompanyInfoFormProps {
-  initialCompanyInfo: CompanyInfo;
-}
-
-const CompanyInfoForm: React.FC<CompanyInfoFormProps> = ({ initialCompanyInfo }) => {
-  const [companyInfo, setCompanyInfo] = useState<CompanyInfo>(initialCompanyInfo);
+const CompanyInfoForm = () => {
+  const { companyInfo, updateCompanyInfo } = useCompanyInfo();
   const { toast } = useToast();
 
-  const handleCompanyInfoChange = (field: keyof CompanyInfo, value: string) => {
-    setCompanyInfo(prev => ({
-      ...prev,
-      [field]: value
-    }));
+  const handleCompanyInfoChange = (field: string, value: string) => {
+    updateCompanyInfo({ [field]: value });
   };
 
   const handleSaveCompanyInfo = () => {
-    // Here you would save to backend
     toast({
       title: "Informations sauvegardées",
       description: "Les informations de l'entreprise ont été mises à jour avec succès."
@@ -75,10 +67,26 @@ const CompanyInfoForm: React.FC<CompanyInfoFormProps> = ({ initialCompanyInfo })
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium">Numéro de TVA</label>
+            <label className="text-sm font-medium">Numéro de TVA / RC</label>
             <Input 
               value={companyInfo.taxId || ''} 
               onChange={(e) => handleCompanyInfoChange('taxId', e.target.value)} 
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Signataire</label>
+            <Input 
+              value={companyInfo.signatory || ''} 
+              onChange={(e) => handleCompanyInfoChange('signatory', e.target.value)} 
+              placeholder="Nom du signataire"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Titre du signataire</label>
+            <Input 
+              value={companyInfo.signatoryTitle || ''} 
+              onChange={(e) => handleCompanyInfoChange('signatoryTitle', e.target.value)} 
+              placeholder="Ex: Directeur Général"
             />
           </div>
           <div className="space-y-2">
@@ -98,3 +106,4 @@ const CompanyInfoForm: React.FC<CompanyInfoFormProps> = ({ initialCompanyInfo })
 };
 
 export default CompanyInfoForm;
+
