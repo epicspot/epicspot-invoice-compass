@@ -1,14 +1,8 @@
 import { useLocalStorage } from './useLocalStorage';
 import { Product } from '@/lib/types';
 
-const initialProducts: Product[] = [
-  { id: '1', reference: 'P1', description: 'Produit 1', price: 100000 },
-  { id: '2', reference: 'P2', description: 'Service mensuel', price: 50000 },
-  { id: '3', reference: 'P3', description: 'Consultation', price: 75000 },
-];
-
 export function useProducts() {
-  const [products, setProducts] = useLocalStorage<Product[]>('products', initialProducts);
+  const [products, setProducts] = useLocalStorage<Product[]>('products', []);
 
   const createProduct = (product: Omit<Product, 'id'>) => {
     const newProduct: Product = {

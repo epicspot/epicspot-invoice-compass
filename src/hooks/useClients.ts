@@ -1,14 +1,8 @@
 import { useLocalStorage } from './useLocalStorage';
 import { Client } from '@/lib/types';
 
-const initialClients: Client[] = [
-  { id: '1', name: 'Societe ABC', address: 'Abidjan, Plateau', phone: '0123456789', code: 'CLI001' },
-  { id: '2', name: 'Client XYZ', address: 'Abidjan, Cocody', phone: '9876543210', code: 'CLI002' },
-  { id: '3', name: 'Entreprise DEF', address: 'Abidjan, Treichville', phone: '5555666777', code: 'CLI003' },
-];
-
 export function useClients() {
-  const [clients, setClients] = useLocalStorage<Client[]>('clients', initialClients);
+  const [clients, setClients] = useLocalStorage<Client[]>('clients', []);
 
   const createClient = (client: Omit<Client, 'id'>) => {
     const newClient: Client = {
