@@ -70,6 +70,9 @@ export interface CompanyInfo {
   website?: string;
   taxId?: string;
   bankAccount?: string;
+  bankName?: string;
+  bankIBAN?: string;
+  bankSwift?: string;
   signatory?: string;
   signatoryTitle?: string;
 }

@@ -1,17 +1,29 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import DataTable from '@/components/DataTable';
+import StockMovementForm from '@/components/StockMovementForm';
 import { useProducts } from '@/hooks/useProducts';
 import { useStockMovements } from '@/hooks/useStockMovements';
-import { Package, AlertTriangle, TrendingUp, TrendingDown } from 'lucide-react';
+import { Package, AlertTriangle, TrendingUp, TrendingDown, Plus } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
+import { StockMovement } from '@/lib/types';
 
 const Inventory = () => {
   const { products } = useProducts();
-  const { getCurrentStock } = useStockMovements();
+  const { getCurrentStock, createMovement, movements } = useStockMovements();
+  const [isFormOpen, setIsFormOpen] = useState(false);
   
   const siteId = 'default'; // Pour l'instant un seul site
+
+  const handleCreateMovement = (movement: Omit<StockMovement, 'id' | 'date'>) => {
+    createMovement(movement);
+    toast({
+      title: "Mouvement enregistré",
+      description: `Le mouvement de stock a été enregistré avec succès.`
+    });
+  };
 
   const columns = [
     { key: 'reference', header: 'Référence' },
@@ -70,6 +82,10 @@ const Inventory = () => {
           <Package className="h-5 w-5" />
           Inventaire
         </h1>
+        <Button onClick={() => setIsFormOpen(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          Nouveau mouvement
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -147,6 +163,13 @@ const Inventory = () => {
           />
         </CardContent>
       </Card>
+
+      <StockMovementForm
+        isOpen={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        products={products}
+        onSubmit={handleCreateMovement}
+      />
     </div>
   );
 };

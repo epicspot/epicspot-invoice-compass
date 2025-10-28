@@ -90,10 +90,35 @@ const CompanyInfoForm = () => {
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium">Coordonnées bancaires</label>
+            <label className="text-sm font-medium">Nom de la banque</label>
+            <Input 
+              value={companyInfo.bankName || ''} 
+              onChange={(e) => handleCompanyInfoChange('bankName', e.target.value)} 
+              placeholder="Nom de la banque"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Numéro de compte bancaire</label>
             <Input 
               value={companyInfo.bankAccount || ''} 
               onChange={(e) => handleCompanyInfoChange('bankAccount', e.target.value)} 
+              placeholder="Numéro de compte"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">IBAN</label>
+            <Input 
+              value={companyInfo.bankIBAN || ''} 
+              onChange={(e) => handleCompanyInfoChange('bankIBAN', e.target.value)} 
+              placeholder="Code IBAN"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Code SWIFT/BIC</label>
+            <Input 
+              value={companyInfo.bankSwift || ''} 
+              onChange={(e) => handleCompanyInfoChange('bankSwift', e.target.value)} 
+              placeholder="Code SWIFT/BIC"
             />
           </div>
         </div>

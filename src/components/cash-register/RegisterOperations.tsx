@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { CashRegister } from "@/lib/types";
+import { useCompanyInfo } from "@/hooks/useCompanyInfo";
 
 interface RegisterOperationsProps {
   register: CashRegister;
@@ -32,21 +33,33 @@ const RegisterOperations: React.FC<RegisterOperationsProps> = ({
   onAdjustment,
   onBankDeposit
 }) => {
+  const { companyInfo } = useCompanyInfo();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [operationType, setOperationType] = useState<OperationType>(null);
   const [amount, setAmount] = useState<number>(0);
   const [notes, setNotes] = useState('');
+  const [bankAccount, setBankAccount] = useState(companyInfo.bankAccount || '');
+  const [bankName, setBankName] = useState(companyInfo.bankName || '');
 
   const openDialog = (type: OperationType) => {
     setOperationType(type);
     setAmount(0);
     setNotes('');
+    if (type === 'bank_deposit') {
+      setBankAccount(companyInfo.bankAccount || '');
+      setBankName(companyInfo.bankName || '');
+    }
     setIsDialogOpen(true);
   };
 
   const handleSubmit = () => {
     if (amount <= 0) {
       return;
+    }
+
+    let finalNotes = notes;
+    if (operationType === 'bank_deposit') {
+      finalNotes = `Versement bancaire - Compte: ${bankAccount} (${bankName})${notes ? ' - ' + notes : ''}`;
     }
 
     switch (operationType) {
@@ -60,13 +73,15 @@ const RegisterOperations: React.FC<RegisterOperationsProps> = ({
         onAdjustment(amount, notes);
         break;
       case 'bank_deposit':
-        onBankDeposit(amount, notes);
+        onBankDeposit(amount, finalNotes);
         break;
     }
 
     setIsDialogOpen(false);
     setAmount(0);
     setNotes('');
+    setBankAccount(companyInfo.bankAccount || '');
+    setBankName(companyInfo.bankName || '');
   };
 
   const getDialogTitle = () => {
@@ -205,6 +220,32 @@ const RegisterOperations: React.FC<RegisterOperationsProps> = ({
               />
             </div>
 
+            {operationType === 'bank_deposit' && (
+              <>
+                <div>
+                  <Label htmlFor="bankName">Nom de la banque *</Label>
+                  <Input
+                    id="bankName"
+                    value={bankName}
+                    onChange={(e) => setBankName(e.target.value)}
+                    className="mt-1"
+                    placeholder="Nom de la banque"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="bankAccount">Numéro de compte *</Label>
+                  <Input
+                    id="bankAccount"
+                    value={bankAccount}
+                    onChange={(e) => setBankAccount(e.target.value)}
+                    className="mt-1"
+                    placeholder="Numéro de compte bancaire"
+                  />
+                </div>
+              </>
+            )}
+
             <div>
               <Label htmlFor="notes">Notes / Motif</Label>
               <Textarea
@@ -268,7 +309,10 @@ const RegisterOperations: React.FC<RegisterOperationsProps> = ({
             </Button>
             <Button 
               onClick={handleSubmit}
-              disabled={amount === 0}
+              disabled={
+                amount === 0 || 
+                (operationType === 'bank_deposit' && (!bankAccount || !bankName))
+              }
             >
               Valider
             </Button>
