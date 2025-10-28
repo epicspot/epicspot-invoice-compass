@@ -9,10 +9,11 @@ import { useQuotes } from '@/hooks/useQuotes';
 import { useClients } from '@/hooks/useClients';
 import { useProducts } from '@/hooks/useProducts';
 import { useCashRegisters } from '@/hooks/useCashRegisters';
-import { BarChart3, TrendingUp, DollarSign, Calendar, Download, Filter, Users, ShoppingCart } from 'lucide-react';
+import { BarChart3, TrendingUp, DollarSign, Calendar, Filter, Users, ShoppingCart } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import ExportButtons from '@/components/ExportButtons';
 
 const Reports = () => {
   const { invoices } = useInvoices();
@@ -155,16 +156,104 @@ const Reports = () => {
     .sort((a, b) => b.total - a.total)
     .slice(0, 10);
 
-  // Fonction d'export (simple CSV)
-  const exportToCSV = (data: any[], filename: string) => {
-    const csv = data.map(row => Object.values(row).join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
+  // Préparer les données pour l'export
+  const prepareExportData = (type: 'sales' | 'cashiers' | 'registers' | 'products' | 'clients') => {
+    const baseData = {
+      title: 'Rapport de ' + (type === 'sales' ? 'Ventes' : type === 'cashiers' ? 'Caissiers' : type === 'registers' ? 'Caisses' : type === 'products' ? 'Produits' : 'Clients'),
+      subtitle: 'EPICSPOT_CONSULTING',
+      period: `Période: ${new Date(startDate).toLocaleDateString('fr-FR')} - ${new Date(endDate).toLocaleDateString('fr-FR')}`,
+      summary: [
+        { label: 'CA Réalisé', value: `${totalRevenue.toLocaleString()} FCFA` },
+        { label: 'CA Prévisionnel', value: `${forecastRevenue.toLocaleString()} FCFA` },
+        { label: 'En attente', value: `${pendingAmount.toLocaleString()} FCFA` },
+        { label: 'Taxes collectées', value: `${totalTax.toLocaleString()} FCFA` },
+      ],
+      tables: [] as Array<{ title: string; headers: string[]; rows: (string | number)[][] }>
+    };
+
+    switch (type) {
+      case 'sales':
+        baseData.tables = [
+          {
+            title: 'Statistiques de vente',
+            headers: ['Indicateur', 'Valeur'],
+            rows: [
+              ['Nombre de ventes', filteredInvoices.filter(i => i.status === 'paid').length],
+              ['Panier moyen', filteredInvoices.filter(i => i.status === 'paid').length > 0
+                ? Math.round(totalRevenue / filteredInvoices.filter(i => i.status === 'paid').length)
+                : 0],
+              ['Articles vendus', filteredInvoices.reduce((sum, inv) => 
+                sum + (inv.items?.reduce((s, item) => s + item.quantity, 0) || 0), 0)]
+            ]
+          },
+          {
+            title: 'Ventes par jour',
+            headers: ['Date', 'Montant (FCFA)'],
+            rows: dailySalesData.map(([date, amount]) => [date, amount])
+          }
+        ];
+        break;
+
+      case 'cashiers':
+        baseData.tables = [{
+          title: 'Performance par caissier',
+          headers: ['Rang', 'Caissier', 'Ventes', 'CA (FCFA)', 'Panier moyen (FCFA)'],
+          rows: userSalesData.map((user, idx) => [
+            idx + 1,
+            user.userName,
+            user.count,
+            user.revenue,
+            Math.round(user.revenue / user.count)
+          ])
+        }];
+        break;
+
+      case 'registers':
+        baseData.tables = [{
+          title: 'Performance par caisse',
+          headers: ['Rang', 'Caisse', 'Transactions', 'CA (FCFA)', 'Transaction moyenne (FCFA)'],
+          rows: registerSalesData.map((register, idx) => [
+            idx + 1,
+            register.registerName,
+            register.count,
+            register.revenue,
+            Math.round(register.revenue / register.count)
+          ])
+        }];
+        break;
+
+      case 'products':
+        baseData.tables = [{
+          title: 'Top produits vendus',
+          headers: ['Rang', 'Référence', 'Description', 'Quantité', 'CA (FCFA)'],
+          rows: topProducts.map((item, idx) => [
+            idx + 1,
+            item.product.reference,
+            item.product.description,
+            item.count,
+            item.revenue
+          ])
+        }];
+        break;
+
+      case 'clients':
+        baseData.tables = [{
+          title: 'Top clients',
+          headers: ['Rang', 'Nom', 'Code', 'Factures', 'CA (FCFA)'],
+          rows: topClients.map((item, idx) => [
+            idx + 1,
+            item.client.name,
+            item.client.code || '-',
+            item.invoices,
+            item.total
+          ])
+        }];
+        break;
+    }
+
+    return baseData;
   };
+
 
   return (
     <div className="p-6 space-y-6">
@@ -327,14 +416,10 @@ const Reports = () => {
                     Du {new Date(startDate).toLocaleDateString('fr-FR')} au {new Date(endDate).toLocaleDateString('fr-FR')}
                   </CardDescription>
                 </div>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => exportToCSV(dailySalesData.map(([date, amount]) => ({ date, amount })), 'ventes.csv')}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Exporter
-                </Button>
+                <ExportButtons 
+                  data={prepareExportData('sales')} 
+                  baseFilename="rapport_ventes"
+                />
               </div>
             </CardHeader>
             <CardContent>
@@ -396,14 +481,10 @@ const Reports = () => {
                   </CardTitle>
                   <CardDescription>Performance des caissiers sur la période</CardDescription>
                 </div>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => exportToCSV(userSalesData, 'caissiers.csv')}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Exporter
-                </Button>
+                <ExportButtons 
+                  data={prepareExportData('cashiers')} 
+                  baseFilename="rapport_caissiers"
+                />
               </div>
             </CardHeader>
             <CardContent>
@@ -446,14 +527,10 @@ const Reports = () => {
                   </CardTitle>
                   <CardDescription>Performance des caisses sur la période</CardDescription>
                 </div>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => exportToCSV(registerSalesData, 'caisses.csv')}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Exporter
-                </Button>
+                <ExportButtons 
+                  data={prepareExportData('registers')} 
+                  baseFilename="rapport_caisses"
+                />
               </div>
             </CardHeader>
             <CardContent>
@@ -493,19 +570,10 @@ const Reports = () => {
                   <CardTitle>Top produits vendus</CardTitle>
                   <CardDescription>Classement par chiffre d'affaires</CardDescription>
                 </div>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => exportToCSV(topProducts.map(p => ({
-                    reference: p.product.reference,
-                    description: p.product.description,
-                    quantite: p.count,
-                    ca: p.revenue
-                  })), 'produits.csv')}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Exporter
-                </Button>
+                <ExportButtons 
+                  data={prepareExportData('products')} 
+                  baseFilename="rapport_produits"
+                />
               </div>
             </CardHeader>
             <CardContent>
@@ -545,19 +613,10 @@ const Reports = () => {
                   <CardTitle>Top clients</CardTitle>
                   <CardDescription>Classement par chiffre d'affaires</CardDescription>
                 </div>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => exportToCSV(topClients.map(c => ({
-                    nom: c.client.name,
-                    code: c.client.code,
-                    factures: c.invoices,
-                    ca: c.total
-                  })), 'clients.csv')}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Exporter
-                </Button>
+                <ExportButtons 
+                  data={prepareExportData('clients')} 
+                  baseFilename="rapport_clients"
+                />
               </div>
             </CardHeader>
             <CardContent>
