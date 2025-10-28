@@ -11,56 +11,8 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import InvoiceForm from '@/components/InvoiceForm';
-import { toast } from "@/components/ui/use-toast";
-
-// Mock data
-const mockInvoices: Partial<Invoice>[] = [
-  { 
-    id: '1', 
-    number: 'FACT-001', 
-    date: '2025-05-01', 
-    client: { 
-      id: '1', 
-      name: 'Societe ABC', 
-      address: 'Abidjan, Plateau', 
-      phone: '0123456789' 
-    }, 
-    subtotal: 2500000,
-    tax: 0,
-    total: 2500000, 
-    status: 'paid' 
-  },
-  { 
-    id: '2', 
-    number: 'FACT-002', 
-    date: '2025-05-02', 
-    client: { 
-      id: '2', 
-      name: 'Client XYZ', 
-      address: 'Abidjan, Cocody', 
-      phone: '9876543210' 
-    }, 
-    subtotal: 850000,
-    tax: 0,
-    total: 850000, 
-    status: 'sent' 
-  },
-  { 
-    id: '3', 
-    number: 'FACT-003', 
-    date: '2025-05-04', 
-    client: { 
-      id: '3', 
-      name: 'Entreprise DEF', 
-      address: 'Abidjan, Treichville', 
-      phone: '5555666777' 
-    }, 
-    subtotal: 1200000,
-    tax: 0,
-    total: 1200000, 
-    status: 'draft' 
-  },
-];
+import { toast } from "@/hooks/use-toast";
+import { useInvoices } from '@/hooks/useInvoices';
 
 const columns = [
   { key: 'number', header: 'Numéro' },
@@ -107,46 +59,39 @@ const columns = [
 ];
 
 const Invoices = () => {
-  const [invoices, setInvoices] = useState<Partial<Invoice>[]>(mockInvoices);
+  const { invoices, createInvoice, updateInvoice, deleteInvoice } = useInvoices();
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState<string | null>(null);
   
-  const handleCreateInvoice = (invoice: Partial<Invoice>) => {
-    const newInvoice = {
-      ...invoice,
-      id: String(Date.now()),
-    };
+  const handleCreateInvoice = (invoiceData: Partial<Invoice>) => {
+    const newInvoice = createInvoice({
+      ...invoiceData,
+      siteId: 'default',
+    } as Omit<Invoice, 'id'>);
     
-    setInvoices([...invoices, newInvoice]);
     setIsCreating(false);
     
     toast({
       title: "Facture créée",
       description: `La facture ${newInvoice.number} a été créée avec succès.`,
-      variant: "default",
     });
   };
   
-  const handleEditInvoice = (invoice: Partial<Invoice>) => {
-    const updatedInvoices = invoices.map(inv => 
-      inv.id === invoice.id ? invoice : inv
-    );
-    
-    setInvoices(updatedInvoices);
-    setIsEditing(null);
-    
-    toast({
-      title: "Facture modifiée",
-      description: `La facture ${invoice.number} a été modifiée avec succès.`,
-      variant: "default",
-    });
+  const handleEditInvoice = (invoiceData: Partial<Invoice>) => {
+    if (invoiceData.id) {
+      updateInvoice(invoiceData.id, invoiceData);
+      setIsEditing(null);
+      
+      toast({
+        title: "Facture modifiée",
+        description: `La facture ${invoiceData.number} a été modifiée avec succès.`,
+      });
+    }
   };
   
   const handleDeleteInvoice = (id: string) => {
     const invoiceToDelete = invoices.find(inv => inv.id === id);
-    const updatedInvoices = invoices.filter(inv => inv.id !== id);
-    
-    setInvoices(updatedInvoices);
+    deleteInvoice(id);
     
     toast({
       title: "Facture supprimée",

@@ -11,53 +11,8 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import QuoteForm from '@/components/QuoteForm';
-import { toast } from "@/components/ui/use-toast";
-
-// Mock data
-const mockQuotes: Partial<Quote>[] = [
-  { 
-    id: '1', 
-    number: 'DEVIS-001', 
-    date: '2025-05-01', 
-    client: { 
-      id: '1', 
-      name: 'Societe ABC', 
-      address: 'Abidjan, Plateau', 
-      phone: '0123456789' 
-    }, 
-    subtotal: 3000000,
-    total: 3000000, 
-    status: 'accepted' 
-  },
-  { 
-    id: '2', 
-    number: 'DEVIS-002', 
-    date: '2025-05-03', 
-    client: { 
-      id: '2', 
-      name: 'Client XYZ', 
-      address: 'Abidjan, Cocody', 
-      phone: '9876543210' 
-    }, 
-    subtotal: 1750000,
-    total: 1750000, 
-    status: 'sent' 
-  },
-  { 
-    id: '3', 
-    number: 'DEVIS-003', 
-    date: '2025-05-04', 
-    client: { 
-      id: '3', 
-      name: 'Entreprise DEF', 
-      address: 'Abidjan, Treichville', 
-      phone: '5555666777' 
-    }, 
-    subtotal: 950000,
-    total: 950000, 
-    status: 'draft' 
-  },
-];
+import { toast } from "@/hooks/use-toast";
+import { useQuotes } from '@/hooks/useQuotes';
 
 const columns = [
   { key: 'number', header: 'Numéro' },
@@ -104,46 +59,39 @@ const columns = [
 ];
 
 const Quotes = () => {
-  const [quotes, setQuotes] = useState<Partial<Quote>[]>(mockQuotes);
+  const { quotes, createQuote, updateQuote, deleteQuote } = useQuotes();
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState<string | null>(null);
   
-  const handleCreateQuote = (quote: Partial<Quote>) => {
-    const newQuote = {
-      ...quote,
-      id: String(Date.now()),
-    };
+  const handleCreateQuote = (quoteData: Partial<Quote>) => {
+    const newQuote = createQuote({
+      ...quoteData,
+      siteId: 'default',
+    } as Omit<Quote, 'id'>);
     
-    setQuotes([...quotes, newQuote]);
     setIsCreating(false);
     
     toast({
       title: "Devis créé",
       description: `Le devis ${newQuote.number} a été créé avec succès.`,
-      variant: "default",
     });
   };
   
-  const handleEditQuote = (quote: Partial<Quote>) => {
-    const updatedQuotes = quotes.map(q => 
-      q.id === quote.id ? quote : q
-    );
-    
-    setQuotes(updatedQuotes);
-    setIsEditing(null);
-    
-    toast({
-      title: "Devis modifié",
-      description: `Le devis ${quote.number} a été modifié avec succès.`,
-      variant: "default",
-    });
+  const handleEditQuote = (quoteData: Partial<Quote>) => {
+    if (quoteData.id) {
+      updateQuote(quoteData.id, quoteData);
+      setIsEditing(null);
+      
+      toast({
+        title: "Devis modifié",
+        description: `Le devis ${quoteData.number} a été modifié avec succès.`,
+      });
+    }
   };
   
   const handleDeleteQuote = (id: string) => {
     const quoteToDelete = quotes.find(q => q.id === id);
-    const updatedQuotes = quotes.filter(q => q.id !== id);
-    
-    setQuotes(updatedQuotes);
+    deleteQuote(id);
     
     toast({
       title: "Devis supprimé",

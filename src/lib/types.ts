@@ -67,6 +67,8 @@ export interface CompanyInfo {
   website?: string;
   taxId?: string;
   bankAccount?: string;
+  signatory?: string;
+  signatoryTitle?: string;
 }
 
 export type Role = 'admin' | 'manager' | 'accountant' | 'viewer';

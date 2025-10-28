@@ -6,22 +6,13 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Client, Product, InvoiceItem, Invoice } from '@/lib/types';
+import { InvoiceItem, Invoice } from '@/lib/types';
 import { FileText, Plus, Trash, Printer } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-
-// Mock data
-const mockClients: Client[] = [
-  { id: '1', name: 'Societe ABC', address: 'Abidjan, Plateau', phone: '0123456789', code: 'CLI001' },
-  { id: '2', name: 'Client XYZ', address: 'Abidjan, Cocody', phone: '9876543210', code: 'CLI002' },
-  { id: '3', name: 'Entreprise DEF', address: 'Abidjan, Treichville', phone: '5555666777', code: 'CLI003' },
-];
-
-const mockProducts: Product[] = [
-  { id: '1', reference: 'P1', description: 'Produit 1', price: 100000 },
-  { id: '2', reference: 'P2', description: 'Service mensuel', price: 50000 },
-  { id: '3', reference: 'P3', description: 'Consultation', price: 75000 },
-];
+import { useClients } from '@/hooks/useClients';
+import { useProducts } from '@/hooks/useProducts';
+import { useCompanyInfo } from '@/hooks/useCompanyInfo';
+import Logo from '@/components/Logo';
 
 interface InvoiceFormProps {
   initialInvoice?: Partial<Invoice>;
@@ -34,6 +25,10 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
   onSubmit,
   isLoading = false
 }) => {
+  const { clients } = useClients();
+  const { products } = useProducts();
+  const { companyInfo } = useCompanyInfo();
+  
   const [invoice, setInvoice] = useState<Partial<Invoice>>(initialInvoice || {
     number: `FACT-${String(Date.now()).slice(-4)}`,
     date: new Date().toISOString().split('T')[0],
@@ -47,7 +42,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
   const [showPreview, setShowPreview] = useState(false);
 
   const handleClientChange = (clientId: string) => {
-    const selectedClient = mockClients.find(c => c.id === clientId);
+    const selectedClient = clients.find(c => c.id === clientId);
     if (selectedClient) {
       setInvoice({ ...invoice, client: selectedClient });
     }
@@ -80,7 +75,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
   };
 
   const handleProductChange = (itemId: string, productId: string) => {
-    const selectedProduct = mockProducts.find(p => p.id === productId);
+    const selectedProduct = products.find(p => p.id === productId);
     if (!selectedProduct) return;
     
     const updatedItems = (invoice.items || []).map(item => {
@@ -223,7 +218,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
                   <SelectValue placeholder="Sélectionner un client" />
                 </SelectTrigger>
                 <SelectContent>
-                  {mockClients.map(client => (
+                  {clients.map(client => (
                     <SelectItem key={client.id} value={client.id}>
                       {client.name}
                     </SelectItem>
@@ -292,7 +287,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
                               <SelectValue placeholder="Choisir un produit" />
                             </SelectTrigger>
                             <SelectContent>
-                              {mockProducts.map(product => (
+                              {products.map(product => (
                                 <SelectItem key={product.id} value={product.id}>
                                   {product.reference} - {product.description}
                                 </SelectItem>
@@ -403,14 +398,16 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
           <div className="print-invoice shadow-lg">
             <div className="print-invoice-header">
               <div>
-                <div className="bg-epic-gold p-2 rounded-md inline-block">
-                  <div className="text-epic-blue font-bold text-2xl">EPICSPOT</div>
-                </div>
+                {companyInfo.logo ? (
+                  <img src={companyInfo.logo} alt={companyInfo.name} className="h-16 mb-4" />
+                ) : (
+                  <Logo className="h-16 mb-4" />
+                )}
                 <div className="mt-4 space-y-1">
-                  <p className="font-bold">EPICSPOT_CONSULTING</p>
-                  <p>Adresse de l'entreprise</p>
-                  <p>Téléphone: +225 XX XX XX XX</p>
-                  <p>Email: contact@epicspot.com</p>
+                  <p className="font-bold">{companyInfo.name}</p>
+                  <p>{companyInfo.address}</p>
+                  {companyInfo.phone && <p>Téléphone: {companyInfo.phone}</p>}
+                  {companyInfo.email && <p>Email: {companyInfo.email}</p>}
                 </div>
               </div>
               
@@ -488,7 +485,13 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
             
             <div className="text-center text-sm text-muted-foreground mt-16">
               <p>Merci pour votre confiance</p>
-              <p>EPICSPOT_CONSULTING - RC: XXXXXXX - IF: XXXXXXX</p>
+              {companyInfo.taxId && <p>{companyInfo.taxId}</p>}
+              {companyInfo.signatory && (
+                <div className="mt-8">
+                  <p className="font-semibold">{companyInfo.signatory}</p>
+                  {companyInfo.signatoryTitle && <p className="text-xs">{companyInfo.signatoryTitle}</p>}
+                </div>
+              )}
             </div>
           </div>
         </div>
