@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   FileText, 
@@ -19,9 +19,12 @@ import {
   ShoppingCart,
   Truck,
   ShoppingBag,
-  LineChart
+  LineChart,
+  LogOut
 } from 'lucide-react';
 import Logo from './Logo';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
 
 import {
   Sidebar as SidebarRoot,
@@ -44,7 +47,14 @@ import {
 
 const Sidebar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [currentSite, setCurrentSite] = useState("site-1");
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   // Mock sites pour le menu déroulant
   const sites = [
@@ -126,10 +136,22 @@ const Sidebar = () => {
         </SidebarMenu>
       </SidebarContent>
       
-      <SidebarFooter className="p-4 border-t border-sidebar-border">
-        <div className="text-xs text-sidebar-foreground/70">
-          EPICSPOT_CONSULTING
+      <SidebarFooter className="p-4 border-t border-sidebar-border space-y-2">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-sm font-medium">{user?.name}</div>
+            <div className="text-xs text-sidebar-foreground/70">{user?.email}</div>
+          </div>
         </div>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="w-full justify-start" 
+          onClick={handleLogout}
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          Déconnexion
+        </Button>
       </SidebarFooter>
     </SidebarRoot>
   );

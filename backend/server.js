@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import db from './database.js';
 
 // Import routes
+import authRoutes from './routes/auth.js';
 import clientsRoutes from './routes/clients.js';
 import productsRoutes from './routes/products.js';
 import suppliersRoutes from './routes/suppliers.js';
@@ -35,6 +36,7 @@ fastify.get('/health', async () => {
 });
 
 // Enregistrer les routes
+fastify.register(authRoutes, { prefix: '/api/auth' });
 fastify.register(clientsRoutes, { prefix: '/api/clients' });
 fastify.register(productsRoutes, { prefix: '/api/products' });
 fastify.register(suppliersRoutes, { prefix: '/api/suppliers' });

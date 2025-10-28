@@ -11,7 +11,7 @@ const db = new Database(join(__dirname, 'epicspot.db'));
 db.pragma('foreign_keys = ON');
 
 // Créer les tables
-export function initDatabase() {
+export async function initDatabase() {
   // Table clients
   db.exec(`
     CREATE TABLE IF NOT EXISTS clients (
@@ -52,12 +52,13 @@ export function initDatabase() {
     )
   `);
 
-  // Table users
+  // Table users avec authentification
   db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       email TEXT UNIQUE NOT NULL,
+      password TEXT NOT NULL,
       role TEXT NOT NULL,
       site_id TEXT,
       active INTEGER DEFAULT 1,
@@ -209,10 +210,26 @@ export function initDatabase() {
     `).run();
   }
 
+  // Créer un admin par défaut (mot de passe: admin123)
+  const adminExists = db.prepare('SELECT COUNT(*) as count FROM users WHERE role = ?').get('admin');
+  if (adminExists.count === 0) {
+    const adminId = `user_${Date.now()}_admin`;
+    // Hash simple du mot de passe (pour production, utiliser bcrypt)
+    const crypto = await import('crypto');
+    const password = crypto.createHash('sha256').update('admin123').digest('hex');
+    
+    db.prepare(`
+      INSERT INTO users (id, name, email, password, role, active)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(adminId, 'Administrateur', 'admin@epicspot.com', password, 'admin', 1);
+    
+    console.log('✅ Utilisateur admin créé (email: admin@epicspot.com, mot de passe: admin123)');
+  }
+
   console.log('✅ Base de données initialisée avec succès');
 }
 
 // Initialiser la base au démarrage
-initDatabase();
+initDatabase().catch(console.error);
 
 export default db;
