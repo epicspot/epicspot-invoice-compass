@@ -29,8 +29,11 @@ const StockMovementForm: React.FC<StockMovementFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const qty = parseFloat(quantity);
-    if (!productId || !quantity || qty === 0) {
+    // Replace comma with dot for decimal parsing
+    const normalizedQuantity = quantity.replace(',', '.');
+    const qty = parseFloat(normalizedQuantity);
+    
+    if (!productId || !quantity || isNaN(qty) || qty === 0) {
       return;
     }
 
@@ -110,7 +113,7 @@ const StockMovementForm: React.FC<StockMovementFormProps> = ({
               className="mt-1"
               placeholder="0"
               min="0.01"
-              step="1"
+              step="any"
               required
             />
           </div>
@@ -142,7 +145,7 @@ const StockMovementForm: React.FC<StockMovementFormProps> = ({
             <Button type="button" variant="outline" onClick={onClose}>
               Annuler
             </Button>
-            <Button type="submit" disabled={!productId || !quantity || parseFloat(quantity) === 0}>
+            <Button type="submit" disabled={!productId || !quantity || parseFloat(quantity.replace(',', '.')) === 0 || isNaN(parseFloat(quantity.replace(',', '.')))}>
               Enregistrer
             </Button>
           </DialogFooter>
