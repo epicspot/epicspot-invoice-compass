@@ -19,6 +19,7 @@ import Leads from "./pages/Leads";
 import Inventory from "./pages/Inventory";
 import Reminders from "./pages/Reminders";
 import Reports from "./pages/Reports";
+import POS from "./pages/POS";
 import Sidebar from "./components/Sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
@@ -46,6 +47,7 @@ const App = () => {
                   <Route path="/leads" element={<Leads />} />
                   <Route path="/products" element={<Products />} />
                   <Route path="/inventory" element={<Inventory />} />
+                  <Route path="/pos" element={<POS />} />
                   <Route path="/cash-registers" element={<CashRegisters />} />
                   <Route path="/reminders" element={<Reminders />} />
                   <Route path="/reports" element={<Reports />} />

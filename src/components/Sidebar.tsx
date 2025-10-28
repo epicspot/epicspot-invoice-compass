@@ -15,7 +15,8 @@ import {
   Users2,
   PackageSearch,
   Bell,
-  BarChart3
+  BarChart3,
+  ShoppingCart
 } from 'lucide-react';
 import Logo from './Logo';
 
@@ -50,6 +51,7 @@ const Sidebar = () => {
 
   const menuItems = [
     { name: 'Tableau de bord', path: '/dashboard', icon: LayoutDashboard },
+    { name: 'Point de Vente', path: '/pos', icon: ShoppingCart },
     { name: 'Factures', path: '/invoices', icon: FileText },
     { name: 'Devis', path: '/quotes', icon: FileCheck },
     { name: 'Clients', path: '/clients', icon: Users },

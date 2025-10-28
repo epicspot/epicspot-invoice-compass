@@ -66,17 +66,58 @@ const ProductForm: React.FC<ProductFormProps> = ({
             />
           </div>
 
-          <div>
-            <Label htmlFor="price">Prix unitaire (FCFA) *</Label>
-            <Input
-              id="price"
-              type="number"
-              min="0"
-              value={product.price || ''}
-              onChange={(e) => setProduct({ ...product, price: parseFloat(e.target.value) || 0 })}
-              className="mt-1"
-              required
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="price">Prix unitaire (FCFA) *</Label>
+              <Input
+                id="price"
+                type="number"
+                min="0"
+                step="0.01"
+                value={product.price || ''}
+                onChange={(e) => setProduct({ ...product, price: parseFloat(e.target.value) || 0 })}
+                className="mt-1"
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="taxRate">Taux de taxe (%)</Label>
+              <Input
+                id="taxRate"
+                type="number"
+                min="0"
+                max="100"
+                step="0.01"
+                value={product.taxRate || ''}
+                onChange={(e) => setProduct({ ...product, taxRate: parseFloat(e.target.value) || 0 })}
+                className="mt-1"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="minStock">Seuil d'alerte stock</Label>
+              <Input
+                id="minStock"
+                type="number"
+                min="0"
+                value={product.minStock || ''}
+                onChange={(e) => setProduct({ ...product, minStock: parseInt(e.target.value) || 0 })}
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="category">Catégorie</Label>
+              <Input
+                id="category"
+                value={product.category || ''}
+                onChange={(e) => setProduct({ ...product, category: e.target.value })}
+                className="mt-1"
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
