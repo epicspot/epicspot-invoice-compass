@@ -16,6 +16,8 @@ import PaymentDialog from '@/components/PaymentDialog';
 import { toast } from "@/hooks/use-toast";
 import { useInvoices } from '@/hooks/useInvoices';
 import { useCashRegisters } from '@/hooks/useCashRegisters';
+import { useCompanyInfo } from '@/hooks/useCompanyInfo';
+import { generateReceiptFromInvoice } from '@/lib/utils/receiptUtils';
 
 const columns = [
   { key: 'number', header: 'Numéro' },
@@ -64,6 +66,7 @@ const columns = [
 const Invoices = () => {
   const { invoices, createInvoice, updateInvoice, deleteInvoice } = useInvoices();
   const { addTransaction } = useCashRegisters();
+  const { companyInfo } = useCompanyInfo();
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState<string | null>(null);
   const [paymentInvoice, setPaymentInvoice] = useState<Invoice | null>(null);
@@ -146,9 +149,14 @@ const Invoices = () => {
       });
     }
 
+    // Générer la quittance si demandé
+    if (paymentData.generateReceipt) {
+      generateReceiptFromInvoice(paymentInvoice, paymentData, companyInfo);
+    }
+
     toast({
       title: "Paiement enregistré",
-      description: `La facture ${paymentInvoice.number} a été marquée comme payée.`,
+      description: `La facture ${paymentInvoice.number} a été marquée comme payée.${paymentData.generateReceipt ? ' Quittance générée.' : ''}`,
     });
 
     setPaymentInvoice(null);

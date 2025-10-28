@@ -4,15 +4,19 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
 import { useProducts } from '@/hooks/useProducts';
 import { useClients } from '@/hooks/useClients';
 import { useInvoices } from '@/hooks/useInvoices';
 import { useStockMovements } from '@/hooks/useStockMovements';
 import { useCashRegisters } from '@/hooks/useCashRegisters';
+import { useCompanyInfo } from '@/hooks/useCompanyInfo';
 import { Product, Client, InvoiceItem } from '@/lib/types';
 import { ShoppingCart, Trash2, Plus, Minus, Search, Receipt, CreditCard, DollarSign } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { generateReceipt } from '@/lib/utils/receiptUtils';
 
 const POS = () => {
   const { products } = useProducts();
@@ -20,6 +24,7 @@ const POS = () => {
   const { createInvoice } = useInvoices();
   const { createMovement, getCurrentStock } = useStockMovements();
   const { cashRegisters, addTransaction } = useCashRegisters();
+  const { companyInfo } = useCompanyInfo();
   
   const [cart, setCart] = useState<InvoiceItem[]>([]);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
@@ -34,6 +39,7 @@ const POS = () => {
   const [checkNumber, setCheckNumber] = useState('');
   const [checkBank, setCheckBank] = useState('');
   const [checkDate, setCheckDate] = useState(new Date().toISOString().split('T')[0]);
+  const [generateReceiptEnabled, setGenerateReceiptEnabled] = useState(true);
 
   const siteId = 'default';
   const openRegisters = cashRegisters.filter(r => r.status === 'open');
@@ -541,8 +547,23 @@ const POS = () => {
           </div>
         )}
 
+        {/* Generate Receipt Option */}
+        <div className="flex items-center space-x-2 p-3 bg-blue-50 rounded-md mb-4">
+          <Checkbox
+            id="generateReceipt"
+            checked={generateReceiptEnabled}
+            onCheckedChange={(checked) => setGenerateReceiptEnabled(checked as boolean)}
+          />
+          <Label
+            htmlFor="generateReceipt"
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+          >
+            Générer une quittance de paiement
+          </Label>
+        </div>
+
         {/* Pay Button */}
-        <Button 
+        <Button
           onClick={handlePayment} 
           size="lg" 
           className="w-full"

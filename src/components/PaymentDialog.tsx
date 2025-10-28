@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -25,6 +26,7 @@ interface PaymentDialogProps {
     checkBank?: string;
     checkDate?: string;
     notes?: string;
+    generateReceipt: boolean;
   }) => void;
   totalAmount: number;
 }
@@ -43,6 +45,7 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
   const [checkBank, setCheckBank] = useState('');
   const [checkDate, setCheckDate] = useState(new Date().toISOString().split('T')[0]);
   const [notes, setNotes] = useState('');
+  const [generateReceipt, setGenerateReceipt] = useState(true);
 
   const handleSubmit = () => {
     if (paymentMethod === 'card' && !cardTransactionNumber.trim()) {
@@ -61,7 +64,8 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
       checkNumber: paymentMethod === 'check' ? checkNumber : undefined,
       checkBank: paymentMethod === 'check' ? checkBank : undefined,
       checkDate: paymentMethod === 'check' ? checkDate : undefined,
-      notes
+      notes,
+      generateReceipt
     });
 
     // Reset form
@@ -215,6 +219,21 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
               rows={2}
               className="mt-1"
             />
+          </div>
+
+          {/* Generate Receipt Option */}
+          <div className="flex items-center space-x-2 p-3 bg-blue-50 rounded-md">
+            <Checkbox
+              id="generateReceipt"
+              checked={generateReceipt}
+              onCheckedChange={(checked) => setGenerateReceipt(checked as boolean)}
+            />
+            <Label
+              htmlFor="generateReceipt"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+            >
+              Générer une quittance de paiement
+            </Label>
           </div>
         </div>
 
