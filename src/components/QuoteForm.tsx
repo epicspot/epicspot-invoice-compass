@@ -30,7 +30,6 @@ const QuoteForm: React.FC<QuoteFormProps> = ({
   const { companyInfo } = useCompanyInfo();
   
   const [quote, setQuote] = useState<Partial<Quote>>(initialQuote || {
-    number: `DEVIS-${String(Date.now()).slice(-4)}`,
     date: new Date().toISOString().split('T')[0],
     items: [],
     subtotal: 0,
@@ -171,15 +170,17 @@ const QuoteForm: React.FC<QuoteFormProps> = ({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <Label htmlFor="quote-number">Numéro de devis</Label>
-              <Input
-                id="quote-number"
-                value={quote.number || ''}
-                onChange={(e) => setQuote({ ...quote, number: e.target.value })}
-                className="mt-1"
-              />
-            </div>
+            {initialQuote && (
+              <div>
+                <Label htmlFor="quote-number">Numéro de devis</Label>
+                <Input
+                  id="quote-number"
+                  value={quote.number || ''}
+                  disabled
+                  className="mt-1 bg-muted"
+                />
+              </div>
+            )}
             
             <div>
               <Label htmlFor="quote-date">Date</Label>

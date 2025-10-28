@@ -67,7 +67,7 @@ const Invoices = () => {
     const newInvoice = createInvoice({
       ...invoiceData,
       siteId: 'default',
-    } as Omit<Invoice, 'id'>);
+    } as Omit<Invoice, 'id' | 'number'>);
     
     setIsCreating(false);
     

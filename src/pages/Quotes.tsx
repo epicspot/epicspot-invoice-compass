@@ -67,7 +67,7 @@ const Quotes = () => {
     const newQuote = createQuote({
       ...quoteData,
       siteId: 'default',
-    } as Omit<Quote, 'id'>);
+    } as Omit<Quote, 'id' | 'number'>);
     
     setIsCreating(false);
     

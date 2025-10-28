@@ -1,13 +1,15 @@
 import { useLocalStorage } from './useLocalStorage';
 import { Invoice } from '@/lib/types';
+import { generateDocumentNumber } from '@/lib/utils/documentUtils';
 
 export function useInvoices() {
   const [invoices, setInvoices] = useLocalStorage<Invoice[]>('invoices', []);
 
-  const createInvoice = (invoice: Omit<Invoice, 'id'>) => {
+  const createInvoice = (invoice: Omit<Invoice, 'id' | 'number'>) => {
     const newInvoice: Invoice = {
       ...invoice,
       id: `inv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      number: generateDocumentNumber('invoice', invoices),
     };
     setInvoices([...invoices, newInvoice]);
     return newInvoice;

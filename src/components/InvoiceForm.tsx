@@ -30,7 +30,6 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
   const { companyInfo } = useCompanyInfo();
   
   const [invoice, setInvoice] = useState<Partial<Invoice>>(initialInvoice || {
-    number: `FACT-${String(Date.now()).slice(-4)}`,
     date: new Date().toISOString().split('T')[0],
     items: [],
     subtotal: 0,
@@ -185,15 +184,17 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <Label htmlFor="invoice-number">Numéro de facture</Label>
-              <Input
-                id="invoice-number"
-                value={invoice.number || ''}
-                onChange={(e) => setInvoice({ ...invoice, number: e.target.value })}
-                className="mt-1"
-              />
-            </div>
+            {initialInvoice && (
+              <div>
+                <Label htmlFor="invoice-number">Numéro de facture</Label>
+                <Input
+                  id="invoice-number"
+                  value={invoice.number || ''}
+                  disabled
+                  className="mt-1 bg-muted"
+                />
+              </div>
+            )}
             
             <div>
               <Label htmlFor="invoice-date">Date</Label>

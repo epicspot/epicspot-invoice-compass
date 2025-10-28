@@ -1,13 +1,15 @@
 import { useLocalStorage } from './useLocalStorage';
 import { Quote } from '@/lib/types';
+import { generateDocumentNumber } from '@/lib/utils/documentUtils';
 
 export function useQuotes() {
   const [quotes, setQuotes] = useLocalStorage<Quote[]>('quotes', []);
 
-  const createQuote = (quote: Omit<Quote, 'id'>) => {
+  const createQuote = (quote: Omit<Quote, 'id' | 'number'>) => {
     const newQuote: Quote = {
       ...quote,
       id: `quote_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      number: generateDocumentNumber('quote', quotes),
     };
     setQuotes([...quotes, newQuote]);
     return newQuote;
