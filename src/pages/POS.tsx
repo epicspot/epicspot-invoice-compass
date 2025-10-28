@@ -18,12 +18,12 @@ const POS = () => {
   const { products } = useProducts();
   const { clients } = useClients();
   const { createInvoice } = useInvoices();
-  const { createMovement } = useStockMovements();
+  const { createMovement, getCurrentStock } = useStockMovements();
   const { cashRegisters, addTransaction } = useCashRegisters();
   
   const [cart, setCart] = useState<InvoiceItem[]>([]);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
-  const [selectedRegister, setSelectedRegister] = useState<string>('');
+  const [selectedRegister, setSelectedRegister] = useState<string>('reg-default');
   const [searchQuery, setSearchQuery] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card'>('cash');
   const [amountPaid, setAmountPaid] = useState<number>(0);
@@ -38,6 +38,19 @@ const POS = () => {
   );
 
   const addToCart = (product: Product) => {
+    // Vérifier le stock disponible
+    const availableStock = getCurrentStock(product.id, siteId);
+    const currentQtyInCart = cart.find(item => item.product.id === product.id)?.quantity || 0;
+    
+    if (availableStock <= currentQtyInCart) {
+      toast({
+        title: "Stock insuffisant",
+        description: `Le produit "${product.description}" n'a plus de stock disponible.`,
+        variant: "destructive"
+      });
+      return;
+    }
+    
     const existingItem = cart.find(item => item.product.id === product.id);
     
     if (existingItem) {
@@ -59,10 +72,26 @@ const POS = () => {
   const updateQuantity = (itemId: string, delta: number) => {
     setCart(cart.map(item => {
       if (item.id === itemId) {
-        const newQuantity = Math.max(0, item.quantity + delta);
-        return newQuantity === 0 
-          ? null 
-          : { ...item, quantity: newQuantity, amount: newQuantity * item.product.price };
+        const newQuantity = item.quantity + delta;
+        
+        // Vérifier le stock disponible pour l'augmentation
+        if (delta > 0) {
+          const availableStock = getCurrentStock(item.product.id, siteId);
+          if (newQuantity > availableStock) {
+            toast({
+              title: "Stock insuffisant",
+              description: `Stock disponible: ${availableStock}`,
+              variant: "destructive"
+            });
+            return item;
+          }
+        }
+        
+        if (newQuantity <= 0) {
+          return null;
+        }
+        
+        return { ...item, quantity: newQuantity, amount: newQuantity * item.product.price };
       }
       return item;
     }).filter(Boolean) as InvoiceItem[]);
@@ -190,28 +219,43 @@ const POS = () => {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {filteredProducts.map(product => (
-            <Card 
-              key={product.id} 
-              className="cursor-pointer hover:shadow-lg transition-shadow"
-              onClick={() => addToCart(product)}
-            >
-              <CardContent className="p-4">
-                <div className="text-sm font-medium mb-1">{product.reference}</div>
-                <div className="text-xs text-muted-foreground mb-2 line-clamp-2">
-                  {product.description}
-                </div>
-                <div className="text-lg font-bold">
-                  {product.price.toLocaleString()} FCFA
-                </div>
-                {product.taxRate && (
-                  <Badge variant="outline" className="mt-1 text-xs">
-                    TVA {product.taxRate}%
-                  </Badge>
-                )}
-              </CardContent>
-            </Card>
-          ))}
+          {filteredProducts.map(product => {
+            const stock = getCurrentStock(product.id, siteId);
+            const isOutOfStock = stock <= 0;
+            
+            return (
+              <Card 
+                key={product.id} 
+                className={`cursor-pointer transition-shadow ${isOutOfStock ? 'opacity-50' : 'hover:shadow-lg'}`}
+                onClick={() => !isOutOfStock && addToCart(product)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start mb-1">
+                    <div className="text-sm font-medium">{product.reference}</div>
+                    <Badge variant={isOutOfStock ? 'destructive' : 'secondary'} className="text-xs">
+                      Stock: {stock}
+                    </Badge>
+                  </div>
+                  <div className="text-xs text-muted-foreground mb-2 line-clamp-2">
+                    {product.description}
+                  </div>
+                  <div className="text-lg font-bold">
+                    {product.price.toLocaleString()} FCFA
+                  </div>
+                  {product.taxRate && (
+                    <Badge variant="outline" className="mt-1 text-xs">
+                      TVA {product.taxRate}%
+                    </Badge>
+                  )}
+                  {isOutOfStock && (
+                    <div className="mt-2 text-xs text-red-600 font-semibold">
+                      Rupture de stock
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       </div>
 
@@ -257,6 +301,7 @@ const POS = () => {
               {openRegisters.map(register => (
                 <SelectItem key={register.id} value={register.id}>
                   {register.name}
+                  {register.id === 'reg-default' && ' (par défaut)'}
                 </SelectItem>
               ))}
             </SelectContent>
