@@ -77,22 +77,16 @@ export const generateClientCode = (
   name: string,
   existingClients: Array<{ code?: string; name: string }>
 ): string => {
-  // Nettoyer et extraire les 3 premières lettres
-  const cleanName = name
-    .trim()
-    .toUpperCase()
-    .replace(/[^A-Z]/g, ''); // Garde seulement les lettres
+  const prefix = 'CLI';
   
-  const prefix = cleanName.substring(0, 3).padEnd(3, 'X'); // Si moins de 3 lettres, complète avec X
-  
-  // Trouver tous les clients avec ce préfixe
-  const samePrefixClients = existingClients.filter(c => 
+  // Trouver tous les clients avec le préfixe CLI
+  const cliClients = existingClients.filter(c => 
     c.code?.startsWith(prefix)
   );
   
   // Trouver le numéro le plus élevé
   let maxNumber = 0;
-  samePrefixClients.forEach(c => {
+  cliClients.forEach(c => {
     if (c.code) {
       const match = c.code.match(/(\d+)$/);
       if (match) {
