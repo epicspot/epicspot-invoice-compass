@@ -25,8 +25,15 @@ const POS = () => {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [selectedRegister, setSelectedRegister] = useState<string>('reg-default');
   const [searchQuery, setSearchQuery] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card'>('cash');
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card' | 'check'>('cash');
   const [amountPaid, setAmountPaid] = useState<number>(0);
+  
+  // Informations spécifiques aux paiements
+  const [cardTransactionNumber, setCardTransactionNumber] = useState('');
+  const [cardTerminal, setCardTerminal] = useState('');
+  const [checkNumber, setCheckNumber] = useState('');
+  const [checkBank, setCheckBank] = useState('');
+  const [checkDate, setCheckDate] = useState(new Date().toISOString().split('T')[0]);
 
   const siteId = 'default';
   const openRegisters = cashRegisters.filter(r => r.status === 'open');
@@ -142,6 +149,45 @@ const POS = () => {
       return;
     }
 
+    // Validation des champs spécifiques
+    if (paymentMethod === 'card') {
+      if (!cardTransactionNumber.trim()) {
+        toast({
+          title: "Informations manquantes",
+          description: "Veuillez saisir le numéro de transaction.",
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
+    if (paymentMethod === 'check') {
+      if (!checkNumber.trim() || !checkBank.trim()) {
+        toast({
+          title: "Informations manquantes",
+          description: "Veuillez saisir le numéro de chèque et la banque.",
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
+    // Préparer les notes de paiement
+    let paymentNotes = `Paiement ${
+      paymentMethod === 'cash' ? 'espèces' : 
+      paymentMethod === 'card' ? 'carte bancaire' : 
+      'chèque'
+    }`;
+    
+    if (paymentMethod === 'card') {
+      paymentNotes += ` - Transaction: ${cardTransactionNumber}`;
+      if (cardTerminal) paymentNotes += ` - Terminal: ${cardTerminal}`;
+    }
+    
+    if (paymentMethod === 'check') {
+      paymentNotes += ` - Chèque N°${checkNumber} - Banque: ${checkBank} - Date: ${new Date(checkDate).toLocaleDateString('fr-FR')}`;
+    }
+
     // Create invoice
     const invoice = createInvoice({
       date: new Date().toISOString(),
@@ -156,7 +202,7 @@ const POS = () => {
       subtotal,
       tax,
       total,
-      notes: `Paiement ${paymentMethod === 'cash' ? 'espèces' : 'carte'}`,
+      notes: paymentNotes,
       status: 'paid',
       siteId,
       cashRegisterId: selectedRegister
@@ -181,13 +227,18 @@ const POS = () => {
       type: 'sale',
       reference: invoice.number,
       userId: 'current-user',
-      notes: `Vente ${paymentMethod}`
+      notes: paymentNotes
     });
 
-    // Clear cart
+    // Clear cart and payment info
     setCart([]);
     setAmountPaid(0);
     setSelectedClient(null);
+    setCardTransactionNumber('');
+    setCardTerminal('');
+    setCheckNumber('');
+    setCheckBank('');
+    setCheckDate(new Date().toISOString().split('T')[0]);
 
     toast({
       title: "Vente enregistrée",
@@ -389,7 +440,7 @@ const POS = () => {
         {/* Payment Method */}
         <div className="mb-4">
           <label className="text-sm font-medium mb-2 block">Mode de paiement</label>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             <Button
               variant={paymentMethod === 'cash' ? 'default' : 'outline'}
               onClick={() => setPaymentMethod('cash')}
@@ -406,10 +457,18 @@ const POS = () => {
               <CreditCard className="h-4 w-4 mr-2" />
               Carte
             </Button>
+            <Button
+              variant={paymentMethod === 'check' ? 'default' : 'outline'}
+              onClick={() => setPaymentMethod('check')}
+              className="w-full"
+            >
+              <Receipt className="h-4 w-4 mr-2" />
+              Chèque
+            </Button>
           </div>
         </div>
 
-        {/* Amount Paid (for cash) */}
+        {/* Payment Details based on method */}
         {paymentMethod === 'cash' && (
           <div className="mb-4">
             <label className="text-sm font-medium mb-2 block">Montant reçu</label>
@@ -425,6 +484,60 @@ const POS = () => {
                 Rendu: {(amountPaid - total).toLocaleString()} FCFA
               </div>
             )}
+          </div>
+        )}
+
+        {paymentMethod === 'card' && (
+          <div className="mb-4 space-y-3">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Numéro de transaction *</label>
+              <Input
+                type="text"
+                value={cardTransactionNumber}
+                onChange={(e) => setCardTransactionNumber(e.target.value)}
+                placeholder="Ex: 123456789"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Terminal (optionnel)</label>
+              <Input
+                type="text"
+                value={cardTerminal}
+                onChange={(e) => setCardTerminal(e.target.value)}
+                placeholder="Ex: TPE-01"
+              />
+            </div>
+          </div>
+        )}
+
+        {paymentMethod === 'check' && (
+          <div className="mb-4 space-y-3">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Numéro de chèque *</label>
+              <Input
+                type="text"
+                value={checkNumber}
+                onChange={(e) => setCheckNumber(e.target.value)}
+                placeholder="Ex: 1234567"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Banque *</label>
+              <Input
+                type="text"
+                value={checkBank}
+                onChange={(e) => setCheckBank(e.target.value)}
+                placeholder="Ex: Société Générale"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Date du chèque</label>
+              <Input
+                type="date"
+                value={checkDate}
+                onChange={(e) => setCheckDate(e.target.value)}
+              />
+            </div>
           </div>
         )}
 
