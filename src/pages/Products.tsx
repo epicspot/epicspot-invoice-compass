@@ -30,7 +30,7 @@ const Products = () => {
   const [isEditing, setIsEditing] = useState<string | null>(null);
   
   const handleCreateProduct = (productData: Partial<Product>) => {
-    const newProduct = createProduct(productData as Omit<Product, 'id'>);
+    const newProduct = createProduct(productData as Omit<Product, 'id' | 'reference'>);
     setIsCreating(false);
     
     toast({

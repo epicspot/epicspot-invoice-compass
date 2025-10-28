@@ -20,7 +20,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
   isLoading = false
 }) => {
   const [product, setProduct] = useState<Partial<Product>>(initialProduct || {
-    reference: '',
     description: '',
     price: 0
   });
@@ -44,16 +43,17 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
       <Card>
         <CardContent className="pt-6 space-y-4">
-          <div>
-            <Label htmlFor="reference">Référence *</Label>
-            <Input
-              id="reference"
-              value={product.reference || ''}
-              onChange={(e) => setProduct({ ...product, reference: e.target.value })}
-              className="mt-1"
-              required
-            />
-          </div>
+          {initialProduct && (
+            <div>
+              <Label htmlFor="reference">Référence</Label>
+              <Input
+                id="reference"
+                value={product.reference || ''}
+                disabled
+                className="mt-1 bg-muted"
+              />
+            </div>
+          )}
 
           <div>
             <Label htmlFor="description">Description *</Label>
