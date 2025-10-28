@@ -13,6 +13,9 @@ interface RegisterDetailsProps {
   onOpenRegister: (register: CashRegister) => void;
   onCloseRegister: (register: CashRegister) => void;
   onReconcileRegister: (register: CashRegister) => void;
+  onDeposit: (registerId: string, amount: number, notes: string) => void;
+  onWithdrawal: (registerId: string, amount: number, notes: string) => void;
+  onAdjustment: (registerId: string, amount: number, notes: string) => void;
   onBack: () => void;
   formatCurrency: (amount: number) => string;
   formatDate: (dateString: string) => string;
@@ -25,6 +28,9 @@ const RegisterDetails: React.FC<RegisterDetailsProps> = ({
   onOpenRegister,
   onCloseRegister,
   onReconcileRegister,
+  onDeposit,
+  onWithdrawal,
+  onAdjustment,
   onBack,
   formatCurrency,
   formatDate,
@@ -80,7 +86,12 @@ const RegisterDetails: React.FC<RegisterDetailsProps> = ({
         </TabsContent>
         
         <TabsContent value="operations">
-          <RegisterOperations />
+          <RegisterOperations 
+            register={register}
+            onDeposit={(amount, notes) => onDeposit(register.id, amount, notes)}
+            onWithdrawal={(amount, notes) => onWithdrawal(register.id, amount, notes)}
+            onAdjustment={(amount, notes) => onAdjustment(register.id, amount, notes)}
+          />
         </TabsContent>
       </Tabs>
     </div>

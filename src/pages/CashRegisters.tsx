@@ -9,7 +9,7 @@ import { CashRegister } from "@/lib/types";
 
 const CashRegisters = () => {
   const { toast } = useToast();
-  const { cashRegisters, openRegister, closeRegister, transactions } = useCashRegisters();
+  const { cashRegisters, openRegister, closeRegister, transactions, addTransaction } = useCashRegisters();
   
   const [selectedRegister, setSelectedRegister] = useState<CashRegister | null>(null);
 
@@ -52,6 +52,51 @@ const CashRegisters = () => {
     });
   };
 
+  const handleDeposit = (registerId: string, amount: number, notes: string) => {
+    addTransaction({
+      cashRegisterId: registerId,
+      amount: amount,
+      type: 'deposit',
+      notes: notes || 'Dépôt d\'espèces',
+      userId: 'current-user'
+    });
+
+    toast({
+      title: "Dépôt enregistré",
+      description: `${amount.toLocaleString()} FCFA déposé dans la caisse.`
+    });
+  };
+
+  const handleWithdrawal = (registerId: string, amount: number, notes: string) => {
+    addTransaction({
+      cashRegisterId: registerId,
+      amount: -amount,
+      type: 'withdrawal',
+      notes: notes || 'Retrait d\'espèces',
+      userId: 'current-user'
+    });
+
+    toast({
+      title: "Retrait enregistré",
+      description: `${amount.toLocaleString()} FCFA retiré de la caisse.`
+    });
+  };
+
+  const handleAdjustment = (registerId: string, amount: number, notes: string) => {
+    addTransaction({
+      cashRegisterId: registerId,
+      amount: amount,
+      type: 'adjustment',
+      notes: notes || 'Ajustement de caisse',
+      userId: 'current-user'
+    });
+
+    toast({
+      title: "Ajustement enregistré",
+      description: `Ajustement de ${amount > 0 ? '+' : ''}${amount.toLocaleString()} FCFA effectué.`
+    });
+  };
+
   const filterTransactions = (registerId: string) => {
     return transactions.filter(trans => trans.cashRegisterId === registerId);
   };
@@ -68,6 +113,9 @@ const CashRegisters = () => {
         onOpenRegister={handleOpenRegister}
         onCloseRegister={handleCloseRegister}
         onReconcileRegister={handleReconcileRegister}
+        onDeposit={handleDeposit}
+        onWithdrawal={handleWithdrawal}
+        onAdjustment={handleAdjustment}
         onBack={() => setSelectedRegister(null)}
         formatCurrency={formatCurrency}
         formatDate={formatDate}
