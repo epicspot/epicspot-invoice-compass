@@ -223,14 +223,20 @@ const POS = () => {
         <div className="mb-4">
           <label className="text-sm font-medium mb-2 block">Client (optionnel)</label>
           <Select 
-            value={selectedClient?.id || ''} 
-            onValueChange={(value) => setSelectedClient(clients.find(c => c.id === value) || null)}
+            value={selectedClient?.id || 'walk-in'} 
+            onValueChange={(value) => {
+              if (value === 'walk-in') {
+                setSelectedClient(null);
+              } else {
+                setSelectedClient(clients.find(c => c.id === value) || null);
+              }
+            }}
           >
             <SelectTrigger>
               <SelectValue placeholder="Client comptoir" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Client comptoir</SelectItem>
+              <SelectItem value="walk-in">Client comptoir</SelectItem>
               {clients.map(client => (
                 <SelectItem key={client.id} value={client.id}>
                   {client.name}
