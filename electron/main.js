@@ -1,7 +1,7 @@
 import { app, BrowserWindow } from 'electron';
 import path from 'path';
 import { spawn } from 'child_process';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -11,23 +11,30 @@ let backendProcess;
 
 // Démarrer le backend Node.js
 function startBackend() {
-  const backendPath = path.join(__dirname, '..', 'backend', 'server.js');
-  
-  backendProcess = spawn('node', [backendPath], {
-    env: {
-      ...process.env,
-      PORT: '3000',
-      FRONTEND_URL: 'http://localhost:8080'
-    }
-  });
+  const env = {
+    ...process.env,
+    PORT: '3000',
+    FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:8080',
+  };
 
-  backendProcess.stdout.on('data', (data) => {
-    console.log(`Backend: ${data}`);
-  });
+  if (process.env.NODE_ENV === 'development') {
+    const devBackendPath = path.join(__dirname, '..', 'backend', 'server.js');
+    backendProcess = spawn('node', [devBackendPath], { env });
 
-  backendProcess.stderr.on('data', (data) => {
-    console.error(`Backend Error: ${data}`);
-  });
+    backendProcess.stdout.on('data', (data) => {
+      console.log(`Backend: ${data}`);
+    });
+
+    backendProcess.stderr.on('data', (data) => {
+      console.error(`Backend Error: ${data}`);
+    });
+  } else {
+    // En production, importer directement le serveur ESM depuis resources/backend
+    const prodBackendPath = path.join(process.resourcesPath, 'backend', 'server.js');
+    import(pathToFileURL(prodBackendPath).href)
+      .then(() => console.log('Backend démarré (production)'))
+      .catch((err) => console.error('Erreur de démarrage du backend:', err));
+  }
 }
 
 function createWindow() {
