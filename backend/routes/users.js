@@ -2,12 +2,12 @@ import db from '../database.js';
 
 export default async function usersRoutes(fastify) {
   fastify.get('/', async () => {
-    return db.prepare('SELECT * FROM users ORDER BY created_at DESC').all();
+    return db.prepare('SELECT id, name, email, role, site_id, active, created_at FROM users ORDER BY created_at DESC').all();
   });
 
   fastify.get('/:id', async (request, reply) => {
     const { id } = request.params;
-    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(id);
+    const user = db.prepare('SELECT id, name, email, role, site_id, active, created_at FROM users WHERE id = ?').get(id);
     
     if (!user) {
       reply.code(404);
@@ -18,7 +18,7 @@ export default async function usersRoutes(fastify) {
   });
 
   fastify.post('/', async (request, reply) => {
-    const { name, email, role, site_id, active } = request.body;
+    const { name, email, password, role, site_id, active } = request.body;
     
     if (!name || !email || !role) {
       reply.code(400);
@@ -26,14 +26,20 @@ export default async function usersRoutes(fastify) {
     }
 
     const id = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Hash du mot de passe (utiliser le mot de passe fourni ou un par défaut)
+    const crypto = await import('crypto');
+    const userPassword = password || 'password123';
+    const hashedPassword = crypto.createHash('sha256').update(userPassword).digest('hex');
 
     try {
       db.prepare(`
-        INSERT INTO users (id, name, email, role, site_id, active)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `).run(id, name, email, role, site_id || '', active !== false ? 1 : 0);
+        INSERT INTO users (id, name, email, password, role, site_id, active)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `).run(id, name, email, hashedPassword, role, site_id || '', active !== false ? 1 : 0);
 
-      return db.prepare('SELECT * FROM users WHERE id = ?').get(id);
+      const user = db.prepare('SELECT id, name, email, role, site_id, active, created_at FROM users WHERE id = ?').get(id);
+      return user;
     } catch (error) {
       reply.code(500);
       return { error: 'Erreur lors de la création de l\'utilisateur' };
@@ -57,7 +63,7 @@ export default async function usersRoutes(fastify) {
         WHERE id = ?
       `).run(name, email, role, site_id, active !== false ? 1 : 0, id);
 
-      return db.prepare('SELECT * FROM users WHERE id = ?').get(id);
+      return db.prepare('SELECT id, name, email, role, site_id, active, created_at FROM users WHERE id = ?').get(id);
     } catch (error) {
       reply.code(500);
       return { error: 'Erreur lors de la mise à jour de l\'utilisateur' };
