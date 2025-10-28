@@ -21,7 +21,7 @@ const StockMovementForm: React.FC<StockMovementFormProps> = ({
   onSubmit
 }) => {
   const [productId, setProductId] = useState('');
-  const [quantity, setQuantity] = useState(0);
+  const [quantity, setQuantity] = useState('');
   const [type, setType] = useState<StockMovement['type']>('purchase');
   const [reference, setReference] = useState('');
   const [notes, setNotes] = useState('');
@@ -29,11 +29,12 @@ const StockMovementForm: React.FC<StockMovementFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!productId || quantity === 0) {
+    const qty = parseFloat(quantity);
+    if (!productId || !quantity || qty === 0) {
       return;
     }
 
-    const movementQuantity = (type === 'sale' || type === 'transfer') ? -Math.abs(quantity) : Math.abs(quantity);
+    const movementQuantity = (type === 'sale' || type === 'transfer') ? -Math.abs(qty) : Math.abs(qty);
 
     onSubmit({
       productId,
@@ -47,7 +48,7 @@ const StockMovementForm: React.FC<StockMovementFormProps> = ({
 
     // Reset form
     setProductId('');
-    setQuantity(0);
+    setQuantity('');
     setType('purchase');
     setReference('');
     setNotes('');
@@ -104,12 +105,13 @@ const StockMovementForm: React.FC<StockMovementFormProps> = ({
             <Input
               id="quantity"
               type="number"
-              value={quantity || ''}
-              onChange={(e) => setQuantity(parseFloat(e.target.value) || 0)}
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
               className="mt-1"
               placeholder="0"
-              min="0"
+              min="0.01"
               step="1"
+              required
             />
           </div>
 
@@ -140,7 +142,7 @@ const StockMovementForm: React.FC<StockMovementFormProps> = ({
             <Button type="button" variant="outline" onClick={onClose}>
               Annuler
             </Button>
-            <Button type="submit" disabled={!productId || quantity === 0}>
+            <Button type="submit" disabled={!productId || !quantity || parseFloat(quantity) === 0}>
               Enregistrer
             </Button>
           </DialogFooter>

@@ -64,6 +64,10 @@ const RolePermissionsTable: React.FC<RolePermissionsTableProps> = ({ initialRole
       label: "Comptable", 
       color: "bg-green-100 text-green-800 hover:bg-green-100" 
     },
+    cashier: { 
+      label: "Caissier", 
+      color: "bg-purple-100 text-purple-800 hover:bg-purple-100" 
+    },
     viewer: { 
       label: "Consultant", 
       color: "bg-gray-100 text-gray-800 hover:bg-gray-100" 

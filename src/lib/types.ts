@@ -77,7 +77,7 @@ export interface CompanyInfo {
   signatoryTitle?: string;
 }
 
-export type Role = 'admin' | 'manager' | 'accountant' | 'viewer';
+export type Role = 'admin' | 'manager' | 'accountant' | 'cashier' | 'viewer';
 
 export interface Permission {
   create: boolean;

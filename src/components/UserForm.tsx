@@ -30,7 +30,7 @@ const formSchema = z.object({
   email: z.string().email({
     message: "Format d'email invalide.",
   }),
-  role: z.enum(["admin", "manager", "accountant", "viewer"] as const),
+  role: z.enum(["admin", "manager", "accountant", "cashier", "viewer"] as const),
   active: z.boolean().default(true),
 });
 
@@ -66,14 +66,16 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, onCancel }) => {
   const roleLabels: Record<Role, string> = {
     admin: "Administrateur",
     manager: "Gestionnaire",
-    accountant: "Comptable", 
+    accountant: "Comptable",
+    cashier: "Caissier",
     viewer: "Consultant"
   };
 
   const roleDescriptions: Record<Role, string> = {
     admin: "Accès complet à toutes les fonctionnalités",
     manager: "Gestion des devis, factures et clients",
-    accountant: "Accès aux factures et aux rapports financiers", 
+    accountant: "Accès aux factures et aux rapports financiers",
+    cashier: "Gestion des caisses et ventes au comptoir",
     viewer: "Consultation uniquement"
   };
 

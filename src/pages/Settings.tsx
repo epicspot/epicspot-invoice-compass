@@ -44,6 +44,16 @@ const initialRolePermissions: Record<Role, RolePermissions> = {
     cashRegister: { create: false, read: true, update: true, delete: false },
     sites: { create: false, read: true, update: false, delete: false }
   },
+  cashier: {
+    invoices: { create: true, read: true, update: false, delete: false },
+    quotes: { create: false, read: true, update: false, delete: false },
+    clients: { create: true, read: true, update: true, delete: false },
+    products: { create: false, read: true, update: false, delete: false },
+    users: { create: false, read: false, update: false, delete: false },
+    settings: { create: false, read: false, update: false, delete: false },
+    cashRegister: { create: true, read: true, update: true, delete: false },
+    sites: { create: false, read: true, update: false, delete: false }
+  },
   viewer: {
     invoices: { create: false, read: true, update: false, delete: false },
     quotes: { create: false, read: true, update: false, delete: false },

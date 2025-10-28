@@ -22,6 +22,7 @@ import Reports from "./pages/Reports";
 import POS from "./pages/POS";
 import Suppliers from "./pages/Suppliers";
 import PurchaseOrders from "./pages/PurchaseOrders";
+import BusinessAnalytics from "./pages/BusinessAnalytics";
 import Sidebar from "./components/Sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
@@ -51,6 +52,7 @@ const App = () => {
                   <Route path="/inventory" element={<Inventory />} />
                   <Route path="/suppliers" element={<Suppliers />} />
                   <Route path="/purchase-orders" element={<PurchaseOrders />} />
+                  <Route path="/analytics" element={<BusinessAnalytics />} />
                   <Route path="/pos" element={<POS />} />
                   <Route path="/cash-registers" element={<CashRegisters />} />
                   <Route path="/reminders" element={<Reminders />} />
