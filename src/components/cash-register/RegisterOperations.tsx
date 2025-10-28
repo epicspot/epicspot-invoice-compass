@@ -20,15 +20,17 @@ interface RegisterOperationsProps {
   onDeposit: (amount: number, notes: string) => void;
   onWithdrawal: (amount: number, notes: string) => void;
   onAdjustment: (amount: number, notes: string) => void;
+  onBankDeposit: (amount: number, notes: string) => void;
 }
 
-type OperationType = 'deposit' | 'withdrawal' | 'adjustment' | null;
+type OperationType = 'deposit' | 'withdrawal' | 'adjustment' | 'bank_deposit' | null;
 
 const RegisterOperations: React.FC<RegisterOperationsProps> = ({
   register,
   onDeposit,
   onWithdrawal,
-  onAdjustment
+  onAdjustment,
+  onBankDeposit
 }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [operationType, setOperationType] = useState<OperationType>(null);
@@ -57,6 +59,9 @@ const RegisterOperations: React.FC<RegisterOperationsProps> = ({
       case 'adjustment':
         onAdjustment(amount, notes);
         break;
+      case 'bank_deposit':
+        onBankDeposit(amount, notes);
+        break;
     }
 
     setIsDialogOpen(false);
@@ -72,6 +77,8 @@ const RegisterOperations: React.FC<RegisterOperationsProps> = ({
         return 'Retrait d\'espèces';
       case 'adjustment':
         return 'Ajustement de caisse';
+      case 'bank_deposit':
+        return 'Versement à la banque';
       default:
         return '';
     }
@@ -85,6 +92,8 @@ const RegisterOperations: React.FC<RegisterOperationsProps> = ({
         return 'Enregistrer un retrait d\'espèces de la caisse';
       case 'adjustment':
         return 'Ajuster le montant de la caisse (positif ou négatif)';
+      case 'bank_deposit':
+        return 'Enregistrer un versement des espèces à la banque';
       default:
         return '';
     }
@@ -133,17 +142,31 @@ const RegisterOperations: React.FC<RegisterOperationsProps> = ({
             </Button>
           </div>
           
-          <Button 
-            className="w-full h-16" 
-            variant="outline"
-            onClick={() => openDialog('adjustment')}
-            disabled={register.status !== 'open'}
-          >
-            <div className="flex flex-col items-center">
-              <ArrowUpDown className="h-6 w-6 mb-1" />
-              <span>Ajustement de caisse</span>
-            </div>
-          </Button>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Button 
+              className="h-16" 
+              variant="outline"
+              onClick={() => openDialog('adjustment')}
+              disabled={register.status !== 'open'}
+            >
+              <div className="flex flex-col items-center">
+                <ArrowUpDown className="h-6 w-6 mb-1" />
+                <span>Ajustement de caisse</span>
+              </div>
+            </Button>
+
+            <Button 
+              className="h-16" 
+              variant="default"
+              onClick={() => openDialog('bank_deposit')}
+              disabled={register.status !== 'open'}
+            >
+              <div className="flex flex-col items-center">
+                <Banknote className="h-6 w-6 mb-1" />
+                <span>Versement banque</span>
+              </div>
+            </Button>
+          </div>
 
           {register.status !== 'open' && (
             <p className="text-sm text-muted-foreground text-center mt-4">
@@ -220,6 +243,17 @@ const RegisterOperations: React.FC<RegisterOperationsProps> = ({
               <div className="p-3 bg-orange-50 rounded-md">
                 <p className="text-sm text-orange-800">
                   Nouveau solde après retrait: {' '}
+                  <span className="font-bold">
+                    {(register.currentAmount - amount).toLocaleString()} FCFA
+                  </span>
+                </p>
+              </div>
+            )}
+
+            {operationType === 'bank_deposit' && amount > 0 && (
+              <div className="p-3 bg-blue-50 rounded-md">
+                <p className="text-sm text-blue-800">
+                  Nouveau solde après versement bancaire: {' '}
                   <span className="font-bold">
                     {(register.currentAmount - amount).toLocaleString()} FCFA
                   </span>

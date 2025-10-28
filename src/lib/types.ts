@@ -121,7 +121,7 @@ export interface CashTransaction {
   id: string;
   cashRegisterId: string;
   amount: number; // Positive for inflow, negative for outflow
-  type: 'sale' | 'refund' | 'adjustment' | 'withdrawal' | 'deposit';
+  type: 'sale' | 'refund' | 'adjustment' | 'withdrawal' | 'deposit' | 'bank_deposit';
   reference?: string; // Invoice number or other reference
   date: string;
   notes?: string;

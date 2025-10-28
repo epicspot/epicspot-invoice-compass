@@ -97,6 +97,21 @@ const CashRegisters = () => {
     });
   };
 
+  const handleBankDeposit = (registerId: string, amount: number, notes: string) => {
+    addTransaction({
+      cashRegisterId: registerId,
+      amount: -amount,
+      type: 'bank_deposit',
+      notes: notes || 'Versement bancaire',
+      userId: 'current-user'
+    });
+
+    toast({
+      title: "Versement bancaire enregistré",
+      description: `${amount.toLocaleString()} FCFA versé à la banque.`
+    });
+  };
+
   const filterTransactions = (registerId: string) => {
     return transactions.filter(trans => trans.cashRegisterId === registerId);
   };
@@ -116,6 +131,7 @@ const CashRegisters = () => {
         onDeposit={handleDeposit}
         onWithdrawal={handleWithdrawal}
         onAdjustment={handleAdjustment}
+        onBankDeposit={handleBankDeposit}
         onBack={() => setSelectedRegister(null)}
         formatCurrency={formatCurrency}
         formatDate={formatDate}
