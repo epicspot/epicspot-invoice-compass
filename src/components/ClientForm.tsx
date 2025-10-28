@@ -23,8 +23,7 @@ const ClientForm: React.FC<ClientFormProps> = ({
     name: '',
     address: '',
     phone: '',
-    email: '',
-    code: `CLI-${String(Date.now()).slice(-4)}`
+    email: ''
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -58,15 +57,17 @@ const ClientForm: React.FC<ClientFormProps> = ({
               />
             </div>
 
-            <div>
-              <Label htmlFor="code">Code client</Label>
-              <Input
-                id="code"
-                value={client.code || ''}
-                onChange={(e) => setClient({ ...client, code: e.target.value })}
-                className="mt-1"
-              />
-            </div>
+            {initialClient && (
+              <div>
+                <Label htmlFor="code">Code client</Label>
+                <Input
+                  id="code"
+                  value={client.code || ''}
+                  disabled
+                  className="mt-1 bg-muted"
+                />
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
