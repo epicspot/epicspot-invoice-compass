@@ -197,3 +197,44 @@ export interface TaxConfig {
   country?: string;
 }
 
+// Fournisseurs
+export interface Supplier {
+  id: string;
+  name: string;
+  code?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  contactPerson?: string;
+  taxInfo?: string;
+  bankAccount?: string;
+  notes?: string;
+  active: boolean;
+  createdAt: string;
+}
+
+// Commandes fournisseurs
+export interface PurchaseOrderItem {
+  id: string;
+  product: Product;
+  quantity: number;
+  unitPrice: number;
+  amount: number;
+}
+
+export interface PurchaseOrder {
+  id: string;
+  number: string;
+  date: string;
+  supplier: Supplier;
+  items: PurchaseOrderItem[];
+  subtotal: number;
+  tax: number;
+  total: number;
+  status: 'draft' | 'sent' | 'received' | 'cancelled';
+  expectedDeliveryDate?: string;
+  receivedDate?: string;
+  notes?: string;
+  siteId: string;
+}
+

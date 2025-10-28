@@ -16,7 +16,9 @@ import {
   PackageSearch,
   Bell,
   BarChart3,
-  ShoppingCart
+  ShoppingCart,
+  Truck,
+  ShoppingBag
 } from 'lucide-react';
 import Logo from './Logo';
 
@@ -58,6 +60,8 @@ const Sidebar = () => {
     { name: 'Prospection', path: '/leads', icon: Users2 },
     { name: 'Produits', path: '/products', icon: Package },
     { name: 'Inventaire', path: '/inventory', icon: PackageSearch },
+    { name: 'Fournisseurs', path: '/suppliers', icon: Truck },
+    { name: 'Commandes', path: '/purchase-orders', icon: ShoppingBag },
     { name: 'Caisses', path: '/cash-registers', icon: CreditCard },
     { name: 'Relances', path: '/reminders', icon: Bell },
     { name: 'Rapports', path: '/reports', icon: BarChart3 },
