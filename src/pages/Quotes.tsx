@@ -3,16 +3,18 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import DataTable from '@/components/DataTable';
 import { Quote } from '@/lib/types';
-import { Plus, FileCheck, Edit, Trash, Printer } from 'lucide-react';
+import { Plus, FileCheck, Edit, Trash, Printer, FileText } from 'lucide-react';
 import { 
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
+  DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
 import QuoteForm from '@/components/QuoteForm';
 import { toast } from "@/hooks/use-toast";
 import { useQuotes } from '@/hooks/useQuotes';
+import { useInvoices } from '@/hooks/useInvoices';
 
 const columns = [
   { key: 'number', header: 'Numéro' },
@@ -60,6 +62,7 @@ const columns = [
 
 const Quotes = () => {
   const { quotes, createQuote, updateQuote, deleteQuote } = useQuotes();
+  const { createInvoice } = useInvoices();
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState<string | null>(null);
   
@@ -100,6 +103,29 @@ const Quotes = () => {
     });
   };
   
+  const handleConvertToInvoice = (quote: Quote) => {
+    const invoice = createInvoice({
+      date: new Date().toISOString(),
+      client: quote.client,
+      items: quote.items,
+      subtotal: quote.subtotal,
+      tax: 0,
+      discount: quote.discount,
+      total: quote.total,
+      notes: `Converti du devis ${quote.number}`,
+      status: 'draft',
+      siteId: quote.siteId
+    });
+
+    // Marquer le devis comme accepté
+    updateQuote(quote.id, { status: 'accepted' });
+
+    toast({
+      title: "Devis converti",
+      description: `Le devis ${quote.number} a été converti en facture ${invoice.number}.`,
+    });
+  };
+  
   const actions = (quote: Partial<Quote>) => (
     <div className="flex justify-end">
       <DropdownMenu>
@@ -122,6 +148,17 @@ const Quotes = () => {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+          {quote.status === 'sent' && (
+            <>
+              <DropdownMenuItem
+                className="flex items-center gap-2 cursor-pointer text-green-600"
+                onClick={() => handleConvertToInvoice(quote as Quote)}
+              >
+                <FileText className="h-4 w-4" /> Convertir en facture
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )}
           <DropdownMenuItem
             className="flex items-center gap-2 cursor-pointer"
             onClick={() => setIsEditing(quote.id || null)}

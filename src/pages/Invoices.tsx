@@ -3,16 +3,19 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import DataTable from '@/components/DataTable';
 import { Invoice } from '@/lib/types';
-import { Plus, FileText, Edit, Trash, Printer } from 'lucide-react';
+import { Plus, FileText, Edit, Trash, Printer, DollarSign } from 'lucide-react';
 import { 
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
+  DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
 import InvoiceForm from '@/components/InvoiceForm';
+import PaymentDialog from '@/components/PaymentDialog';
 import { toast } from "@/hooks/use-toast";
 import { useInvoices } from '@/hooks/useInvoices';
+import { useCashRegisters } from '@/hooks/useCashRegisters';
 
 const columns = [
   { key: 'number', header: 'Numéro' },
@@ -60,8 +63,10 @@ const columns = [
 
 const Invoices = () => {
   const { invoices, createInvoice, updateInvoice, deleteInvoice } = useInvoices();
+  const { addTransaction } = useCashRegisters();
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState<string | null>(null);
+  const [paymentInvoice, setPaymentInvoice] = useState<Invoice | null>(null);
   
   const handleCreateInvoice = (invoiceData: Partial<Invoice>) => {
     const newInvoice = createInvoice({
@@ -100,6 +105,55 @@ const Invoices = () => {
     });
   };
   
+  const handlePayment = (paymentData: any) => {
+    if (!paymentInvoice) return;
+
+    // Préparer les notes de paiement
+    let paymentNotes = `Paiement ${
+      paymentData.method === 'cash' ? 'espèces' : 
+      paymentData.method === 'card' ? 'carte bancaire' : 
+      'chèque'
+    }`;
+    
+    if (paymentData.method === 'card') {
+      paymentNotes += ` - Transaction: ${paymentData.cardTransactionNumber}`;
+      if (paymentData.cardTerminal) paymentNotes += ` - Terminal: ${paymentData.cardTerminal}`;
+    }
+    
+    if (paymentData.method === 'check') {
+      paymentNotes += ` - Chèque N°${paymentData.checkNumber} - Banque: ${paymentData.checkBank} - Date: ${new Date(paymentData.checkDate).toLocaleDateString('fr-FR')}`;
+    }
+
+    if (paymentData.notes) {
+      paymentNotes += ` - ${paymentData.notes}`;
+    }
+
+    // Mettre à jour la facture
+    updateInvoice(paymentInvoice.id, {
+      status: 'paid',
+      notes: `${paymentInvoice.notes || ''}\n${paymentNotes}`.trim()
+    });
+
+    // Enregistrer la transaction en caisse
+    if (paymentInvoice.cashRegisterId) {
+      addTransaction({
+        cashRegisterId: paymentInvoice.cashRegisterId,
+        amount: paymentInvoice.total,
+        type: 'sale',
+        reference: paymentInvoice.number,
+        userId: 'current-user',
+        notes: paymentNotes
+      });
+    }
+
+    toast({
+      title: "Paiement enregistré",
+      description: `La facture ${paymentInvoice.number} a été marquée comme payée.`,
+    });
+
+    setPaymentInvoice(null);
+  };
+  
   const actions = (invoice: Partial<Invoice>) => (
     <div className="flex justify-end">
       <DropdownMenu>
@@ -122,6 +176,17 @@ const Invoices = () => {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+          {(invoice.status === 'sent' || invoice.status === 'overdue') && (
+            <>
+              <DropdownMenuItem
+                className="flex items-center gap-2 cursor-pointer text-green-600"
+                onClick={() => setPaymentInvoice(invoice as Invoice)}
+              >
+                <DollarSign className="h-4 w-4" /> Enregistrer paiement
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )}
           <DropdownMenuItem
             className="flex items-center gap-2 cursor-pointer"
             onClick={() => setIsEditing(invoice.id || null)}
@@ -181,6 +246,14 @@ const Invoices = () => {
         data={invoices} 
         columns={columns} 
         actions={actions}
+      />
+
+      {/* Payment Dialog */}
+      <PaymentDialog
+        isOpen={!!paymentInvoice}
+        onClose={() => setPaymentInvoice(null)}
+        onPayment={handlePayment}
+        totalAmount={paymentInvoice?.total || 0}
       />
     </div>
   );
