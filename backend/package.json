@@ -1,0 +1,21 @@
+{
+  "name": "epicspot-backend",
+  "version": "1.0.0",
+  "description": "Backend API pour EPICSPOT_CONSULTING",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "init-db": "node database.js"
+  },
+  "dependencies": {
+    "fastify": "^4.26.0",
+    "@fastify/cors": "^9.0.1",
+    "better-sqlite3": "^9.4.0",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}
