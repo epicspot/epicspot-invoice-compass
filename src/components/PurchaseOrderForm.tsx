@@ -79,11 +79,28 @@ const PurchaseOrderForm = ({ onSubmit, onCancel, initialData }: PurchaseOrderFor
   const tax = subtotal * 0.2;
   const total = subtotal + tax;
 
+  const [error, setError] = useState<string>('');
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
     
     const supplier = suppliers.find(s => s.id === formData.supplierId);
-    if (!supplier || items.length === 0) return;
+    
+    if (!supplier) {
+      setError('Veuillez sélectionner un fournisseur');
+      return;
+    }
+    
+    if (items.length === 0) {
+      setError('Veuillez ajouter au moins un article');
+      return;
+    }
+
+    if (!formData.number.trim()) {
+      setError('Le numéro de commande est requis');
+      return;
+    }
 
     onSubmit({
       ...formData,
@@ -97,6 +114,11 @@ const PurchaseOrderForm = ({ onSubmit, onCancel, initialData }: PurchaseOrderFor
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="space-y-2">
           <Label htmlFor="number">N° Commande</Label>
@@ -137,15 +159,21 @@ const PurchaseOrderForm = ({ onSubmit, onCancel, initialData }: PurchaseOrderFor
         <div className="space-y-2 md:col-span-3">
           <Label htmlFor="supplier">Fournisseur *</Label>
           <Select value={formData.supplierId} onValueChange={(value) => setFormData({ ...formData, supplierId: value })}>
-            <SelectTrigger>
+            <SelectTrigger className={!formData.supplierId && error ? 'border-red-500' : ''}>
               <SelectValue placeholder="Sélectionner un fournisseur" />
             </SelectTrigger>
             <SelectContent>
-              {activeSuppliers.map((supplier) => (
-                <SelectItem key={supplier.id} value={supplier.id}>
-                  {supplier.name} {supplier.code && `(${supplier.code})`}
-                </SelectItem>
-              ))}
+              {activeSuppliers.length === 0 ? (
+                <div className="px-2 py-1 text-sm text-muted-foreground">
+                  Aucun fournisseur actif disponible
+                </div>
+              ) : (
+                activeSuppliers.map((supplier) => (
+                  <SelectItem key={supplier.id} value={supplier.id}>
+                    {supplier.name} {supplier.code && `(${supplier.code})`}
+                  </SelectItem>
+                ))
+              )}
             </SelectContent>
           </Select>
         </div>

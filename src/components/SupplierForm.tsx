@@ -26,9 +26,36 @@ const SupplierForm = ({ onSubmit, onCancel, initialData }: SupplierFormProps) =>
     active: initialData?.active ?? true,
   });
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.name.trim()) {
+      newErrors.name = 'Le nom est requis';
+    }
+
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Email invalide';
+    }
+
+    if (formData.phone && !/^[\d\s\+\-\(\)]+$/.test(formData.phone)) {
+      newErrors.phone = 'Téléphone invalide';
+    }
+
+    if (formData.taxInfo && formData.taxInfo.length > 0 && formData.taxInfo.length < 8) {
+      newErrors.taxInfo = 'N° TVA invalide';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    if (validateForm()) {
+      onSubmit(formData);
+    }
   };
 
   return (
@@ -39,9 +66,14 @@ const SupplierForm = ({ onSubmit, onCancel, initialData }: SupplierFormProps) =>
           <Input
             id="name"
             value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            onChange={(e) => {
+              setFormData({ ...formData, name: e.target.value });
+              if (errors.name) setErrors({ ...errors, name: '' });
+            }}
             required
+            className={errors.name ? 'border-red-500' : ''}
           />
+          {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
         </div>
 
         <div className="space-y-2">
@@ -68,8 +100,13 @@ const SupplierForm = ({ onSubmit, onCancel, initialData }: SupplierFormProps) =>
             id="phone"
             type="tel"
             value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+            onChange={(e) => {
+              setFormData({ ...formData, phone: e.target.value });
+              if (errors.phone) setErrors({ ...errors, phone: '' });
+            }}
+            className={errors.phone ? 'border-red-500' : ''}
           />
+          {errors.phone && <p className="text-sm text-red-500">{errors.phone}</p>}
         </div>
 
         <div className="space-y-2">
@@ -78,8 +115,13 @@ const SupplierForm = ({ onSubmit, onCancel, initialData }: SupplierFormProps) =>
             id="email"
             type="email"
             value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            onChange={(e) => {
+              setFormData({ ...formData, email: e.target.value });
+              if (errors.email) setErrors({ ...errors, email: '' });
+            }}
+            className={errors.email ? 'border-red-500' : ''}
           />
+          {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
         </div>
 
         <div className="space-y-2">
@@ -87,8 +129,14 @@ const SupplierForm = ({ onSubmit, onCancel, initialData }: SupplierFormProps) =>
           <Input
             id="taxInfo"
             value={formData.taxInfo}
-            onChange={(e) => setFormData({ ...formData, taxInfo: e.target.value })}
+            onChange={(e) => {
+              setFormData({ ...formData, taxInfo: e.target.value });
+              if (errors.taxInfo) setErrors({ ...errors, taxInfo: '' });
+            }}
+            placeholder="FR12345678901"
+            className={errors.taxInfo ? 'border-red-500' : ''}
           />
+          {errors.taxInfo && <p className="text-sm text-red-500">{errors.taxInfo}</p>}
         </div>
 
         <div className="space-y-2 md:col-span-2">

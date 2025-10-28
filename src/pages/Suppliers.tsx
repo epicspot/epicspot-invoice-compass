@@ -17,21 +17,45 @@ const Suppliers = () => {
   const { toast } = useToast();
 
   const handleSubmit = (supplierData: Omit<Supplier, 'id' | 'createdAt'>) => {
-    if (editingSupplier) {
-      updateSupplier(editingSupplier.id, supplierData);
+    try {
+      if (editingSupplier) {
+        const result = updateSupplier(editingSupplier.id, supplierData);
+        if (!result.success) {
+          toast({
+            title: 'Erreur',
+            description: result.error || 'Impossible de modifier le fournisseur',
+            variant: 'destructive',
+          });
+          return;
+        }
+        toast({
+          title: 'Fournisseur modifié',
+          description: 'Le fournisseur a été modifié avec succès.',
+        });
+      } else {
+        const result = addSupplier(supplierData);
+        if (!result.success) {
+          toast({
+            title: 'Erreur',
+            description: result.error || 'Impossible de créer le fournisseur',
+            variant: 'destructive',
+          });
+          return;
+        }
+        toast({
+          title: 'Fournisseur créé',
+          description: 'Le fournisseur a été créé avec succès.',
+        });
+      }
+      setIsDialogOpen(false);
+      setEditingSupplier(undefined);
+    } catch (error) {
       toast({
-        title: 'Fournisseur modifié',
-        description: 'Le fournisseur a été modifié avec succès.',
-      });
-    } else {
-      addSupplier(supplierData);
-      toast({
-        title: 'Fournisseur créé',
-        description: 'Le fournisseur a été créé avec succès.',
+        title: 'Erreur',
+        description: 'Une erreur inattendue s\'est produite',
+        variant: 'destructive',
       });
     }
-    setIsDialogOpen(false);
-    setEditingSupplier(undefined);
   };
 
   const handleEdit = (supplier: Supplier) => {
@@ -41,11 +65,27 @@ const Suppliers = () => {
 
   const handleDelete = (id: string) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer ce fournisseur ?')) {
-      deleteSupplier(id);
-      toast({
-        title: 'Fournisseur supprimé',
-        description: 'Le fournisseur a été supprimé avec succès.',
-      });
+      try {
+        const result = deleteSupplier(id);
+        if (!result.success) {
+          toast({
+            title: 'Erreur',
+            description: result.error || 'Impossible de supprimer le fournisseur',
+            variant: 'destructive',
+          });
+          return;
+        }
+        toast({
+          title: 'Fournisseur supprimé',
+          description: 'Le fournisseur a été supprimé avec succès.',
+        });
+      } catch (error) {
+        toast({
+          title: 'Erreur',
+          description: 'Une erreur inattendue s\'est produite',
+          variant: 'destructive',
+        });
+      }
     }
   };
 

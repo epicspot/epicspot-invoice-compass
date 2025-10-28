@@ -18,11 +18,28 @@ const Inventory = () => {
   const siteId = 'default'; // Pour l'instant un seul site
 
   const handleCreateMovement = (movement: Omit<StockMovement, 'id' | 'date'>) => {
-    createMovement(movement);
-    toast({
-      title: "Mouvement enregistré",
-      description: `Le mouvement de stock a été enregistré avec succès.`
-    });
+    try {
+      const result = createMovement(movement);
+      if (!result.success) {
+        toast({
+          title: "Erreur",
+          description: result.error || "Impossible d'enregistrer le mouvement",
+          variant: "destructive"
+        });
+        return;
+      }
+      toast({
+        title: "Mouvement enregistré",
+        description: `Le mouvement de stock a été enregistré avec succès.`
+      });
+      setIsFormOpen(false);
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Une erreur inattendue s'est produite",
+        variant: "destructive"
+      });
+    }
   };
 
   const columns = [

@@ -17,21 +17,45 @@ const PurchaseOrders = () => {
   const { toast } = useToast();
 
   const handleSubmit = (orderData: Omit<PurchaseOrder, 'id'>) => {
-    if (editingOrder) {
-      updatePurchaseOrder(editingOrder.id, orderData);
+    try {
+      if (editingOrder) {
+        const result = updatePurchaseOrder(editingOrder.id, orderData);
+        if (!result.success) {
+          toast({
+            title: 'Erreur',
+            description: result.error || 'Impossible de modifier la commande',
+            variant: 'destructive',
+          });
+          return;
+        }
+        toast({
+          title: 'Commande modifiée',
+          description: 'La commande a été modifiée avec succès.',
+        });
+      } else {
+        const result = addPurchaseOrder(orderData);
+        if (!result.success) {
+          toast({
+            title: 'Erreur',
+            description: result.error || 'Impossible de créer la commande',
+            variant: 'destructive',
+          });
+          return;
+        }
+        toast({
+          title: 'Commande créée',
+          description: 'La commande a été créée avec succès.',
+        });
+      }
+      setIsDialogOpen(false);
+      setEditingOrder(undefined);
+    } catch (error) {
       toast({
-        title: 'Commande modifiée',
-        description: 'La commande a été modifiée avec succès.',
-      });
-    } else {
-      addPurchaseOrder(orderData);
-      toast({
-        title: 'Commande créée',
-        description: 'La commande a été créée avec succès.',
+        title: 'Erreur',
+        description: 'Une erreur inattendue s\'est produite',
+        variant: 'destructive',
       });
     }
-    setIsDialogOpen(false);
-    setEditingOrder(undefined);
   };
 
   const handleEdit = (order: PurchaseOrder) => {
@@ -41,11 +65,27 @@ const PurchaseOrders = () => {
 
   const handleDelete = (id: string) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer cette commande ?')) {
-      deletePurchaseOrder(id);
-      toast({
-        title: 'Commande supprimée',
-        description: 'La commande a été supprimée avec succès.',
-      });
+      try {
+        const result = deletePurchaseOrder(id);
+        if (!result.success) {
+          toast({
+            title: 'Erreur',
+            description: result.error || 'Impossible de supprimer la commande',
+            variant: 'destructive',
+          });
+          return;
+        }
+        toast({
+          title: 'Commande supprimée',
+          description: 'La commande a été supprimée avec succès.',
+        });
+      } catch (error) {
+        toast({
+          title: 'Erreur',
+          description: 'Une erreur inattendue s\'est produite',
+          variant: 'destructive',
+        });
+      }
     }
   };
 

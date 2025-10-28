@@ -5,13 +5,17 @@ export function useStockMovements() {
   const [movements, setMovements] = useLocalStorage<StockMovement[]>('stockMovements', []);
 
   const createMovement = (movement: Omit<StockMovement, 'id' | 'date'>) => {
-    const newMovement: StockMovement = {
-      ...movement,
-      id: `mov_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      date: new Date().toISOString(),
-    };
-    setMovements([...movements, newMovement]);
-    return newMovement;
+    try {
+      const newMovement: StockMovement = {
+        ...movement,
+        id: `mov_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        date: new Date().toISOString(),
+      };
+      setMovements([...movements, newMovement]);
+      return { success: true, data: newMovement };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Erreur lors de la création' };
+    }
   };
 
   const getMovementsByProduct = (productId: string) => {
