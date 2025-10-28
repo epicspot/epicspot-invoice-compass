@@ -1,4 +1,4 @@
-const { contextBridge } = require('electron');
+import { contextBridge } from 'electron';
 
 // Exposer des APIs sécurisées au renderer process si nécessaire
 contextBridge.exposeInMainWorld('electron', {
