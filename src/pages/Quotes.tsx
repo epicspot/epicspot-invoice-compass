@@ -105,15 +105,15 @@ const Quotes = () => {
   
   const handleConvertToInvoice = (quote: Quote) => {
     const invoice = createInvoice({
-      date: new Date().toISOString(),
+      date: new Date().toISOString().split('T')[0],
       client: quote.client,
       items: quote.items,
       subtotal: quote.subtotal,
       tax: 0,
       discount: quote.discount,
       total: quote.total,
-      notes: `Converti du devis ${quote.number}`,
-      status: 'draft',
+      notes: `Converti du devis ${quote.number}${quote.notes ? '\n' + quote.notes : ''}`,
+      status: 'sent',
       siteId: quote.siteId
     });
 
@@ -121,8 +121,8 @@ const Quotes = () => {
     updateQuote(quote.id, { status: 'accepted' });
 
     toast({
-      title: "Devis converti",
-      description: `Le devis ${quote.number} a été converti en facture ${invoice.number}.`,
+      title: "Devis converti en facture",
+      description: `Le devis ${quote.number} a été converti en facture ${invoice.number} et marqué comme envoyée.`,
     });
   };
   
@@ -148,7 +148,7 @@ const Quotes = () => {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          {quote.status === 'sent' && (
+          {(quote.status === 'sent' || quote.status === 'accepted') && (
             <>
               <DropdownMenuItem
                 className="flex items-center gap-2 cursor-pointer text-green-600"
