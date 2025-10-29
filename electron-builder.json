@@ -35,7 +35,6 @@
         "arch": ["x64"]
       }
     ],
-    "icon": "public/favicon.ico",
     "artifactName": "${productName}-${version}-Setup.${ext}"
   },
   "nsis": {
@@ -47,12 +46,10 @@
   },
   "mac": {
     "target": ["dmg", "zip"],
-    "category": "public.app-category.business",
-    "icon": "public/favicon.ico"
+    "category": "public.app-category.business"
   },
   "linux": {
     "target": ["AppImage", "deb"],
-    "category": "Office",
-    "icon": "public/favicon.ico"
+    "category": "Office"
   }
 }
