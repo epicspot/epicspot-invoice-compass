@@ -180,10 +180,19 @@ export const generateReceipt = (data: ReceiptData, companyInfo?: any) => {
   
   // Signature
   doc.text('Signature et cachet', pageWidth - 60, yPosition);
-  yPosition += 20;
+  yPosition += 15;
+  
+  if (companyInfo?.slogan) {
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(9);
+    doc.setTextColor(100);
+    doc.text(companyInfo.slogan, pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 5;
+  }
   
   doc.setFont('helvetica', 'italic');
   doc.setFontSize(8);
+  doc.setTextColor(0);
   doc.text(`Quittance générée le ${new Date().toLocaleString('fr-FR')}`, pageWidth / 2, yPosition, { align: 'center' });
 
   // Sauvegarder le PDF

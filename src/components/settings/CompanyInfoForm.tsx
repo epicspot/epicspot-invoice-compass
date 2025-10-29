@@ -121,6 +121,14 @@ const CompanyInfoForm = () => {
               placeholder="Code SWIFT/BIC"
             />
           </div>
+          <div className="space-y-2 md:col-span-2">
+            <label className="text-sm font-medium">Slogan de l'entreprise</label>
+            <Input 
+              value={companyInfo.slogan || ''} 
+              onChange={(e) => handleCompanyInfoChange('slogan', e.target.value)} 
+              placeholder="Ex: Votre partenaire de confiance"
+            />
+          </div>
         </div>
         <div className="flex justify-end">
           <Button onClick={handleSaveCompanyInfo}>Enregistrer</Button>

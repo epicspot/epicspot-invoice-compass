@@ -13,6 +13,8 @@ import { useClients } from '@/hooks/useClients';
 import { useProducts } from '@/hooks/useProducts';
 import { useCompanyInfo } from '@/hooks/useCompanyInfo';
 import Logo from '@/components/Logo';
+import { generateQuotePDF } from '@/lib/utils/quotePdfUtils';
+import { Download } from 'lucide-react';
 
 interface QuoteFormProps {
   initialQuote?: Partial<Quote>;
@@ -363,8 +365,11 @@ const QuoteForm: React.FC<QuoteFormProps> = ({
               <Button variant="outline" onClick={() => setShowPreview(false)}>
                 Modifier
               </Button>
-              <Button onClick={() => window.print()}>
+              <Button variant="outline" onClick={() => window.print()}>
                 <Printer className="h-4 w-4 mr-2" /> Imprimer
+              </Button>
+              <Button onClick={() => generateQuotePDF(quote as Quote, companyInfo)}>
+                <Download className="h-4 w-4 mr-2" /> Télécharger PDF
               </Button>
             </div>
           </div>
@@ -452,6 +457,7 @@ const QuoteForm: React.FC<QuoteFormProps> = ({
             )}
             
             <div className="text-center text-sm text-muted-foreground mt-16">
+              {companyInfo.slogan && <p className="italic mb-2">{companyInfo.slogan}</p>}
               <p>Merci pour votre confiance</p>
               {companyInfo.taxId && <p>{companyInfo.taxId}</p>}
               {companyInfo.signatory && (

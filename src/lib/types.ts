@@ -75,6 +75,7 @@ export interface CompanyInfo {
   bankSwift?: string;
   signatory?: string;
   signatoryTitle?: string;
+  slogan?: string;
 }
 
 export type Role = 'admin' | 'manager' | 'accountant' | 'cashier' | 'viewer';
