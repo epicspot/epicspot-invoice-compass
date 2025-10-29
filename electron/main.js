@@ -51,16 +51,17 @@ function createWindow() {
     title: 'EPICSPOT - Gestion Commerciale'
   });
 
-  // En développement, charger depuis le serveur Vite
-  if (!app.isPackaged && process.env.NODE_ENV === 'development') {
-    mainWindow.loadURL('http://localhost:8080');
-    mainWindow.webContents.openDevTools();
-  } else {
-    // En production, charger depuis les fichiers buildés
-    const indexPath = app.isPackaged
-      ? path.join(process.resourcesPath, 'app.asar', 'dist', 'index.html')
-      : path.join(__dirname, '..', 'dist', 'index.html');
-    mainWindow.loadFile(indexPath);
+  // Charger l'application depuis les fichiers buildés
+  const indexPath = app.isPackaged
+    ? path.join(process.resourcesPath, 'dist', 'index.html')
+    : path.join(__dirname, '..', 'dist', 'index.html');
+  
+  mainWindow.loadFile(indexPath).catch((err) => {
+    console.error('Erreur de chargement:', err);
+  });
+  
+  // Ouvrir DevTools en développement
+  if (!app.isPackaged) {
     mainWindow.webContents.openDevTools();
   }
 

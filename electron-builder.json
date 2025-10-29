@@ -8,16 +8,21 @@
   "files": [
     "dist/**/*",
     "electron/**/*",
-    "backend/**/*",
-    "!backend/node_modules/**/*",
-    "!backend/epicspot.db"
+    "!backend/**/*"
   ],
   "extraResources": [
     {
       "from": "backend",
       "to": "backend",
-      "filter": ["**/*", "!node_modules", "!*.db"]
+      "filter": ["**/*", "!node_modules/**", "!*.db"]
+    },
+    {
+      "from": "dist",
+      "to": "dist"
     }
+  ],
+  "asarUnpack": [
+    "backend/**/*"
   ],
   "win": {
     "target": [
