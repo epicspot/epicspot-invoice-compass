@@ -390,7 +390,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
               <Button variant="outline" onClick={() => setShowPreview(false)}>
                 Modifier
               </Button>
-              <Button>
+              <Button onClick={() => window.print()}>
                 <Printer className="h-4 w-4 mr-2" /> Imprimer
               </Button>
             </div>
