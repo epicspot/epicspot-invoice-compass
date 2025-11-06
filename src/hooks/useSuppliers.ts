@@ -1,55 +1,81 @@
-import { useLocalStorage } from './useLocalStorage';
+import { useState, useEffect } from 'react';
 import { Supplier } from '@/lib/types';
 
-export function useSuppliers() {
-  const [suppliers, setSuppliers] = useLocalStorage<Supplier[]>('suppliers', []);
+const API_URL = 'http://localhost:3001/api';
 
-  const addSupplier = (supplier: Omit<Supplier, 'id' | 'createdAt'>) => {
+export function useSuppliers() {
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchSuppliers = async () => {
     try {
-      // Vérifier les doublons par code
-      if (supplier.code && suppliers.some(s => s.code === supplier.code)) {
-        throw new Error('Un fournisseur avec ce code existe déjà');
+      const response = await fetch(`${API_URL}/suppliers`);
+      const data = await response.json();
+      setSuppliers(data);
+    } catch (error) {
+      console.error('Error fetching suppliers:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSuppliers();
+  }, []);
+
+  const addSupplier = async (supplier: Omit<Supplier, 'id' | 'createdAt'>) => {
+    try {
+      const response = await fetch(`${API_URL}/suppliers`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(supplier),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        return { success: false, error: error.error || 'Erreur lors de la création' };
       }
       
-      const newSupplier: Supplier = {
-        ...supplier,
-        id: `sup_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        createdAt: new Date().toISOString(),
-      };
-      setSuppliers([...suppliers, newSupplier]);
+      const newSupplier = await response.json();
+      await fetchSuppliers();
       return { success: true, data: newSupplier };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Erreur lors de la création' };
     }
   };
 
-  const updateSupplier = (id: string, updatedSupplier: Partial<Supplier>) => {
+  const updateSupplier = async (id: string, updatedSupplier: Partial<Supplier>) => {
     try {
-      // Vérifier les doublons par code (sauf pour le fournisseur actuel)
-      if (updatedSupplier.code && suppliers.some(s => s.id !== id && s.code === updatedSupplier.code)) {
-        throw new Error('Un autre fournisseur utilise déjà ce code');
+      const response = await fetch(`${API_URL}/suppliers/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedSupplier),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        return { success: false, error: error.error || 'Erreur lors de la modification' };
       }
       
-      const supplier = suppliers.find(s => s.id === id);
-      if (!supplier) {
-        throw new Error('Fournisseur introuvable');
-      }
-      
-      setSuppliers(suppliers.map(s => s.id === id ? { ...s, ...updatedSupplier } : s));
+      await fetchSuppliers();
       return { success: true };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Erreur lors de la modification' };
     }
   };
 
-  const deleteSupplier = (id: string) => {
+  const deleteSupplier = async (id: string) => {
     try {
-      const supplier = suppliers.find(s => s.id === id);
-      if (!supplier) {
-        throw new Error('Fournisseur introuvable');
+      const response = await fetch(`${API_URL}/suppliers/${id}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        return { success: false, error: error.error || 'Erreur lors de la suppression' };
       }
       
-      setSuppliers(suppliers.filter(s => s.id !== id));
+      await fetchSuppliers();
       return { success: true };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Erreur lors de la suppression' };
@@ -58,8 +84,10 @@ export function useSuppliers() {
 
   return {
     suppliers,
+    loading,
     addSupplier,
     updateSupplier,
     deleteSupplier,
+    refetch: fetchSuppliers,
   };
 }

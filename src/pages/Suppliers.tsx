@@ -16,10 +16,10 @@ const Suppliers = () => {
   const [editingSupplier, setEditingSupplier] = useState<Supplier | undefined>();
   const { toast } = useToast();
 
-  const handleSubmit = (supplierData: Omit<Supplier, 'id' | 'createdAt'>) => {
+  const handleSubmit = async (supplierData: Omit<Supplier, 'id' | 'createdAt'>) => {
     try {
       if (editingSupplier) {
-        const result = updateSupplier(editingSupplier.id, supplierData);
+        const result = await updateSupplier(editingSupplier.id, supplierData);
         if (!result.success) {
           toast({
             title: 'Erreur',
@@ -33,7 +33,7 @@ const Suppliers = () => {
           description: 'Le fournisseur a été modifié avec succès.',
         });
       } else {
-        const result = addSupplier(supplierData);
+        const result = await addSupplier(supplierData);
         if (!result.success) {
           toast({
             title: 'Erreur',
@@ -63,10 +63,10 @@ const Suppliers = () => {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer ce fournisseur ?')) {
       try {
-        const result = deleteSupplier(id);
+        const result = await deleteSupplier(id);
         if (!result.success) {
           toast({
             title: 'Erreur',

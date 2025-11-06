@@ -16,10 +16,10 @@ const PurchaseOrders = () => {
   const [editingOrder, setEditingOrder] = useState<PurchaseOrder | undefined>();
   const { toast } = useToast();
 
-  const handleSubmit = (orderData: Omit<PurchaseOrder, 'id'>) => {
+  const handleSubmit = async (orderData: Omit<PurchaseOrder, 'id'>) => {
     try {
       if (editingOrder) {
-        const result = updatePurchaseOrder(editingOrder.id, orderData);
+        const result = await updatePurchaseOrder(editingOrder.id, orderData);
         if (!result.success) {
           toast({
             title: 'Erreur',
@@ -33,7 +33,7 @@ const PurchaseOrders = () => {
           description: 'La commande a été modifiée avec succès.',
         });
       } else {
-        const result = addPurchaseOrder(orderData);
+        const result = await addPurchaseOrder(orderData);
         if (!result.success) {
           toast({
             title: 'Erreur',
@@ -63,10 +63,10 @@ const PurchaseOrders = () => {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer cette commande ?')) {
       try {
-        const result = deletePurchaseOrder(id);
+        const result = await deletePurchaseOrder(id);
         if (!result.success) {
           toast({
             title: 'Erreur',

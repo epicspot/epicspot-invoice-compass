@@ -1,54 +1,97 @@
-import { useLocalStorage } from './useLocalStorage';
+import { useState, useEffect } from 'react';
 import { PurchaseOrder } from '@/lib/types';
 
-export function usePurchaseOrders() {
-  const [purchaseOrders, setPurchaseOrders] = useLocalStorage<PurchaseOrder[]>('purchaseOrders', []);
+const API_URL = 'http://localhost:3001/api';
 
-  const addPurchaseOrder = (order: Omit<PurchaseOrder, 'id'>) => {
+export function usePurchaseOrders() {
+  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchPurchaseOrders = async () => {
     try {
-      // Vérifier les doublons par numéro
-      if (purchaseOrders.some(o => o.number === order.number)) {
-        throw new Error('Une commande avec ce numéro existe déjà');
+      const response = await fetch(`${API_URL}/purchase-orders`);
+      const data = await response.json();
+      setPurchaseOrders(data);
+    } catch (error) {
+      console.error('Error fetching purchase orders:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPurchaseOrders();
+  }, []);
+
+  const addPurchaseOrder = async (order: Omit<PurchaseOrder, 'id'>) => {
+    try {
+      const response = await fetch(`${API_URL}/purchase-orders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          number: order.number,
+          supplier_id: order.supplier.id,
+          order_date: order.date,
+          expected_delivery_date: order.expectedDeliveryDate,
+          items: order.items,
+          total: order.total,
+          status: order.status,
+        }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        return { success: false, error: error.error || 'Erreur lors de la création' };
       }
       
-      const newOrder: PurchaseOrder = {
-        ...order,
-        id: `po_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      };
-      setPurchaseOrders([...purchaseOrders, newOrder]);
+      const newOrder = await response.json();
+      await fetchPurchaseOrders();
       return { success: true, data: newOrder };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Erreur lors de la création' };
     }
   };
 
-  const updatePurchaseOrder = (id: string, updatedOrder: Partial<PurchaseOrder>) => {
+  const updatePurchaseOrder = async (id: string, updatedOrder: Partial<PurchaseOrder>) => {
     try {
-      // Vérifier les doublons par numéro (sauf pour la commande actuelle)
-      if (updatedOrder.number && purchaseOrders.some(o => o.id !== id && o.number === updatedOrder.number)) {
-        throw new Error('Une autre commande utilise déjà ce numéro');
+      const response = await fetch(`${API_URL}/purchase-orders/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          number: updatedOrder.number,
+          supplier_id: updatedOrder.supplier?.id,
+          order_date: updatedOrder.date,
+          expected_delivery_date: updatedOrder.expectedDeliveryDate,
+          items: updatedOrder.items,
+          total: updatedOrder.total,
+          status: updatedOrder.status,
+        }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        return { success: false, error: error.error || 'Erreur lors de la modification' };
       }
       
-      const order = purchaseOrders.find(o => o.id === id);
-      if (!order) {
-        throw new Error('Commande introuvable');
-      }
-      
-      setPurchaseOrders(purchaseOrders.map(o => o.id === id ? { ...o, ...updatedOrder } : o));
+      await fetchPurchaseOrders();
       return { success: true };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Erreur lors de la modification' };
     }
   };
 
-  const deletePurchaseOrder = (id: string) => {
+  const deletePurchaseOrder = async (id: string) => {
     try {
-      const order = purchaseOrders.find(o => o.id === id);
-      if (!order) {
-        throw new Error('Commande introuvable');
+      const response = await fetch(`${API_URL}/purchase-orders/${id}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        return { success: false, error: error.error || 'Erreur lors de la suppression' };
       }
       
-      setPurchaseOrders(purchaseOrders.filter(o => o.id !== id));
+      await fetchPurchaseOrders();
       return { success: true };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Erreur lors de la suppression' };
@@ -57,8 +100,10 @@ export function usePurchaseOrders() {
 
   return {
     purchaseOrders,
+    loading,
     addPurchaseOrder,
     updatePurchaseOrder,
     deletePurchaseOrder,
+    refetch: fetchPurchaseOrders,
   };
 }
