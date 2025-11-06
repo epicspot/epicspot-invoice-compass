@@ -21,7 +21,8 @@ import {
   ShoppingBag,
   LineChart,
   LogOut,
-  Wallet
+  Wallet,
+  Shield
 } from 'lucide-react';
 import Logo from './Logo';
 import { useAuth } from '@/contexts/AuthContext';
@@ -84,6 +85,7 @@ const Sidebar = () => {
     { name: t('nav.vendors'), path: '/vendors', icon: UserCog },
     { name: t('nav.collections'), path: '/collections', icon: Wallet },
     { name: t('nav.collectionsDashboard'), path: '/collections/dashboard', icon: BarChart3 },
+    { name: 'Sécurité & Audit', path: '/security', icon: Shield },
     { name: t('nav.reminders'), path: '/reminders', icon: Bell },
     { name: t('nav.reports'), path: '/reports', icon: BarChart3 },
     { name: t('nav.users'), path: '/users', icon: UserCog },
