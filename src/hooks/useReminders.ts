@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Reminder } from '@/lib/types';
-
-const API_URL = 'http://localhost:3001/api';
 
 export function useReminders() {
   const [reminders, setReminders] = useState<Reminder[]>([]);
@@ -9,9 +8,28 @@ export function useReminders() {
 
   const fetchReminders = async () => {
     try {
-      const response = await fetch(`${API_URL}/reminders`);
-      const data = await response.json();
-      setReminders(data);
+      const { data, error } = await supabase
+        .from('reminders')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const mappedReminders: Reminder[] = (data || []).map(r => ({
+        id: r.id,
+        type: (r.type === 'payment' ? 'invoice' : 'quote') as 'invoice' | 'quote',
+        documentId: r.related_id || '',
+        documentNumber: '',
+        clientId: '',
+        clientName: r.title,
+        amount: 0,
+        status: r.status as 'pending' | 'sent' | 'completed',
+        nextReminderDate: r.due_date,
+        lastReminderDate: r.updated_at,
+        attempts: 0,
+      }));
+
+      setReminders(mappedReminders);
     } catch (error) {
       console.error('Error fetching reminders:', error);
     } finally {
@@ -25,20 +43,24 @@ export function useReminders() {
 
   const createReminder = async (reminder: Omit<Reminder, 'id' | 'attempts'>) => {
     try {
-      const response = await fetch(`${API_URL}/reminders`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          invoice_id: reminder.documentId,
-          client_name: reminder.clientName,
-          amount: reminder.amount,
+      const { data, error } = await supabase
+        .from('reminders')
+        .insert({
+          title: reminder.clientName,
+          description: `Rappel pour ${reminder.amount}`,
+          due_date: reminder.nextReminderDate,
           status: reminder.status,
-          next_reminder_date: reminder.nextReminderDate,
-        }),
-      });
-      const newReminder = await response.json();
+          related_id: reminder.documentId,
+          type: 'payment',
+          priority: 'medium',
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
       await fetchReminders();
-      return newReminder;
+      return data;
     } catch (error) {
       console.error('Error creating reminder:', error);
       throw error;
@@ -47,16 +69,15 @@ export function useReminders() {
 
   const updateReminder = async (id: string, updates: Partial<Reminder>) => {
     try {
-      await fetch(`${API_URL}/reminders/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const { error } = await supabase
+        .from('reminders')
+        .update({
           status: updates.status,
-          attempts: updates.attempts,
-          next_reminder_date: updates.nextReminderDate,
-          last_reminder_date: updates.lastReminderDate,
-        }),
-      });
+          due_date: updates.nextReminderDate,
+        })
+        .eq('id', id);
+
+      if (error) throw error;
       await fetchReminders();
     } catch (error) {
       console.error('Error updating reminder:', error);
@@ -66,9 +87,12 @@ export function useReminders() {
 
   const deleteReminder = async (id: string) => {
     try {
-      await fetch(`${API_URL}/reminders/${id}`, {
-        method: 'DELETE',
-      });
+      const { error } = await supabase
+        .from('reminders')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
       await fetchReminders();
     } catch (error) {
       console.error('Error deleting reminder:', error);

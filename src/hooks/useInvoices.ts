@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Invoice } from '@/lib/types';
-
-const API_URL = 'http://localhost:3001/api';
 
 export function useInvoices() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -9,9 +8,33 @@ export function useInvoices() {
 
   const fetchInvoices = async () => {
     try {
-      const response = await fetch(`${API_URL}/invoices`);
-      const data = await response.json();
-      setInvoices(data);
+      const { data, error } = await supabase
+        .from('invoices')
+        .select('*, clients(*), invoice_items(*, products(*))')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const mappedInvoices: Invoice[] = (data || []).map(inv => ({
+        id: inv.id,
+        number: inv.number,
+        date: inv.date,
+        client: inv.clients,
+        items: (inv.invoice_items || []).map((item: any) => ({
+          id: item.id,
+          product: item.products,
+          quantity: item.quantity,
+          amount: item.amount,
+        })),
+        subtotal: inv.subtotal,
+        total: inv.total,
+        tax: inv.tax,
+        status: inv.status as 'draft' | 'sent' | 'paid' | 'overdue',
+        paidAmount: inv.paid_amount,
+        siteId: inv.site_id,
+      }));
+
+      setInvoices(mappedInvoices);
     } catch (error) {
       console.error('Error fetching invoices:', error);
     } finally {
@@ -25,22 +48,43 @@ export function useInvoices() {
 
   const createInvoice = async (invoice: Omit<Invoice, 'id' | 'number'>) => {
     try {
-      const response = await fetch(`${API_URL}/invoices`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      const invoiceNumber = `INV-${Date.now()}`;
+      
+      const { data: invoiceData, error: invoiceError } = await supabase
+        .from('invoices')
+        .insert([{
+          number: invoiceNumber,
           client_id: invoice.client.id,
           date: invoice.date,
-          items: invoice.items,
+          subtotal: invoice.subtotal,
+          tax: invoice.tax || 0,
           total: invoice.total,
-          tax: invoice.tax,
           status: invoice.status,
           paid_amount: 0,
-        }),
-      });
-      const newInvoice = await response.json();
+          created_by: user?.id,
+        }])
+        .select()
+        .single();
+
+      if (invoiceError) throw invoiceError;
+
+      const itemsToInsert = invoice.items.map(item => ({
+        invoice_id: invoiceData.id,
+        product_id: item.product.id,
+        quantity: item.quantity,
+        amount: item.amount,
+      }));
+
+      const { error: itemsError } = await supabase
+        .from('invoice_items')
+        .insert(itemsToInsert);
+
+      if (itemsError) throw itemsError;
+
       await fetchInvoices();
-      return newInvoice;
+      return invoiceData;
     } catch (error) {
       console.error('Error creating invoice:', error);
       throw error;
@@ -49,19 +93,19 @@ export function useInvoices() {
 
   const updateInvoice = async (id: string, updates: Partial<Invoice>) => {
     try {
-      await fetch(`${API_URL}/invoices/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const { error } = await supabase
+        .from('invoices')
+        .update({
           client_id: updates.client?.id,
           date: updates.date,
-          items: updates.items,
-          total: updates.total,
+          subtotal: updates.total,
           tax: updates.tax,
+          total: updates.total,
           status: updates.status,
-          paid_amount: 0,
-        }),
-      });
+        })
+        .eq('id', id);
+
+      if (error) throw error;
       await fetchInvoices();
     } catch (error) {
       console.error('Error updating invoice:', error);
@@ -71,9 +115,12 @@ export function useInvoices() {
 
   const deleteInvoice = async (id: string) => {
     try {
-      await fetch(`${API_URL}/invoices/${id}`, {
-        method: 'DELETE',
-      });
+      const { error } = await supabase
+        .from('invoices')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
       await fetchInvoices();
     } catch (error) {
       console.error('Error deleting invoice:', error);

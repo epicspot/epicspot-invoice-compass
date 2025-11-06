@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Supplier } from '@/lib/types';
-
-const API_URL = 'http://localhost:3001/api';
 
 export function useSuppliers() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -9,9 +8,26 @@ export function useSuppliers() {
 
   const fetchSuppliers = async () => {
     try {
-      const response = await fetch(`${API_URL}/suppliers`);
-      const data = await response.json();
-      setSuppliers(data);
+      const { data, error } = await supabase
+        .from('suppliers')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const mappedSuppliers: Supplier[] = (data || []).map(s => ({
+        id: s.id,
+        name: s.name,
+        email: s.email || '',
+        phone: s.phone || '',
+        address: s.address || '',
+        contactPerson: s.contact_person || '',
+        taxInfo: s.tax_info || '',
+        createdAt: s.created_at,
+        active: true,
+      }));
+
+      setSuppliers(mappedSuppliers);
     } catch (error) {
       console.error('Error fetching suppliers:', error);
     } finally {
@@ -25,60 +41,73 @@ export function useSuppliers() {
 
   const addSupplier = async (supplier: Omit<Supplier, 'id' | 'createdAt'>) => {
     try {
-      const response = await fetch(`${API_URL}/suppliers`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(supplier),
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        return { success: false, error: error.error || 'Erreur lors de la création' };
-      }
-      
-      const newSupplier = await response.json();
+      const { data, error } = await supabase
+        .from('suppliers')
+        .insert({
+          name: supplier.name,
+          email: supplier.email,
+          phone: supplier.phone,
+          address: supplier.address,
+          contact_person: supplier.contactPerson,
+          tax_info: supplier.taxInfo,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
       await fetchSuppliers();
-      return { success: true, data: newSupplier };
+      return { success: true, data };
     } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Erreur lors de la création' };
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Erreur lors de la création' 
+      };
     }
   };
 
   const updateSupplier = async (id: string, updatedSupplier: Partial<Supplier>) => {
     try {
-      const response = await fetch(`${API_URL}/suppliers/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedSupplier),
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        return { success: false, error: error.error || 'Erreur lors de la modification' };
-      }
-      
+      const { error } = await supabase
+        .from('suppliers')
+        .update({
+          name: updatedSupplier.name,
+          email: updatedSupplier.email,
+          phone: updatedSupplier.phone,
+          address: updatedSupplier.address,
+          contact_person: updatedSupplier.contactPerson,
+          tax_info: updatedSupplier.taxInfo,
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+
       await fetchSuppliers();
       return { success: true };
     } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Erreur lors de la modification' };
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Erreur lors de la modification' 
+      };
     }
   };
 
   const deleteSupplier = async (id: string) => {
     try {
-      const response = await fetch(`${API_URL}/suppliers/${id}`, {
-        method: 'DELETE',
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        return { success: false, error: error.error || 'Erreur lors de la suppression' };
-      }
-      
+      const { error } = await supabase
+        .from('suppliers')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
       await fetchSuppliers();
       return { success: true };
     } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Erreur lors de la suppression' };
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Erreur lors de la suppression' 
+      };
     }
   };
 

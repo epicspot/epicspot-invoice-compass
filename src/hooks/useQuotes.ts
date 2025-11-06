@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Quote } from '@/lib/types';
-
-const API_URL = 'http://localhost:3001/api';
 
 export function useQuotes() {
   const [quotes, setQuotes] = useState<Quote[]>([]);
@@ -9,9 +8,31 @@ export function useQuotes() {
 
   const fetchQuotes = async () => {
     try {
-      const response = await fetch(`${API_URL}/quotes`);
-      const data = await response.json();
-      setQuotes(data);
+      const { data, error } = await supabase
+        .from('quotes')
+        .select('*, clients(*), quote_items(*, products(*))')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const mappedQuotes: Quote[] = (data || []).map(q => ({
+        id: q.id,
+        number: q.number,
+        date: q.date,
+        client: q.clients,
+        items: (q.quote_items || []).map((item: any) => ({
+          id: item.id,
+          product: item.products,
+          quantity: item.quantity,
+          amount: item.amount,
+        })),
+        subtotal: q.subtotal,
+        total: q.total,
+        status: q.status as 'draft' | 'sent' | 'accepted' | 'rejected',
+        siteId: q.site_id,
+      }));
+
+      setQuotes(mappedQuotes);
     } catch (error) {
       console.error('Error fetching quotes:', error);
     } finally {
@@ -25,21 +46,43 @@ export function useQuotes() {
 
   const createQuote = async (quote: Omit<Quote, 'id' | 'number'>) => {
     try {
-      const response = await fetch(`${API_URL}/quotes`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      const quoteNumber = `QUO-${Date.now()}`;
+      
+      const { data: quoteData, error: quoteError } = await supabase
+        .from('quotes')
+        .insert([{
+          number: quoteNumber,
           client_id: quote.client.id,
           date: quote.date,
-          items: quote.items,
-          total: quote.total,
+          subtotal: quote.subtotal,
           tax: 0,
+          total: quote.total,
           status: quote.status,
-        }),
-      });
-      const newQuote = await response.json();
+          valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          created_by: user?.id,
+        }])
+        .select()
+        .single();
+
+      if (quoteError) throw quoteError;
+
+      const itemsToInsert = quote.items.map(item => ({
+        quote_id: quoteData.id,
+        product_id: item.product.id,
+        quantity: item.quantity,
+        amount: item.amount,
+      }));
+
+      const { error: itemsError } = await supabase
+        .from('quote_items')
+        .insert(itemsToInsert);
+
+      if (itemsError) throw itemsError;
+
       await fetchQuotes();
-      return newQuote;
+      return quoteData;
     } catch (error) {
       console.error('Error creating quote:', error);
       throw error;
@@ -48,18 +91,18 @@ export function useQuotes() {
 
   const updateQuote = async (id: string, updates: Partial<Quote>) => {
     try {
-      await fetch(`${API_URL}/quotes/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const { error } = await supabase
+        .from('quotes')
+        .update({
           client_id: updates.client?.id,
           date: updates.date,
-          items: updates.items,
+          subtotal: updates.total,
           total: updates.total,
-          tax: 0,
           status: updates.status,
-        }),
-      });
+        })
+        .eq('id', id);
+
+      if (error) throw error;
       await fetchQuotes();
     } catch (error) {
       console.error('Error updating quote:', error);
@@ -69,9 +112,12 @@ export function useQuotes() {
 
   const deleteQuote = async (id: string) => {
     try {
-      await fetch(`${API_URL}/quotes/${id}`, {
-        method: 'DELETE',
-      });
+      const { error } = await supabase
+        .from('quotes')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
       await fetchQuotes();
     } catch (error) {
       console.error('Error deleting quote:', error);
