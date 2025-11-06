@@ -343,6 +343,7 @@ export type Database = {
           tax: number
           total: number
           updated_at: string | null
+          vendor_id: string | null
         }
         Insert: {
           cash_register_id?: string | null
@@ -363,6 +364,7 @@ export type Database = {
           tax?: number
           total: number
           updated_at?: string | null
+          vendor_id?: string | null
         }
         Update: {
           cash_register_id?: string | null
@@ -383,6 +385,7 @@ export type Database = {
           tax?: number
           total?: number
           updated_at?: string | null
+          vendor_id?: string | null
         }
         Relationships: [
           {
@@ -404,6 +407,13 @@ export type Database = {
             columns: ["site_id"]
             isOneToOne: false
             referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
             referencedColumns: ["id"]
           },
         ]

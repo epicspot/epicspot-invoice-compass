@@ -6,10 +6,12 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { InvoiceItem, Invoice } from '@/lib/types';
 import { FileText, Plus, Trash, Printer } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useClients } from '@/hooks/useClients';
+import { useVendors } from '@/hooks/useVendors';
 import { useProducts } from '@/hooks/useProducts';
 import { useCompanyInfo } from '@/hooks/useCompanyInfo';
 import Logo from '@/components/Logo';
@@ -28,8 +30,13 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
   isLoading = false
 }) => {
   const { clients } = useClients();
+  const { vendors } = useVendors();
   const { products } = useProducts();
   const { companyInfo } = useCompanyInfo();
+  
+  const [recipientType, setRecipientType] = useState<'client' | 'vendor'>(
+    initialInvoice?.clientId ? 'client' : initialInvoice?.vendorId ? 'vendor' : 'client'
+  );
   
   const [invoice, setInvoice] = useState<Partial<Invoice>>(initialInvoice || {
     date: new Date().toISOString().split('T')[0],
@@ -45,7 +52,14 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
   const handleClientChange = (clientId: string) => {
     const selectedClient = clients.find(c => c.id === clientId);
     if (selectedClient) {
-      setInvoice({ ...invoice, client: selectedClient });
+      setInvoice({ ...invoice, client: selectedClient, clientId, vendor: undefined, vendorId: undefined });
+    }
+  };
+
+  const handleVendorChange = (vendorId: string) => {
+    const selectedVendor = vendors.find(v => v.id === vendorId);
+    if (selectedVendor) {
+      setInvoice({ ...invoice, vendor: selectedVendor, vendorId, client: undefined, clientId: undefined });
     }
   };
 
@@ -211,43 +225,119 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
           </div>
 
           <Card>
-            <CardContent className="pt-6">
-              <Label htmlFor="client">Client</Label>
-              <Select 
-                onValueChange={handleClientChange} 
-                value={invoice.client?.id}
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Sélectionner un client" />
-                </SelectTrigger>
-                <SelectContent>
-                  {clients.map(client => (
-                    <SelectItem key={client.id} value={client.id}>
-                      {client.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {invoice.client && (
-                <div className="mt-4 p-4 bg-muted rounded-md">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm font-medium">Adresse</p>
-                      <p className="text-sm">{invoice.client.address}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">Téléphone</p>
-                      <p className="text-sm">{invoice.client.phone}</p>
-                    </div>
-                    {invoice.client.code && (
-                      <div>
-                        <p className="text-sm font-medium">Code client</p>
-                        <p className="text-sm">{invoice.client.code}</p>
-                      </div>
-                    )}
+            <CardContent className="pt-6 space-y-4">
+              <div>
+                <Label>Type de destinataire</Label>
+                <RadioGroup
+                  value={recipientType}
+                  onValueChange={(value: 'client' | 'vendor') => {
+                    setRecipientType(value);
+                    // Clear both client and vendor when switching
+                    setInvoice({ ...invoice, client: undefined, clientId: undefined, vendor: undefined, vendorId: undefined });
+                  }}
+                  className="flex gap-4 mt-2"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="client" id="client" />
+                    <Label htmlFor="client" className="font-normal cursor-pointer">Client</Label>
                   </div>
-                </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="vendor" id="vendor" />
+                    <Label htmlFor="vendor" className="font-normal cursor-pointer">Vendeur</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              {recipientType === 'client' ? (
+                <>
+                  <div>
+                    <Label htmlFor="client-select">Client *</Label>
+                    <Select 
+                      onValueChange={handleClientChange} 
+                      value={invoice.clientId || invoice.client?.id}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Sélectionner un client" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {clients.map(client => (
+                          <SelectItem key={client.id} value={client.id}>
+                            {client.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {invoice.client && (
+                    <div className="p-4 bg-muted rounded-md">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-sm font-medium">Adresse</p>
+                          <p className="text-sm">{invoice.client.address}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">Téléphone</p>
+                          <p className="text-sm">{invoice.client.phone}</p>
+                        </div>
+                        {invoice.client.code && (
+                          <div>
+                            <p className="text-sm font-medium">Code client</p>
+                            <p className="text-sm">{invoice.client.code}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div>
+                    <Label htmlFor="vendor-select">Vendeur *</Label>
+                    <Select 
+                      onValueChange={handleVendorChange} 
+                      value={invoice.vendorId || invoice.vendor?.id}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Sélectionner un vendeur" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {vendors.map(vendor => (
+                          <SelectItem key={vendor.id} value={vendor.id}>
+                            {vendor.name} {vendor.code ? `(${vendor.code})` : ''}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {invoice.vendor && (
+                    <div className="p-4 bg-muted rounded-md">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-sm font-medium">Code vendeur</p>
+                          <p className="text-sm">{invoice.vendor.code}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">Téléphone</p>
+                          <p className="text-sm">{invoice.vendor.phone}</p>
+                        </div>
+                        {invoice.vendor.address && (
+                          <div>
+                            <p className="text-sm font-medium">Adresse</p>
+                            <p className="text-sm">{invoice.vendor.address}</p>
+                          </div>
+                        )}
+                        <div>
+                          <p className="text-sm font-medium">Solde actuel</p>
+                          <p className="text-sm font-semibold">
+                            {invoice.vendor.remainingBalance?.toFixed(2)} FCFA
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </CardContent>
           </Card>

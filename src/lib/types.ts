@@ -35,7 +35,10 @@ export interface Invoice {
   id: string;
   number: string;
   date: string;
-  client: Client;
+  client?: Client;
+  clientId?: string;
+  vendor?: Vendor;
+  vendorId?: string;
   items: InvoiceItem[];
   subtotal: number;
   tax: number;
