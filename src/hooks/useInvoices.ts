@@ -52,14 +52,19 @@ export function useInvoices() {
       
       const invoiceNumber = `INV-${Date.now()}`;
       
+      const clientId = invoice.clientId || invoice.client?.id;
+      const vendorId = invoice.vendorId || invoice.vendor?.id;
+      
       const { data: invoiceData, error: invoiceError } = await supabase
         .from('invoices')
         .insert([{
           number: invoiceNumber,
-          client_id: invoice.client.id,
+          client_id: clientId || null,
+          vendor_id: vendorId || null,
           date: invoice.date,
           subtotal: invoice.subtotal,
           tax: invoice.tax || 0,
+          discount: invoice.discount || 0,
           total: invoice.total,
           status: invoice.status,
           paid_amount: 0,

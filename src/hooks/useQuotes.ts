@@ -50,14 +50,17 @@ export function useQuotes() {
       
       const quoteNumber = `QUO-${Date.now()}`;
       
+      const clientId = quote.client?.id;
+      
       const { data: quoteData, error: quoteError } = await supabase
         .from('quotes')
         .insert([{
           number: quoteNumber,
-          client_id: quote.client.id,
+          client_id: clientId,
           date: quote.date,
           subtotal: quote.subtotal,
           tax: 0,
+          discount: quote.discount || 0,
           total: quote.total,
           status: quote.status,
           valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
