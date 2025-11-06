@@ -1,0 +1,67 @@
+{
+  "common": {
+    "welcome": "مرحبا",
+    "logout": "تسجيل الخروج",
+    "login": "تسجيل الدخول",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "add": "إضافة",
+    "search": "بحث",
+    "loading": "جاري التحميل...",
+    "error": "خطأ",
+    "success": "نجاح",
+    "confirm": "تأكيد",
+    "back": "رجوع",
+    "next": "التالي",
+    "previous": "السابق",
+    "close": "إغلاق"
+  },
+  "nav": {
+    "dashboard": "لوحة التحكم",
+    "invoices": "الفواتير",
+    "quotes": "عروض الأسعار",
+    "clients": "العملاء",
+    "leads": "العملاء المحتملون",
+    "products": "المنتجات",
+    "inventory": "المخزون",
+    "suppliers": "الموردون",
+    "purchaseOrders": "أوامر الشراء",
+    "analytics": "التحليلات",
+    "pos": "نقطة البيع",
+    "cashRegisters": "الصناديق",
+    "vendors": "البائعون",
+    "collections": "التحصيلات",
+    "collectionsDashboard": "لوحة التحصيلات",
+    "reminders": "التذكيرات",
+    "reports": "التقارير",
+    "users": "المستخدمون",
+    "settings": "الإعدادات"
+  },
+  "notifications": {
+    "title": "الإشعارات",
+    "markAllRead": "وضع علامة مقروء على الكل",
+    "noNotifications": "لا توجد إشعارات",
+    "newPayment": "تم استلام دفعة جديدة",
+    "lowStock": "مخزون منخفض",
+    "overdueInvoice": "فاتورة متأخرة",
+    "newLead": "عميل محتمل جديد",
+    "settings": "إعدادات الإشعارات"
+  },
+  "theme": {
+    "title": "المظهر",
+    "light": "فاتح",
+    "dark": "داكن",
+    "auto": "تلقائي",
+    "customize": "تخصيص الألوان"
+  },
+  "pwa": {
+    "installPrompt": "تثبيت التطبيق",
+    "installMessage": "قم بتثبيت تطبيقنا للحصول على تجربة مثالية دون اتصال",
+    "updateAvailable": "تحديث متاح",
+    "updateMessage": "يتوفر إصدار جديد. انقر للتحديث.",
+    "offlineMode": "وضع عدم الاتصال",
+    "offlineMessage": "أنت غير متصل حاليًا. قد تكون بعض الميزات محدودة."
+  }
+}

@@ -26,6 +26,10 @@ import {
 import Logo from './Logo';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import { NotificationCenter } from '@/components/NotificationCenter';
+import { LanguageSelector } from '@/components/LanguageSelector';
+import { ThemeCustomizer } from '@/components/ThemeCustomizer';
+import { useTranslation } from 'react-i18next';
 
 import {
   Sidebar as SidebarRoot,
@@ -50,6 +54,7 @@ const Sidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { t } = useTranslation();
   const [currentSite, setCurrentSite] = useState("site-1");
 
   const handleLogout = () => {
@@ -64,25 +69,25 @@ const Sidebar = () => {
   ];
 
   const menuItems = [
-    { name: 'Tableau de bord', path: '/dashboard', icon: LayoutDashboard },
-    { name: 'Point de Vente', path: '/pos', icon: ShoppingCart },
-    { name: 'Factures', path: '/invoices', icon: FileText },
-    { name: 'Devis', path: '/quotes', icon: FileCheck },
-    { name: 'Clients', path: '/clients', icon: Users },
-    { name: 'Prospection', path: '/leads', icon: Users2 },
-    { name: 'Produits', path: '/products', icon: Package },
-    { name: 'Inventaire', path: '/inventory', icon: PackageSearch },
-    { name: 'Fournisseurs', path: '/suppliers', icon: Truck },
-    { name: 'Commandes', path: '/purchase-orders', icon: ShoppingBag },
-    { name: 'Analyse', path: '/analytics', icon: LineChart },
-    { name: 'Caisses', path: '/cash-registers', icon: CreditCard },
-    { name: 'Vendeurs', path: '/vendors', icon: UserCog },
-    { name: 'Recouvrements', path: '/collections', icon: Wallet },
-    { name: 'Dashboard Recouvrements', path: '/collections/dashboard', icon: BarChart3 },
-    { name: 'Relances', path: '/reminders', icon: Bell },
-    { name: 'Rapports', path: '/reports', icon: BarChart3 },
-    { name: 'Utilisateurs', path: '/users', icon: UserCog },
-    { name: 'Paramètres', path: '/settings', icon: Settings },
+    { name: t('nav.dashboard'), path: '/dashboard', icon: LayoutDashboard },
+    { name: t('nav.pos'), path: '/pos', icon: ShoppingCart },
+    { name: t('nav.invoices'), path: '/invoices', icon: FileText },
+    { name: t('nav.quotes'), path: '/quotes', icon: FileCheck },
+    { name: t('nav.clients'), path: '/clients', icon: Users },
+    { name: t('nav.leads'), path: '/leads', icon: Users2 },
+    { name: t('nav.products'), path: '/products', icon: Package },
+    { name: t('nav.inventory'), path: '/inventory', icon: PackageSearch },
+    { name: t('nav.suppliers'), path: '/suppliers', icon: Truck },
+    { name: t('nav.purchaseOrders'), path: '/purchase-orders', icon: ShoppingBag },
+    { name: t('nav.analytics'), path: '/analytics', icon: LineChart },
+    { name: t('nav.cashRegisters'), path: '/cash-registers', icon: CreditCard },
+    { name: t('nav.vendors'), path: '/vendors', icon: UserCog },
+    { name: t('nav.collections'), path: '/collections', icon: Wallet },
+    { name: t('nav.collectionsDashboard'), path: '/collections/dashboard', icon: BarChart3 },
+    { name: t('nav.reminders'), path: '/reminders', icon: Bell },
+    { name: t('nav.reports'), path: '/reports', icon: BarChart3 },
+    { name: t('nav.users'), path: '/users', icon: UserCog },
+    { name: t('nav.settings'), path: '/settings', icon: Settings },
   ];
 
   return (
@@ -90,12 +95,17 @@ const Sidebar = () => {
       <SidebarHeader className="border-b border-sidebar-border flex flex-col items-start justify-between p-4 gap-4">
         <div className="flex w-full items-center justify-between">
           <Logo />
-          <button
-            className="sidebar-trigger block md:hidden"
-            aria-label="Toggle Sidebar"
-          >
-            <Menu size={20} />
-          </button>
+          <div className="flex items-center gap-2">
+            <NotificationCenter />
+            <LanguageSelector />
+            <ThemeCustomizer />
+            <button
+              className="sidebar-trigger block md:hidden"
+              aria-label="Toggle Sidebar"
+            >
+              <Menu size={20} />
+            </button>
+          </div>
         </div>
         
         <div className="w-full">
@@ -154,7 +164,7 @@ const Sidebar = () => {
           onClick={handleLogout}
         >
           <LogOut className="mr-2 h-4 w-4" />
-          Déconnexion
+          {t('common.logout')}
         </Button>
       </SidebarFooter>
     </SidebarRoot>

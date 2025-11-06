@@ -1,0 +1,67 @@
+{
+  "common": {
+    "welcome": "Bienvenue",
+    "logout": "Déconnexion",
+    "login": "Connexion",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "add": "Ajouter",
+    "search": "Rechercher",
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "confirm": "Confirmer",
+    "back": "Retour",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "close": "Fermer"
+  },
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "invoices": "Factures",
+    "quotes": "Devis",
+    "clients": "Clients",
+    "leads": "Prospects",
+    "products": "Produits",
+    "inventory": "Inventaire",
+    "suppliers": "Fournisseurs",
+    "purchaseOrders": "Bons de commande",
+    "analytics": "Analytique",
+    "pos": "Point de vente",
+    "cashRegisters": "Caisses",
+    "vendors": "Vendeurs",
+    "collections": "Recouvrements",
+    "collectionsDashboard": "Dashboard Recouvrements",
+    "reminders": "Rappels",
+    "reports": "Rapports",
+    "users": "Utilisateurs",
+    "settings": "Paramètres"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Tout marquer comme lu",
+    "noNotifications": "Aucune notification",
+    "newPayment": "Nouveau paiement reçu",
+    "lowStock": "Stock faible",
+    "overdueInvoice": "Facture en retard",
+    "newLead": "Nouveau prospect",
+    "settings": "Paramètres de notification"
+  },
+  "theme": {
+    "title": "Thème",
+    "light": "Clair",
+    "dark": "Sombre",
+    "auto": "Automatique",
+    "customize": "Personnaliser les couleurs"
+  },
+  "pwa": {
+    "installPrompt": "Installer l'application",
+    "installMessage": "Installez notre application pour une expérience optimale hors ligne",
+    "updateAvailable": "Mise à jour disponible",
+    "updateMessage": "Une nouvelle version est disponible. Cliquez pour mettre à jour.",
+    "offlineMode": "Mode hors ligne",
+    "offlineMessage": "Vous êtes actuellement hors ligne. Certaines fonctionnalités peuvent être limitées."
+  }
+}
