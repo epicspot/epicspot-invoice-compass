@@ -77,6 +77,26 @@ export function useStockMovements() {
 
       if (error) throw error;
 
+      // Update product_stock table
+      const { data: currentStock } = await supabase
+        .from('product_stock')
+        .select('quantity')
+        .eq('product_id', movement.productId)
+        .eq('site_id', movement.siteId)
+        .maybeSingle();
+
+      const newQuantity = (currentStock?.quantity || 0) + movement.quantity;
+
+      await supabase
+        .from('product_stock')
+        .upsert({
+          product_id: movement.productId,
+          site_id: movement.siteId,
+          quantity: newQuantity,
+        }, {
+          onConflict: 'product_id,site_id',
+        });
+
       await fetchMovements();
       return { success: true, data };
     } catch (error) {

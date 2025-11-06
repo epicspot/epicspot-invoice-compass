@@ -6,31 +6,45 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Product, StockMovement } from '@/lib/types';
+import { useSites } from '@/hooks/useSites';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface StockMovementFormProps {
   isOpen: boolean;
   onClose: () => void;
   products: Product[];
   onSubmit: (movement: Omit<StockMovement, 'id' | 'date'>) => void;
+  selectedSiteId?: string;
 }
 
 const StockMovementForm: React.FC<StockMovementFormProps> = ({
   isOpen,
   onClose,
   products,
-  onSubmit
+  onSubmit,
+  selectedSiteId
 }) => {
+  const { user } = useAuth();
+  const { sites } = useSites();
   const [productId, setProductId] = useState('');
+  const [siteId, setSiteId] = useState('');
   const [quantity, setQuantity] = useState('');
   const [type, setType] = useState<StockMovement['type']>('purchase');
   const [reference, setReference] = useState('');
   const [notes, setNotes] = useState('');
 
+  // Set site when selectedSiteId prop changes
+  React.useEffect(() => {
+    if (selectedSiteId) {
+      setSiteId(selectedSiteId);
+    }
+  }, [selectedSiteId]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     const qty = parseInt(quantity);
-    if (!productId || !quantity || isNaN(qty) || qty === 0) {
+    if (!productId || !siteId || !quantity || isNaN(qty) || qty === 0) {
       return;
     }
 
@@ -38,16 +52,17 @@ const StockMovementForm: React.FC<StockMovementFormProps> = ({
 
     onSubmit({
       productId,
-      siteId: 'default',
+      siteId,
       quantity: movementQuantity,
       type,
       reference: reference || undefined,
       notes: notes || undefined,
-      userId: 'current-user'
+      userId: user?.id || ''
     });
 
     // Reset form
     setProductId('');
+    setSiteId(selectedSiteId || '');
     setQuantity('');
     setType('purchase');
     setReference('');

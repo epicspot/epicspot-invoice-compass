@@ -2,20 +2,31 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import DataTable from '@/components/DataTable';
 import StockMovementForm from '@/components/StockMovementForm';
 import { useProducts } from '@/hooks/useProducts';
 import { useStockMovements } from '@/hooks/useStockMovements';
-import { Package, AlertTriangle, TrendingUp, TrendingDown, Plus } from 'lucide-react';
+import { useSites } from '@/hooks/useSites';
+import { useProductStock } from '@/hooks/useProductStock';
+import { Package, AlertTriangle, TrendingUp, Building2, Plus } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { StockMovement } from '@/lib/types';
 
 const Inventory = () => {
   const { products } = useProducts();
-  const { getCurrentStock, createMovement, movements } = useStockMovements();
+  const { sites } = useSites();
+  const [selectedSiteId, setSelectedSiteId] = useState<string>('');
+  const { stockData, getStock, getLowStockProducts, refetch: refetchStock } = useProductStock(selectedSiteId);
+  const { createMovement } = useStockMovements();
   const [isFormOpen, setIsFormOpen] = useState(false);
-  
-  const siteId = 'default'; // Pour l'instant un seul site
+
+  // Set default site when sites are loaded
+  React.useEffect(() => {
+    if (sites.length > 0 && !selectedSiteId) {
+      setSelectedSiteId(sites[0].id);
+    }
+  }, [sites, selectedSiteId]);
 
   const handleCreateMovement = async (movement: Omit<StockMovement, 'id' | 'date'>) => {
     try {
@@ -32,6 +43,7 @@ const Inventory = () => {
         title: "Mouvement enregistré",
         description: `Le mouvement de stock a été enregistré avec succès.`
       });
+      await refetchStock();
       setIsFormOpen(false);
     } catch (error) {
       toast({
@@ -54,7 +66,7 @@ const Inventory = () => {
       key: 'stock', 
       header: 'Stock actuel',
       cell: (item: any) => {
-        const stock = getCurrentStock(item.id, siteId);
+        const stock = selectedSiteId ? getStock(item.id, selectedSiteId) : 0;
         const minStock = item.minStock || 0;
         const isLow = stock <= minStock && minStock > 0;
         
@@ -75,22 +87,21 @@ const Inventory = () => {
       key: 'value', 
       header: 'Valeur stock',
       cell: (item: any) => {
-        const stock = getCurrentStock(item.id, siteId);
+        const stock = selectedSiteId ? getStock(item.id, selectedSiteId) : 0;
         const value = stock * item.price;
         return `${value.toLocaleString()} FCFA`;
       }
     },
   ];
 
-  const lowStockProducts = products.filter(p => {
-    const stock = getCurrentStock(p.id, siteId);
-    return p.minStock && stock <= p.minStock;
-  });
+  const lowStockProducts = selectedSiteId ? getLowStockProducts(selectedSiteId) : [];
 
-  const totalStockValue = products.reduce((total, p) => {
-    const stock = getCurrentStock(p.id, siteId);
-    return total + (stock * p.price);
-  }, 0);
+  const totalStockValue = selectedSiteId ? stockData
+    .filter(s => s.siteId === selectedSiteId)
+    .reduce((total, s) => {
+      const price = s.product?.price || 0;
+      return total + (s.quantity * price);
+    }, 0) : 0;
 
   return (
     <div className="p-6 space-y-6">
@@ -99,10 +110,27 @@ const Inventory = () => {
           <Package className="h-5 w-5" />
           Inventaire
         </h1>
-        <Button onClick={() => setIsFormOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Nouveau mouvement
-        </Button>
+        <div className="flex gap-4 items-center">
+          <div className="flex items-center gap-2">
+            <Building2 className="h-4 w-4 text-muted-foreground" />
+            <Select value={selectedSiteId} onValueChange={setSelectedSiteId}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Sélectionner un site" />
+              </SelectTrigger>
+              <SelectContent>
+                {sites.map((site) => (
+                  <SelectItem key={site.id} value={site.id}>
+                    {site.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <Button onClick={() => setIsFormOpen(true)} disabled={!selectedSiteId}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nouveau mouvement
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -153,13 +181,13 @@ const Inventory = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {lowStockProducts.map(p => (
-                <div key={p.id} className="flex justify-between items-center p-2 bg-red-50 rounded">
+              {lowStockProducts.map(item => (
+                <div key={item.productId} className="flex justify-between items-center p-2 bg-red-50 rounded">
                   <div>
-                    <span className="font-medium">{p.reference}</span> - {p.description}
+                    <span className="font-medium">{item.product?.reference}</span> - {item.product?.description}
                   </div>
                   <Badge variant="destructive">
-                    Stock: {getCurrentStock(p.id, siteId)} / Min: {p.minStock}
+                    Stock: {item.quantity} / Min: {item.product?.minStock}
                   </Badge>
                 </div>
               ))}
@@ -186,6 +214,7 @@ const Inventory = () => {
         onClose={() => setIsFormOpen(false)}
         products={products}
         onSubmit={handleCreateMovement}
+        selectedSiteId={selectedSiteId}
       />
     </div>
   );
