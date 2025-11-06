@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { CollectionForm } from '@/components/CollectionForm';
 import { useCollections } from '@/hooks/useCollections';
-import { useVendors } from '@/hooks/useVendors';
 import { Collection } from '@/lib/types';
 import { Plus, Trash2, Edit } from 'lucide-react';
 import { toast } from 'sonner';
@@ -29,7 +28,6 @@ import {
 
 export default function Collections() {
   const { collections, loading, createCollection, updateCollection, deleteCollection } = useCollections();
-  const { vendors } = useVendors();
   const [isCreating, setIsCreating] = useState(false);
   const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
   const [deletingCollection, setDeletingCollection] = useState<Collection | null>(null);
@@ -80,7 +78,6 @@ export default function Collections() {
     return (
       <div className="p-6">
         <CollectionForm
-          vendors={vendors}
           onSubmit={handleCreateCollection}
           onCancel={() => setIsCreating(false)}
         />
@@ -93,7 +90,6 @@ export default function Collections() {
       <div className="p-6">
         <CollectionForm
           collection={editingCollection}
-          vendors={vendors}
           onSubmit={handleEditCollection}
           onCancel={() => setEditingCollection(null)}
         />
@@ -119,11 +115,11 @@ export default function Collections() {
           <TableHeader>
             <TableRow>
               <TableHead>Date</TableHead>
-              <TableHead>Vendeur</TableHead>
+              <TableHead>Facture</TableHead>
+              <TableHead>Client</TableHead>
               <TableHead className="text-right">Montant</TableHead>
               <TableHead>Mode de paiement</TableHead>
               <TableHead>Collecteur</TableHead>
-              <TableHead>Notes</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -144,17 +140,15 @@ export default function Collections() {
               collections.map((collection: any) => (
                 <TableRow key={collection.id}>
                   <TableCell>
-                    {format(new Date(collection.collectionDate), 'dd/MM/yyyy')}
+                    {format(new Date(collection.createdAt), 'dd/MM/yyyy')}
                   </TableCell>
-                  <TableCell>{collection.vendorName}</TableCell>
+                  <TableCell>{collection.invoiceNumber || '-'}</TableCell>
+                  <TableCell>{collection.clientName || '-'}</TableCell>
                   <TableCell className="text-right font-semibold">
                     {collection.amount.toFixed(2)} FCFA
                   </TableCell>
                   <TableCell>{getPaymentMethodLabel(collection.paymentMethod)}</TableCell>
-                  <TableCell>{collection.collectorName}</TableCell>
-                  <TableCell className="max-w-xs truncate">
-                    {collection.notes || '-'}
-                  </TableCell>
+                  <TableCell>{collection.collectorName || '-'}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button
@@ -186,7 +180,7 @@ export default function Collections() {
             <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
             <AlertDialogDescription>
               Êtes-vous sûr de vouloir supprimer ce recouvrement ?
-              Cette action est irréversible et mettra à jour le solde du vendeur.
+              Cette action est irréversible et mettra à jour le solde de la facture.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

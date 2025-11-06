@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Collection } from '@/lib/types';
 
-const API_URL = 'http://localhost:3001/api';
-
 interface CollectionWithDetails extends Collection {
-  vendorName?: string;
+  invoiceNumber?: string;
+  clientName?: string;
   collectorName?: string;
 }
 
@@ -14,19 +14,37 @@ export function useCollections() {
 
   const fetchCollections = async () => {
     try {
-      const response = await fetch(`${API_URL}/collections`);
-      const data = await response.json();
-      const formattedCollections = data.map((c: any) => ({
+      const { data, error } = await supabase
+        .from('collections')
+        .select(`
+          *,
+          invoices:invoice_id (
+            number,
+            clients:client_id (
+              name
+            )
+          ),
+          profiles:collected_by (
+            name
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const formattedCollections: CollectionWithDetails[] = (data || []).map((c: any) => ({
         id: c.id,
-        vendorId: c.vendor_id,
+        invoiceId: c.invoice_id,
+        clientId: c.client_id,
         amount: c.amount,
-        collectionDate: c.collection_date,
-        collectorId: c.collector_id,
         paymentMethod: c.payment_method,
+        reference: c.reference,
         notes: c.notes,
+        collectedBy: c.collected_by,
         createdAt: c.created_at,
-        vendorName: c.vendor_name,
-        collectorName: c.collector_name,
+        invoiceNumber: c.invoices?.number,
+        clientName: c.invoices?.clients?.name,
+        collectorName: c.profiles?.name,
       }));
       setCollections(formattedCollections);
     } catch (error) {
@@ -42,20 +60,23 @@ export function useCollections() {
 
   const createCollection = async (collection: Omit<Collection, 'id'>) => {
     try {
-      const response = await fetch(`${API_URL}/collections`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          vendorId: collection.vendorId,
+      const { data, error } = await supabase
+        .from('collections')
+        .insert({
+          invoice_id: collection.invoiceId,
+          client_id: collection.clientId,
           amount: collection.amount,
-          collectionDate: collection.collectionDate,
-          collectorId: collection.collectorId,
-          paymentMethod: collection.paymentMethod,
+          payment_method: collection.paymentMethod,
+          reference: collection.reference,
           notes: collection.notes,
-        }),
-      });
+          collected_by: collection.collectedBy,
+        })
+        .select()
+        .maybeSingle();
+
+      if (error) throw error;
       await fetchCollections();
-      return await response.json();
+      return data;
     } catch (error) {
       console.error('Error creating collection:', error);
       throw error;
@@ -64,18 +85,19 @@ export function useCollections() {
 
   const updateCollection = async (id: string, updates: Partial<Collection>) => {
     try {
-      await fetch(`${API_URL}/collections/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          vendorId: updates.vendorId,
+      const { error } = await supabase
+        .from('collections')
+        .update({
+          invoice_id: updates.invoiceId,
+          client_id: updates.clientId,
           amount: updates.amount,
-          collectionDate: updates.collectionDate,
-          collectorId: updates.collectorId,
-          paymentMethod: updates.paymentMethod,
+          payment_method: updates.paymentMethod,
+          reference: updates.reference,
           notes: updates.notes,
-        }),
-      });
+        })
+        .eq('id', id);
+
+      if (error) throw error;
       await fetchCollections();
     } catch (error) {
       console.error('Error updating collection:', error);
@@ -85,9 +107,12 @@ export function useCollections() {
 
   const deleteCollection = async (id: string) => {
     try {
-      await fetch(`${API_URL}/collections/${id}`, {
-        method: 'DELETE',
-      });
+      const { error } = await supabase
+        .from('collections')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
       await fetchCollections();
     } catch (error) {
       console.error('Error deleting collection:', error);

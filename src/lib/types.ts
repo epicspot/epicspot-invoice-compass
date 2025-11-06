@@ -43,6 +43,9 @@ export interface Invoice {
   total: number;
   notes?: string;
   status: 'draft' | 'sent' | 'paid' | 'overdue';
+  paymentStatus?: 'unpaid' | 'partial' | 'paid';
+  paidAmount?: number;
+  remainingBalance?: number;
   siteId: string; // Which site issued this invoice
   cashRegisterId?: string; // If paid at cash register
 }
@@ -258,12 +261,13 @@ export interface Vendor {
 // Recouvrements
 export interface Collection {
   id: string;
-  vendorId: string;
+  invoiceId?: string;
+  clientId?: string;
   amount: number;
-  collectionDate: string;
-  collectorId: string;
   paymentMethod: 'cash' | 'check' | 'mobile_money' | 'bank_transfer';
+  reference?: string;
   notes?: string;
+  collectedBy?: string;
   createdAt?: string;
 }
 

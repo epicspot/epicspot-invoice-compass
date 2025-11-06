@@ -197,40 +197,50 @@ export type Database = {
       collections: {
         Row: {
           amount: number
+          client_id: string | null
           collected_by: string | null
           created_at: string | null
           id: string
+          invoice_id: string | null
           notes: string | null
           payment_method: string
           reference: string | null
-          vendor_id: string | null
         }
         Insert: {
           amount: number
+          client_id?: string | null
           collected_by?: string | null
           created_at?: string | null
           id?: string
+          invoice_id?: string | null
           notes?: string | null
           payment_method: string
           reference?: string | null
-          vendor_id?: string | null
         }
         Update: {
           amount?: number
+          client_id?: string | null
           collected_by?: string | null
           created_at?: string | null
           id?: string
+          invoice_id?: string | null
           notes?: string | null
           payment_method?: string
           reference?: string | null
-          vendor_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "collections_vendor_id_fkey"
-            columns: ["vendor_id"]
+            foreignKeyName: "collections_client_id_fkey"
+            columns: ["client_id"]
             isOneToOne: false
-            referencedRelation: "vendors"
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collections_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
             referencedColumns: ["id"]
           },
         ]
@@ -324,6 +334,9 @@ export type Database = {
           id: string
           notes: string | null
           number: string
+          paid_amount: number | null
+          payment_status: string | null
+          remaining_balance: number | null
           site_id: string | null
           status: string
           subtotal: number
@@ -341,6 +354,9 @@ export type Database = {
           id?: string
           notes?: string | null
           number: string
+          paid_amount?: number | null
+          payment_status?: string | null
+          remaining_balance?: number | null
           site_id?: string | null
           status?: string
           subtotal: number
@@ -358,6 +374,9 @@ export type Database = {
           id?: string
           notes?: string | null
           number?: string
+          paid_amount?: number | null
+          payment_status?: string | null
+          remaining_balance?: number | null
           site_id?: string | null
           status?: string
           subtotal?: number

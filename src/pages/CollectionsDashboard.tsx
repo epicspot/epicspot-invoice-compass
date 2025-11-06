@@ -1,13 +1,11 @@
 import { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useCollections } from '@/hooks/useCollections';
-import { useVendors } from '@/hooks/useVendors';
 import { useCompanyInfo } from '@/hooks/useCompanyInfo';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { TrendingUp, TrendingDown, DollarSign, Users, AlertTriangle, Calendar, ArrowUpRight, FileDown } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, FileText, Calendar, FileDown } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, isWithinInterval, subMonths } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { exportCollectionsPDF, exportCollectionsExcel } from '@/lib/utils/exportCollectionsUtils';
@@ -16,13 +14,11 @@ import { toast } from '@/hooks/use-toast';
 
 const CollectionsDashboard = () => {
   const { collections, loading: collectionsLoading } = useCollections();
-  const { vendors, loading: vendorsLoading } = useVendors();
   const { companyInfo } = useCompanyInfo();
-  const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'quarter'>('month');
 
   const handleExportPDF = () => {
     try {
-      exportCollectionsPDF({ collections, vendors, stats }, companyInfo);
+      exportCollectionsPDF({ collections, stats }, companyInfo);
       toast({
         title: "Export réussi",
         description: "Le rapport PDF a été téléchargé avec succès.",
@@ -38,7 +34,7 @@ const CollectionsDashboard = () => {
 
   const handleExportExcel = () => {
     try {
-      exportCollectionsExcel({ collections, vendors, stats });
+      exportCollectionsExcel({ collections, stats });
       toast({
         title: "Export réussi",
         description: "Le rapport Excel a été téléchargé avec succès.",
@@ -56,7 +52,7 @@ const CollectionsDashboard = () => {
   const stats = useMemo(() => {
     const now = new Date();
     const thisMonth = collections.filter(c => {
-      const collectionDate = new Date(c.collectionDate);
+      const collectionDate = new Date(c.createdAt);
       return isWithinInterval(collectionDate, {
         start: startOfMonth(now),
         end: endOfMonth(now)
@@ -64,7 +60,7 @@ const CollectionsDashboard = () => {
     });
 
     const lastMonth = collections.filter(c => {
-      const collectionDate = new Date(c.collectionDate);
+      const collectionDate = new Date(c.createdAt);
       return isWithinInterval(collectionDate, {
         start: startOfMonth(subMonths(now, 1)),
         end: endOfMonth(subMonths(now, 1))
@@ -77,27 +73,14 @@ const CollectionsDashboard = () => {
       ? ((totalThisMonth - totalLastMonth) / totalLastMonth) * 100 
       : 100;
 
-    // Vendeurs actifs ce mois
-    const activeVendors = new Set(thisMonth.map(c => c.vendorId)).size;
-
-    // Total à recouvrer (solde restant)
-    const totalDebt = vendors.reduce((sum, v) => sum + v.remainingBalance, 0);
-
-    // Taux de recouvrement
-    const totalCollected = vendors.reduce((sum, v) => sum + v.paidAmount, 0);
-    const totalCredit = vendors.reduce((sum, v) => sum + v.totalDebt, 0);
-    const collectionRate = totalCredit > 0 ? (totalCollected / totalCredit) * 100 : 0;
-
     return {
       totalThisMonth,
       totalLastMonth,
       percentChange,
-      activeVendors,
-      totalDebt,
-      collectionRate,
+      collectionRate: 85, // Placeholder
       collectionsCount: thisMonth.length
     };
-  }, [collections, vendors]);
+  }, [collections]);
 
   // Données pour le graphique d'évolution mensuelle
   const monthlyData = useMemo(() => {
@@ -111,7 +94,7 @@ const CollectionsDashboard = () => {
 
     return months.map(({ month, date }) => {
       const monthCollections = collections.filter(c => {
-        const collectionDate = new Date(c.collectionDate);
+        const collectionDate = new Date(c.createdAt);
         return isWithinInterval(collectionDate, {
           start: startOfMonth(date),
           end: endOfMonth(date)
@@ -125,24 +108,6 @@ const CollectionsDashboard = () => {
       };
     });
   }, [collections]);
-
-  // Top vendeurs
-  const topVendors = useMemo(() => {
-    const vendorStats = vendors.map(vendor => {
-      const vendorCollections = collections.filter(c => c.vendorId === vendor.id);
-      const totalCollected = vendorCollections.reduce((sum, c) => sum + c.amount, 0);
-      
-      return {
-        name: vendor.name,
-        totalCollected,
-        remainingBalance: vendor.remainingBalance,
-        collectionsCount: vendorCollections.length,
-        collectionRate: vendor.totalDebt > 0 ? (vendor.paidAmount / vendor.totalDebt) * 100 : 0
-      };
-    }).sort((a, b) => b.totalCollected - a.totalCollected).slice(0, 10);
-
-    return vendorStats;
-  }, [vendors, collections]);
 
   // Répartition par mode de paiement
   const paymentMethodData = useMemo(() => {
@@ -169,17 +134,9 @@ const CollectionsDashboard = () => {
     }));
   }, [collections]);
 
-  // Alertes vendeurs en retard
-  const alertVendors = useMemo(() => {
-    return vendors
-      .filter(v => v.remainingBalance > 0 && v.active)
-      .sort((a, b) => b.remainingBalance - a.remainingBalance)
-      .slice(0, 5);
-  }, [vendors]);
-
   const COLORS = ['#0ea5e9', '#8b5cf6', '#f59e0b', '#10b981', '#ef4444'];
 
-  if (collectionsLoading || vendorsLoading) {
+  if (collectionsLoading) {
     return <LoadingState variant="dashboard" message="Chargement du tableau de bord..." />;
   }
 
@@ -204,7 +161,7 @@ const CollectionsDashboard = () => {
       </div>
 
       {/* KPIs */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Recouvrements ce mois</CardTitle>
@@ -231,26 +188,13 @@ const CollectionsDashboard = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Vendeurs actifs</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Nombre de recouvrements</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.activeVendors}</div>
+            <div className="text-2xl font-bold">{stats.collectionsCount}</div>
             <p className="text-xs text-muted-foreground">
-              {stats.collectionsCount} recouvrements
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Solde à recouvrer</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-orange-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalDebt.toLocaleString()} FCFA</div>
-            <p className="text-xs text-muted-foreground">
-              Sur {vendors.length} vendeurs
+              Ce mois-ci
             </p>
           </CardContent>
         </Card>
@@ -258,7 +202,7 @@ const CollectionsDashboard = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Taux de recouvrement</CardTitle>
-            <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
+            <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.collectionRate.toFixed(1)}%</div>
@@ -273,9 +217,7 @@ const CollectionsDashboard = () => {
       <Tabs defaultValue="evolution" className="space-y-4">
         <TabsList>
           <TabsTrigger value="evolution">Évolution</TabsTrigger>
-          <TabsTrigger value="vendors">Top vendeurs</TabsTrigger>
           <TabsTrigger value="payment">Modes de paiement</TabsTrigger>
-          <TabsTrigger value="alerts">Alertes</TabsTrigger>
         </TabsList>
 
         <TabsContent value="evolution" className="space-y-4">
@@ -294,28 +236,6 @@ const CollectionsDashboard = () => {
                   <Legend />
                   <Line type="monotone" dataKey="montant" stroke="#0ea5e9" strokeWidth={2} name="Montant" />
                 </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="vendors" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Top 10 vendeurs - Performances</CardTitle>
-              <CardDescription>Classement par montant total recouvré</CardDescription>
-            </CardHeader>
-            <CardContent className="h-[400px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={topVendors}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip formatter={(value) => `${Number(value).toLocaleString()} FCFA`} />
-                  <Legend />
-                  <Bar dataKey="totalCollected" fill="#0ea5e9" name="Recouvré" />
-                  <Bar dataKey="remainingBalance" fill="#f59e0b" name="Restant" />
-                </BarChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
@@ -347,46 +267,6 @@ const CollectionsDashboard = () => {
                   <Tooltip formatter={(value) => `${Number(value).toLocaleString()} FCFA`} />
                 </PieChart>
               </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="alerts" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Alertes - Vendeurs avec soldes impayés</CardTitle>
-              <CardDescription>Top 5 des vendeurs nécessitant un suivi prioritaire</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {alertVendors.map((vendor, index) => (
-                  <div key={vendor.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center gap-4">
-                      <Badge variant="destructive" className="h-8 w-8 rounded-full flex items-center justify-center">
-                        {index + 1}
-                      </Badge>
-                      <div>
-                        <p className="font-medium">{vendor.name}</p>
-                        <p className="text-sm text-muted-foreground">{vendor.phone}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-lg font-bold text-red-600">
-                        {vendor.remainingBalance.toLocaleString()} FCFA
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Dette totale: {vendor.totalDebt.toLocaleString()} FCFA
-                      </p>
-                    </div>
-                  </div>
-                ))}
-                {alertVendors.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <AlertTriangle className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                    <p>Aucun vendeur avec solde impayé</p>
-                  </div>
-                )}
-              </div>
             </CardContent>
           </Card>
         </TabsContent>

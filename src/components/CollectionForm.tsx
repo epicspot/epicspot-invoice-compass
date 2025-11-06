@@ -1,64 +1,101 @@
 import { useForm } from 'react-hook-form';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Collection, Vendor } from '@/lib/types';
+import { Collection, Invoice } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
-import { format } from 'date-fns';
+import { supabase } from '@/integrations/supabase/client';
 
 interface CollectionFormProps {
   collection?: Collection;
-  vendors: Vendor[];
   onSubmit: (data: any) => void;
   onCancel: () => void;
 }
 
-export function CollectionForm({ collection, vendors, onSubmit, onCancel }: CollectionFormProps) {
+export function CollectionForm({ collection, onSubmit, onCancel }: CollectionFormProps) {
   const { user } = useAuth();
+  const [invoices, setInvoices] = useState<any[]>([]);
+  
   const { register, handleSubmit, setValue, watch } = useForm({
     defaultValues: collection || {
-      vendorId: '',
+      invoiceId: '',
       amount: 0,
-      collectionDate: format(new Date(), 'yyyy-MM-dd'),
-      collectorId: user?.id || '',
       paymentMethod: 'cash',
+      reference: '',
       notes: '',
+      collectedBy: user?.id || '',
     },
   });
 
-  const vendorId = watch('vendorId');
+  useEffect(() => {
+    // Fetch unpaid and partially paid invoices
+    supabase
+      .from('invoices')
+      .select(`
+        id,
+        number,
+        total,
+        remaining_balance,
+        payment_status,
+        clients:client_id (
+          id,
+          name
+        )
+      `)
+      .in('payment_status', ['unpaid', 'partial'])
+      .order('date', { ascending: false })
+      .then(({ data, error }) => {
+        if (!error && data) {
+          setInvoices(data);
+        }
+      });
+  }, []);
+
+  const invoiceId = watch('invoiceId');
   const paymentMethod = watch('paymentMethod');
-  const selectedVendor = vendors.find(v => v.id === vendorId);
+  const selectedInvoice = invoices.find(inv => inv.id === invoiceId);
 
   return (
     <Card className="p-6">
       <h2 className="text-2xl font-bold mb-6">
         {collection ? 'Modifier le recouvrement' : 'Nouveau recouvrement'}
       </h2>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit((data) => {
+        onSubmit({
+          ...data,
+          clientId: selectedInvoice?.clients?.id,
+        });
+      })} className="space-y-4">
         <div>
-          <Label htmlFor="vendorId">Vendeur *</Label>
+          <Label htmlFor="invoiceId">Facture impayée *</Label>
           <Select
-            value={vendorId}
-            onValueChange={(value) => setValue('vendorId', value)}
+            value={invoiceId || ''}
+            onValueChange={(value) => {
+              setValue('invoiceId', value);
+              const invoice = invoices.find(inv => inv.id === value);
+              if (invoice) {
+                setValue('amount', invoice.remaining_balance);
+              }
+            }}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Sélectionner un vendeur" />
+              <SelectValue placeholder="Sélectionner une facture" />
             </SelectTrigger>
             <SelectContent>
-              {vendors.map((vendor) => (
-                <SelectItem key={vendor.id} value={vendor.id}>
-                  {vendor.name} - Reste à recouvrer: {vendor.remainingBalance.toFixed(2)} FCFA
+              {invoices.map((invoice) => (
+                <SelectItem key={invoice.id} value={invoice.id}>
+                  {invoice.number} - {invoice.clients?.name} - Reste: {invoice.remaining_balance?.toFixed(2)} FCFA
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          {selectedVendor && (
+          {selectedInvoice && (
             <p className="text-sm text-muted-foreground mt-1">
-              Solde actuel: {selectedVendor.remainingBalance.toFixed(2)} FCFA
+              Solde restant: {selectedInvoice.remaining_balance?.toFixed(2)} FCFA
             </p>
           )}
         </div>
@@ -75,11 +112,11 @@ export function CollectionForm({ collection, vendors, onSubmit, onCancel }: Coll
             />
           </div>
           <div>
-            <Label htmlFor="collectionDate">Date de recouvrement *</Label>
+            <Label htmlFor="reference">Référence</Label>
             <Input
-              id="collectionDate"
-              type="date"
-              {...register('collectionDate', { required: true })}
+              id="reference"
+              {...register('reference')}
+              placeholder="Reçu #..."
             />
           </div>
         </div>
