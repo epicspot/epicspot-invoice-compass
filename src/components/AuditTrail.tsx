@@ -59,7 +59,7 @@ export function AuditTrail() {
     setFilters(newFilters);
     
     fetchLogs({
-      action: newFilters.action as AuditAction | undefined,
+      action: (newFilters.action && newFilters.action !== 'all') ? newFilters.action as AuditAction : undefined,
       tableName: newFilters.tableName || undefined
     });
   };
@@ -110,7 +110,7 @@ export function AuditTrail() {
                 <SelectValue placeholder="Toutes les actions" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Toutes</SelectItem>
+                <SelectItem value="all">Toutes</SelectItem>
                 <SelectItem value="CREATE">Création</SelectItem>
                 <SelectItem value="UPDATE">Modification</SelectItem>
                 <SelectItem value="DELETE">Suppression</SelectItem>
