@@ -32,6 +32,9 @@ await fastify.register(cors, {
   credentials: true
 });
 
+// Note: Swagger documentation will be added in a future update
+// For now, the API endpoints are available at /api/*
+
 // Health check
 fastify.get('/health', async () => {
   return { status: 'ok', timestamp: new Date().toISOString() };

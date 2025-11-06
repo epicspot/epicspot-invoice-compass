@@ -36,6 +36,7 @@ import Collections from "./pages/Collections";
 import CollectionsDashboard from "./pages/CollectionsDashboard";
 import SecurityAudit from "./pages/SecurityAudit";
 import AdvancedAnalytics from "./pages/AdvancedAnalytics";
+import Integrations from "./pages/Integrations";
 import Sidebar from "./components/Sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
@@ -99,6 +100,7 @@ const App = () => {
                           <Route path="/collections/dashboard" element={<CollectionsDashboard />} />
                           <Route path="/security" element={<SecurityAudit />} />
                           <Route path="/advanced-analytics" element={<AdvancedAnalytics />} />
+                          <Route path="/integrations" element={<Integrations />} />
                           <Route path="/reminders" element={<Reminders />} />
                           <Route path="/reports" element={<Reports />} />
                           <Route path="/users" element={<Users />} />
