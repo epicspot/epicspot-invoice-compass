@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Client } from '@/lib/types';
-
-const API_URL = 'http://localhost:3001/api';
 
 export function useClients() {
   const [clients, setClients] = useState<Client[]>([]);
@@ -9,9 +8,26 @@ export function useClients() {
 
   const fetchClients = async () => {
     try {
-      const response = await fetch(`${API_URL}/clients`);
-      const data = await response.json();
-      setClients(data);
+      const { data, error } = await supabase
+        .from('clients')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const formattedClients: Client[] = (data || []).map((client: any) => ({
+        id: client.id,
+        code: client.code,
+        name: client.name,
+        address: client.address,
+        phone: client.phone,
+        email: client.email,
+        taxInfo: client.tax_info,
+        taxCenter: client.tax_center,
+        siteId: client.site_id,
+      }));
+
+      setClients(formattedClients);
     } catch (error) {
       console.error('Error fetching clients:', error);
     } finally {
@@ -25,14 +41,24 @@ export function useClients() {
 
   const createClient = async (client: Omit<Client, 'id' | 'code'>) => {
     try {
-      const response = await fetch(`${API_URL}/clients`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(client),
-      });
-      const newClient = await response.json();
+      const { data, error } = await supabase
+        .from('clients')
+        .insert({
+          name: client.name,
+          address: client.address,
+          phone: client.phone,
+          email: client.email,
+          tax_info: client.taxInfo,
+          tax_center: client.taxCenter,
+          site_id: client.siteId,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
       await fetchClients();
-      return newClient;
+      return data;
     } catch (error) {
       console.error('Error creating client:', error);
       throw error;
@@ -41,11 +67,21 @@ export function useClients() {
 
   const updateClient = async (id: string, updates: Partial<Client>) => {
     try {
-      await fetch(`${API_URL}/clients/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates),
-      });
+      const { error } = await supabase
+        .from('clients')
+        .update({
+          name: updates.name,
+          address: updates.address,
+          phone: updates.phone,
+          email: updates.email,
+          tax_info: updates.taxInfo,
+          tax_center: updates.taxCenter,
+          site_id: updates.siteId,
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+
       await fetchClients();
     } catch (error) {
       console.error('Error updating client:', error);
@@ -55,9 +91,13 @@ export function useClients() {
 
   const deleteClient = async (id: string) => {
     try {
-      await fetch(`${API_URL}/clients/${id}`, {
-        method: 'DELETE',
-      });
+      const { error } = await supabase
+        .from('clients')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
       await fetchClients();
     } catch (error) {
       console.error('Error deleting client:', error);

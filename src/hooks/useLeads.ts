@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Lead } from '@/lib/types';
-
-const API_URL = 'http://localhost:3001/api';
 
 export function useLeads() {
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -9,9 +8,28 @@ export function useLeads() {
 
   const fetchLeads = async () => {
     try {
-      const response = await fetch(`${API_URL}/leads`);
-      const data = await response.json();
-      setLeads(data);
+      const { data, error } = await supabase
+        .from('leads')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const formattedLeads: Lead[] = (data || []).map((lead: any) => ({
+        id: lead.id,
+        name: lead.name,
+        company: lead.company,
+        phone: lead.phone,
+        email: lead.email,
+        source: lead.source,
+        status: lead.status,
+        estimatedValue: lead.value,
+        notes: lead.notes,
+        assignedTo: lead.assigned_to,
+        createdAt: lead.created_at,
+      }));
+
+      setLeads(formattedLeads);
     } catch (error) {
       console.error('Error fetching leads:', error);
     } finally {
@@ -25,14 +43,26 @@ export function useLeads() {
 
   const createLead = async (lead: Omit<Lead, 'id' | 'createdAt'>) => {
     try {
-      const response = await fetch(`${API_URL}/leads`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(lead),
-      });
-      const newLead = await response.json();
+      const { data, error } = await supabase
+        .from('leads')
+        .insert({
+          name: lead.name,
+          company: lead.company,
+          phone: lead.phone,
+          email: lead.email,
+          source: lead.source,
+          status: lead.status,
+          value: lead.estimatedValue,
+          notes: lead.notes,
+          assigned_to: lead.assignedTo,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
       await fetchLeads();
-      return newLead;
+      return data;
     } catch (error) {
       console.error('Error creating lead:', error);
       throw error;
@@ -41,11 +71,23 @@ export function useLeads() {
 
   const updateLead = async (id: string, updates: Partial<Lead>) => {
     try {
-      await fetch(`${API_URL}/leads/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates),
-      });
+      const { error } = await supabase
+        .from('leads')
+        .update({
+          name: updates.name,
+          company: updates.company,
+          phone: updates.phone,
+          email: updates.email,
+          source: updates.source,
+          status: updates.status,
+          value: updates.estimatedValue,
+          notes: updates.notes,
+          assigned_to: updates.assignedTo,
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+
       await fetchLeads();
     } catch (error) {
       console.error('Error updating lead:', error);
@@ -55,9 +97,13 @@ export function useLeads() {
 
   const deleteLead = async (id: string) => {
     try {
-      await fetch(`${API_URL}/leads/${id}`, {
-        method: 'DELETE',
-      });
+      const { error } = await supabase
+        .from('leads')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
       await fetchLeads();
     } catch (error) {
       console.error('Error deleting lead:', error);
