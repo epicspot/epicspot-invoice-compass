@@ -1,11 +1,19 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User } from '@/lib/types';
+import { supabase } from '@/integrations/supabase/client';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
+
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+}
 
 interface AuthContextType {
   user: User | null;
-  token: string | null;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  logout: () => void;
+  logout: () => Promise<void>;
+  signup: (email: string, password: string, name: string) => Promise<{ success: boolean; error?: string }>;
   isAuthenticated: boolean;
   isLoading: boolean;
 }
@@ -14,65 +22,117 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Vérifier si une session existe
-    const savedUser = localStorage.getItem('auth_user');
-    const savedToken = localStorage.getItem('auth_token');
+    // Vérifier la session au chargement
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        loadUserProfile(session.user);
+      }
+      setIsLoading(false);
+    });
 
-    if (savedUser && savedToken) {
-      setUser(JSON.parse(savedUser));
-      setToken(savedToken);
-    }
-    setIsLoading(false);
+    // Écouter les changements d'authentification
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        loadUserProfile(session.user);
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const loadUserProfile = async (authUser: SupabaseUser) => {
     try {
-      // Mock authentication for demo purposes
-      if (email === 'admin@epicspot.com' && password === 'admin123') {
-        const mockUser: User = {
-          id: '1',
-          email: 'admin@epicspot.com',
-          name: 'Admin EPICSPOT',
-          role: 'admin',
-          active: true,
-          createdAt: new Date().toISOString(),
-        };
-        
-        const mockToken = 'mock-jwt-token-' + Date.now();
-        
-        setUser(mockUser);
-        setToken(mockToken);
-        localStorage.setItem('auth_user', JSON.stringify(mockUser));
-        localStorage.setItem('auth_token', mockToken);
-        
-        return { success: true };
-      }
-      
-      return { success: false, error: 'Email ou mot de passe incorrect' };
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', authUser.id)
+        .single();
+
+      const { data: roles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', authUser.id)
+        .single();
+
+      setUser({
+        id: authUser.id,
+        email: authUser.email!,
+        name: profile?.name || authUser.email!,
+        role: roles?.role || 'user',
+      });
     } catch (error) {
-      console.error('Login error:', error);
-      return { success: false, error: 'Une erreur est survenue' };
+      console.error('Error loading profile:', error);
+      setUser({
+        id: authUser.id,
+        email: authUser.email!,
+        name: authUser.email!,
+        role: 'user',
+      });
     }
   };
 
-  const logout = () => {
+  const login = async (email: string, password: string) => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      if (data.user) {
+        await loadUserProfile(data.user);
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('Login error:', error);
+      return { success: false, error: 'Une erreur est survenue lors de la connexion' };
+    }
+  };
+
+  const signup = async (email: string, password: string, name: string) => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+          },
+        },
+      });
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('Signup error:', error);
+      return { success: false, error: 'Une erreur est survenue lors de l\'inscription' };
+    }
+  };
+
+  const logout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
-    setToken(null);
-    localStorage.removeItem('auth_user');
-    localStorage.removeItem('auth_token');
   };
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        token,
         login,
         logout,
+        signup,
         isAuthenticated: !!user,
         isLoading,
       }}
