@@ -26,8 +26,8 @@ const Clients = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState<string | null>(null);
   
-  const handleCreateClient = (clientData: Partial<Client>) => {
-    const newClient = createClient(clientData as Omit<Client, 'id' | 'code'>);
+  const handleCreateClient = async (clientData: Partial<Client>) => {
+    const newClient = await createClient(clientData as Omit<Client, 'id' | 'code'>);
     setIsCreating(false);
     
     toast({

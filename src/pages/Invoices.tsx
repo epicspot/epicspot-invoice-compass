@@ -71,8 +71,8 @@ const Invoices = () => {
   const [isEditing, setIsEditing] = useState<string | null>(null);
   const [paymentInvoice, setPaymentInvoice] = useState<Invoice | null>(null);
   
-  const handleCreateInvoice = (invoiceData: Partial<Invoice>) => {
-    const newInvoice = createInvoice({
+  const handleCreateInvoice = async (invoiceData: Partial<Invoice>) => {
+    const newInvoice = await createInvoice({
       ...invoiceData,
       siteId: 'default',
     } as Omit<Invoice, 'id' | 'number'>);

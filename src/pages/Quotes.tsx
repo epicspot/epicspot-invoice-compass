@@ -66,8 +66,8 @@ const Quotes = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState<string | null>(null);
   
-  const handleCreateQuote = (quoteData: Partial<Quote>) => {
-    const newQuote = createQuote({
+  const handleCreateQuote = async (quoteData: Partial<Quote>) => {
+    const newQuote = await createQuote({
       ...quoteData,
       siteId: 'default',
     } as Omit<Quote, 'id' | 'number'>);
@@ -103,8 +103,8 @@ const Quotes = () => {
     });
   };
   
-  const handleConvertToInvoice = (quote: Quote) => {
-    const invoice = createInvoice({
+  const handleConvertToInvoice = async (quote: Quote) => {
+    const invoice = await createInvoice({
       date: new Date().toISOString().split('T')[0],
       client: quote.client,
       items: quote.items,
@@ -118,7 +118,7 @@ const Quotes = () => {
     });
 
     // Marquer le devis comme accepté
-    updateQuote(quote.id, { status: 'accepted' });
+    await updateQuote(quote.id, { status: 'accepted' });
 
     toast({
       title: "Devis converti en facture",

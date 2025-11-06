@@ -29,8 +29,8 @@ const Products = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState<string | null>(null);
   
-  const handleCreateProduct = (productData: Partial<Product>) => {
-    const newProduct = createProduct(productData as Omit<Product, 'id' | 'reference'>);
+  const handleCreateProduct = async (productData: Partial<Product>) => {
+    const newProduct = await createProduct(productData as Omit<Product, 'id' | 'reference'>);
     setIsCreating(false);
     
     toast({

@@ -125,7 +125,7 @@ const POS = () => {
     return { subtotal, tax, total };
   };
 
-  const handlePayment = () => {
+  const handlePayment = async () => {
     if (cart.length === 0) {
       toast({
         title: "Panier vide",
@@ -195,7 +195,7 @@ const POS = () => {
     }
 
     // Create invoice
-    const invoice = createInvoice({
+    const invoice = await createInvoice({
       date: new Date().toISOString(),
       client: selectedClient || {
         id: 'walk-in',
@@ -215,8 +215,8 @@ const POS = () => {
     });
 
     // Update stock
-    cart.forEach(item => {
-      createMovement({
+    for (const item of cart) {
+      await createMovement({
         productId: item.product.id,
         siteId,
         quantity: -item.quantity,
@@ -224,7 +224,7 @@ const POS = () => {
         reference: invoice.number,
         userId: 'current-user'
       });
-    });
+    }
 
     // Add transaction to cash register
     addTransaction({

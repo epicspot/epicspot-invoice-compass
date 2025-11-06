@@ -17,9 +17,9 @@ const Inventory = () => {
   
   const siteId = 'default'; // Pour l'instant un seul site
 
-  const handleCreateMovement = (movement: Omit<StockMovement, 'id' | 'date'>) => {
+  const handleCreateMovement = async (movement: Omit<StockMovement, 'id' | 'date'>) => {
     try {
-      const result = createMovement(movement);
+      const result = await createMovement(movement);
       if (!result.success) {
         toast({
           title: "Erreur",

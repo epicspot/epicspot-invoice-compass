@@ -1,27 +1,79 @@
-import { useLocalStorage } from './useLocalStorage';
+import { useState, useEffect } from 'react';
 import { Reminder } from '@/lib/types';
 
+const API_URL = 'http://localhost:3001/api';
+
 export function useReminders() {
-  const [reminders, setReminders] = useLocalStorage<Reminder[]>('reminders', []);
+  const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const createReminder = (reminder: Omit<Reminder, 'id' | 'attempts'>) => {
-    const newReminder: Reminder = {
-      ...reminder,
-      id: `rem_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      attempts: 0,
-    };
-    setReminders([...reminders, newReminder]);
-    return newReminder;
+  const fetchReminders = async () => {
+    try {
+      const response = await fetch(`${API_URL}/reminders`);
+      const data = await response.json();
+      setReminders(data);
+    } catch (error) {
+      console.error('Error fetching reminders:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const updateReminder = (id: string, updates: Partial<Reminder>) => {
-    setReminders(reminders.map(r => 
-      r.id === id ? { ...r, ...updates } : r
-    ));
+  useEffect(() => {
+    fetchReminders();
+  }, []);
+
+  const createReminder = async (reminder: Omit<Reminder, 'id' | 'attempts'>) => {
+    try {
+      const response = await fetch(`${API_URL}/reminders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          invoice_id: reminder.documentId,
+          client_name: reminder.clientName,
+          amount: reminder.amount,
+          status: reminder.status,
+          next_reminder_date: reminder.nextReminderDate,
+        }),
+      });
+      const newReminder = await response.json();
+      await fetchReminders();
+      return newReminder;
+    } catch (error) {
+      console.error('Error creating reminder:', error);
+      throw error;
+    }
   };
 
-  const deleteReminder = (id: string) => {
-    setReminders(reminders.filter(r => r.id !== id));
+  const updateReminder = async (id: string, updates: Partial<Reminder>) => {
+    try {
+      await fetch(`${API_URL}/reminders/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: updates.status,
+          attempts: updates.attempts,
+          next_reminder_date: updates.nextReminderDate,
+          last_reminder_date: updates.lastReminderDate,
+        }),
+      });
+      await fetchReminders();
+    } catch (error) {
+      console.error('Error updating reminder:', error);
+      throw error;
+    }
+  };
+
+  const deleteReminder = async (id: string) => {
+    try {
+      await fetch(`${API_URL}/reminders/${id}`, {
+        method: 'DELETE',
+      });
+      await fetchReminders();
+    } catch (error) {
+      console.error('Error deleting reminder:', error);
+      throw error;
+    }
   };
 
   const getPendingReminders = () => {
@@ -33,14 +85,14 @@ export function useReminders() {
     );
   };
 
-  const sendReminder = (id: string) => {
+  const sendReminder = async (id: string) => {
     const reminder = reminders.find(r => r.id === id);
     if (!reminder) return;
 
     const nextDate = new Date();
-    nextDate.setDate(nextDate.getDate() + 7); // Prochaine relance dans 7 jours
+    nextDate.setDate(nextDate.getDate() + 7);
 
-    updateReminder(id, {
+    await updateReminder(id, {
       attempts: reminder.attempts + 1,
       lastReminderDate: new Date().toISOString(),
       nextReminderDate: nextDate.toISOString(),
@@ -50,10 +102,12 @@ export function useReminders() {
 
   return {
     reminders,
+    loading,
     createReminder,
     updateReminder,
     deleteReminder,
     getPendingReminders,
     sendReminder,
+    refetch: fetchReminders,
   };
 }
