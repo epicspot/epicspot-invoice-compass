@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Vendor } from '@/lib/types';
-
-const API_URL = 'http://localhost:3001/api';
 
 export function useVendors() {
   const [vendors, setVendors] = useState<Vendor[]>([]);
@@ -9,9 +8,14 @@ export function useVendors() {
 
   const fetchVendors = async () => {
     try {
-      const response = await fetch(`${API_URL}/vendors`);
-      const data = await response.json();
-      const formattedVendors = data.map((v: any) => ({
+      const { data, error } = await supabase
+        .from('vendors')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const formattedVendors: Vendor[] = (data || []).map((v: any) => ({
         id: v.id,
         code: v.code,
         name: v.name,
@@ -22,7 +26,7 @@ export function useVendors() {
         totalDebt: v.total_debt,
         paidAmount: v.paid_amount,
         remainingBalance: v.remaining_balance,
-        active: v.active === 1,
+        active: v.active,
         createdAt: v.created_at,
       }));
       setVendors(formattedVendors);
@@ -39,20 +43,22 @@ export function useVendors() {
 
   const createVendor = async (vendor: Omit<Vendor, 'id' | 'totalDebt' | 'paidAmount' | 'remainingBalance' | 'active'>) => {
     try {
-      const response = await fetch(`${API_URL}/vendors`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const { data, error } = await supabase
+        .from('vendors')
+        .insert({
           code: vendor.code,
           name: vendor.name,
           phone: vendor.phone,
           email: vendor.email,
           address: vendor.address,
-          siteId: vendor.siteId,
-        }),
-      });
+          site_id: vendor.siteId,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
       await fetchVendors();
-      return await response.json();
+      return data;
     } catch (error) {
       console.error('Error creating vendor:', error);
       throw error;
@@ -61,22 +67,23 @@ export function useVendors() {
 
   const updateVendor = async (id: string, updates: Partial<Vendor>) => {
     try {
-      await fetch(`${API_URL}/vendors/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const { error } = await supabase
+        .from('vendors')
+        .update({
           code: updates.code,
           name: updates.name,
           phone: updates.phone,
           email: updates.email,
           address: updates.address,
-          siteId: updates.siteId,
-          totalDebt: updates.totalDebt,
-          paidAmount: updates.paidAmount,
-          remainingBalance: updates.remainingBalance,
-          active: updates.active ? 1 : 0,
-        }),
-      });
+          site_id: updates.siteId,
+          total_debt: updates.totalDebt,
+          paid_amount: updates.paidAmount,
+          remaining_balance: updates.remainingBalance,
+          active: updates.active,
+        })
+        .eq('id', id);
+
+      if (error) throw error;
       await fetchVendors();
     } catch (error) {
       console.error('Error updating vendor:', error);
@@ -86,9 +93,12 @@ export function useVendors() {
 
   const deleteVendor = async (id: string) => {
     try {
-      await fetch(`${API_URL}/vendors/${id}`, {
-        method: 'DELETE',
-      });
+      const { error } = await supabase
+        .from('vendors')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
       await fetchVendors();
     } catch (error) {
       console.error('Error deleting vendor:', error);
@@ -98,11 +108,18 @@ export function useVendors() {
 
   const addCredit = async (vendorId: string, amount: number) => {
     try {
-      await fetch(`${API_URL}/vendors/${vendorId}/add-credit`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount }),
-      });
+      const vendor = vendors.find(v => v.id === vendorId);
+      if (!vendor) throw new Error('Vendor not found');
+
+      const { error } = await supabase
+        .from('vendors')
+        .update({
+          total_debt: (vendor.totalDebt || 0) + amount,
+          remaining_balance: (vendor.remainingBalance || 0) + amount,
+        })
+        .eq('id', vendorId);
+
+      if (error) throw error;
       await fetchVendors();
     } catch (error) {
       console.error('Error adding credit:', error);

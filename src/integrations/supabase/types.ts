@@ -1068,35 +1068,61 @@ export type Database = {
       vendors: {
         Row: {
           active: boolean | null
+          address: string | null
+          code: string | null
           commission_rate: number | null
           created_at: string | null
           email: string | null
           id: string
           name: string
+          paid_amount: number | null
           phone: string
+          remaining_balance: number | null
+          site_id: string | null
+          total_debt: number | null
           updated_at: string | null
         }
         Insert: {
           active?: boolean | null
+          address?: string | null
+          code?: string | null
           commission_rate?: number | null
           created_at?: string | null
           email?: string | null
           id?: string
           name: string
+          paid_amount?: number | null
           phone: string
+          remaining_balance?: number | null
+          site_id?: string | null
+          total_debt?: number | null
           updated_at?: string | null
         }
         Update: {
           active?: boolean | null
+          address?: string | null
+          code?: string | null
           commission_rate?: number | null
           created_at?: string | null
           email?: string | null
           id?: string
           name?: string
+          paid_amount?: number | null
           phone?: string
+          remaining_balance?: number | null
+          site_id?: string | null
+          total_debt?: number | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "vendors_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
