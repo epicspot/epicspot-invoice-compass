@@ -292,7 +292,7 @@ const PurchaseOrderForm = ({ onSubmit, onCancel, initialData }: PurchaseOrderFor
         <Button type="button" variant="outline" onClick={onCancel}>
           Annuler
         </Button>
-        <Button type="submit" disabled={items.length === 0 || !formData.supplierId}>
+        <Button type="submit">
           {initialData ? 'Modifier' : 'Créer'}
         </Button>
       </div>

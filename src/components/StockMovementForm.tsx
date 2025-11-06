@@ -157,7 +157,7 @@ const StockMovementForm: React.FC<StockMovementFormProps> = ({
             <Button type="button" variant="outline" onClick={onClose}>
               Annuler
             </Button>
-            <Button type="submit" disabled={!productId || !quantity || parseInt(quantity) === 0 || isNaN(parseInt(quantity))}>
+            <Button type="submit">
               Enregistrer
             </Button>
           </DialogFooter>
