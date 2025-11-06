@@ -27,6 +27,7 @@ import PurchaseOrders from "./pages/PurchaseOrders";
 import BusinessAnalytics from "./pages/BusinessAnalytics";
 import Vendors from "./pages/Vendors";
 import Collections from "./pages/Collections";
+import CollectionsDashboard from "./pages/CollectionsDashboard";
 import Sidebar from "./components/Sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
@@ -66,6 +67,7 @@ const App = () => {
                           <Route path="/cash-registers" element={<CashRegisters />} />
                           <Route path="/vendors" element={<Vendors />} />
                           <Route path="/collections" element={<Collections />} />
+                          <Route path="/collections/dashboard" element={<CollectionsDashboard />} />
                           <Route path="/reminders" element={<Reminders />} />
                           <Route path="/reports" element={<Reports />} />
                           <Route path="/users" element={<Users />} />

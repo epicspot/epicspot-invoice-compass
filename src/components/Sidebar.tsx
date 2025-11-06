@@ -78,6 +78,7 @@ const Sidebar = () => {
     { name: 'Caisses', path: '/cash-registers', icon: CreditCard },
     { name: 'Vendeurs', path: '/vendors', icon: UserCog },
     { name: 'Recouvrements', path: '/collections', icon: Wallet },
+    { name: 'Dashboard Recouvrements', path: '/collections/dashboard', icon: BarChart3 },
     { name: 'Relances', path: '/reminders', icon: Bell },
     { name: 'Rapports', path: '/reports', icon: BarChart3 },
     { name: 'Utilisateurs', path: '/users', icon: UserCog },
