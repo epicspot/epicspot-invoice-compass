@@ -18,7 +18,7 @@ export default defineConfig(({ mode }) => ({
       includeAssets: ['favicon.ico', 'robots.txt'],
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // 3 MB
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB - increased limit
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/api\./i,
@@ -28,6 +28,17 @@ export default defineConfig(({ mode }) => ({
               expiration: {
                 maxEntries: 50,
                 maxAgeSeconds: 60 * 60 * 24
+              }
+            }
+          },
+          {
+            urlPattern: /\.(?:js)$/i,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'js-cache',
+              expiration: {
+                maxEntries: 30,
+                maxAgeSeconds: 60 * 60 * 24 * 7 // 7 days
               }
             }
           }
