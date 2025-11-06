@@ -12,32 +12,36 @@ import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { PWAUpdatePrompt } from "@/components/PWAUpdatePrompt";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
 import '@/i18n/config';
+import { lazy, Suspense } from "react";
 import Login from "./pages/Login";
-import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import Dashboard from "./pages/Dashboard";
-import Invoices from "./pages/Invoices";
-import Quotes from "./pages/Quotes";
-import Clients from "./pages/Clients";
-import Products from "./pages/Products";
-import Users from "./pages/Users";
-import Settings from "./pages/Settings";
-import CashRegisters from "./pages/CashRegisters";
-import Leads from "./pages/Leads";
-import Inventory from "./pages/Inventory";
-import Reminders from "./pages/Reminders";
-import Reports from "./pages/Reports";
-import POS from "./pages/POS";
-import Suppliers from "./pages/Suppliers";
-import PurchaseOrders from "./pages/PurchaseOrders";
-import BusinessAnalytics from "./pages/BusinessAnalytics";
-import Vendors from "./pages/Vendors";
-import Collections from "./pages/Collections";
-import CollectionsDashboard from "./pages/CollectionsDashboard";
-import SecurityAudit from "./pages/SecurityAudit";
-import AdvancedAnalytics from "./pages/AdvancedAnalytics";
-import Integrations from "./pages/Integrations";
-import AdvancedFeatures from "./pages/AdvancedFeatures";
+import { LoadingState } from "./components/LoadingState";
+
+// Lazy load pages for better performance
+const Index = lazy(() => import("./pages/Index"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Invoices = lazy(() => import("./pages/Invoices"));
+const Quotes = lazy(() => import("./pages/Quotes"));
+const Clients = lazy(() => import("./pages/Clients"));
+const Products = lazy(() => import("./pages/Products"));
+const Users = lazy(() => import("./pages/Users"));
+const Settings = lazy(() => import("./pages/Settings"));
+const CashRegisters = lazy(() => import("./pages/CashRegisters"));
+const Leads = lazy(() => import("./pages/Leads"));
+const Inventory = lazy(() => import("./pages/Inventory"));
+const Reminders = lazy(() => import("./pages/Reminders"));
+const Reports = lazy(() => import("./pages/Reports"));
+const POS = lazy(() => import("./pages/POS"));
+const Suppliers = lazy(() => import("./pages/Suppliers"));
+const PurchaseOrders = lazy(() => import("./pages/PurchaseOrders"));
+const BusinessAnalytics = lazy(() => import("./pages/BusinessAnalytics"));
+const Vendors = lazy(() => import("./pages/Vendors"));
+const Collections = lazy(() => import("./pages/Collections"));
+const CollectionsDashboard = lazy(() => import("./pages/CollectionsDashboard"));
+const SecurityAudit = lazy(() => import("./pages/SecurityAudit"));
+const AdvancedAnalytics = lazy(() => import("./pages/AdvancedAnalytics"));
+const Integrations = lazy(() => import("./pages/Integrations"));
+const AdvancedFeatures = lazy(() => import("./pages/AdvancedFeatures"));
 import { AIAssistant } from "./components/AIAssistant";
 import Sidebar from "./components/Sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
@@ -78,38 +82,40 @@ const App = () => {
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="*" element={
-                <ProtectedRoute>
+                  <ProtectedRoute>
                   <SidebarProvider>
                     <div className="flex min-h-screen w-full">
                       <Sidebar />
                       <div className="flex-1 overflow-auto">
-                        <Routes>
-                          <Route path="/" element={<Index />} />
-                          <Route path="/dashboard" element={<Dashboard />} />
-                          <Route path="/invoices" element={<Invoices />} />
-                          <Route path="/quotes" element={<Quotes />} />
-                          <Route path="/clients" element={<Clients />} />
-                          <Route path="/leads" element={<Leads />} />
-                          <Route path="/products" element={<Products />} />
-                          <Route path="/inventory" element={<Inventory />} />
-                          <Route path="/suppliers" element={<Suppliers />} />
-                          <Route path="/purchase-orders" element={<PurchaseOrders />} />
-                          <Route path="/analytics" element={<BusinessAnalytics />} />
-                          <Route path="/pos" element={<POS />} />
-                          <Route path="/cash-registers" element={<CashRegisters />} />
-                          <Route path="/vendors" element={<Vendors />} />
-                          <Route path="/collections" element={<Collections />} />
-                          <Route path="/collections/dashboard" element={<CollectionsDashboard />} />
-                          <Route path="/security" element={<SecurityAudit />} />
-                          <Route path="/advanced-analytics" element={<AdvancedAnalytics />} />
-                          <Route path="/integrations" element={<Integrations />} />
-                          <Route path="/advanced-features" element={<AdvancedFeatures />} />
-                          <Route path="/reminders" element={<Reminders />} />
-                          <Route path="/reports" element={<Reports />} />
-                          <Route path="/users" element={<Users />} />
-                          <Route path="/settings" element={<Settings />} />
-                          <Route path="*" element={<NotFound />} />
-                        </Routes>
+                        <Suspense fallback={<LoadingState message="Chargement de la page..." />}>
+                          <Routes>
+                            <Route path="/" element={<Index />} />
+                            <Route path="/dashboard" element={<Dashboard />} />
+                            <Route path="/invoices" element={<Invoices />} />
+                            <Route path="/quotes" element={<Quotes />} />
+                            <Route path="/clients" element={<Clients />} />
+                            <Route path="/leads" element={<Leads />} />
+                            <Route path="/products" element={<Products />} />
+                            <Route path="/inventory" element={<Inventory />} />
+                            <Route path="/suppliers" element={<Suppliers />} />
+                            <Route path="/purchase-orders" element={<PurchaseOrders />} />
+                            <Route path="/analytics" element={<BusinessAnalytics />} />
+                            <Route path="/pos" element={<POS />} />
+                            <Route path="/cash-registers" element={<CashRegisters />} />
+                            <Route path="/vendors" element={<Vendors />} />
+                            <Route path="/collections" element={<Collections />} />
+                            <Route path="/collections/dashboard" element={<CollectionsDashboard />} />
+                            <Route path="/security" element={<SecurityAudit />} />
+                            <Route path="/advanced-analytics" element={<AdvancedAnalytics />} />
+                            <Route path="/integrations" element={<Integrations />} />
+                            <Route path="/advanced-features" element={<AdvancedFeatures />} />
+                            <Route path="/reminders" element={<Reminders />} />
+                            <Route path="/reports" element={<Reports />} />
+                            <Route path="/users" element={<Users />} />
+                            <Route path="/settings" element={<Settings />} />
+                            <Route path="*" element={<NotFound />} />
+                          </Routes>
+                        </Suspense>
                         <AIAssistant />
                       </div>
                     </div>

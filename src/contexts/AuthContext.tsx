@@ -31,27 +31,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await fetch('http://localhost:3000/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        return { success: false, error: data.error || 'Erreur de connexion' };
+      // Mock authentication for demo purposes
+      if (email === 'admin@epicspot.com' && password === 'admin123') {
+        const mockUser: User = {
+          id: '1',
+          email: 'admin@epicspot.com',
+          name: 'Admin EPICSPOT',
+          role: 'admin',
+          active: true,
+          createdAt: new Date().toISOString(),
+        };
+        
+        const mockToken = 'mock-jwt-token-' + Date.now();
+        
+        setUser(mockUser);
+        setToken(mockToken);
+        localStorage.setItem('auth_user', JSON.stringify(mockUser));
+        localStorage.setItem('auth_token', mockToken);
+        
+        return { success: true };
       }
-
-      setUser(data.user);
-      setToken(data.token);
-      localStorage.setItem('auth_user', JSON.stringify(data.user));
-      localStorage.setItem('auth_token', data.token);
-
-      return { success: true };
+      
+      return { success: false, error: 'Email ou mot de passe incorrect' };
     } catch (error) {
       console.error('Login error:', error);
-      return { success: false, error: 'Impossible de se connecter au serveur' };
+      return { success: false, error: 'Une erreur est survenue' };
     }
   };
 
