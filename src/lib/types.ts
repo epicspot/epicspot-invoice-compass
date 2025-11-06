@@ -239,3 +239,31 @@ export interface PurchaseOrder {
   siteId: string;
 }
 
+// Vendeurs ambulants
+export interface Vendor {
+  id: string;
+  code: string;
+  name: string;
+  phone: string;
+  email?: string;
+  address?: string;
+  siteId: string;
+  totalDebt: number;
+  paidAmount: number;
+  remainingBalance: number;
+  active: boolean;
+  createdAt?: string;
+}
+
+// Recouvrements
+export interface Collection {
+  id: string;
+  vendorId: string;
+  amount: number;
+  collectionDate: string;
+  collectorId: string;
+  paymentMethod: 'cash' | 'check' | 'mobile_money' | 'bank_transfer';
+  notes?: string;
+  createdAt?: string;
+}
+

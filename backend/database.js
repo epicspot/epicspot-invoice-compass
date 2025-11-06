@@ -201,6 +201,40 @@ export async function initDatabase() {
     )
   `);
 
+  // Table vendors
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS vendors (
+      id TEXT PRIMARY KEY,
+      code TEXT UNIQUE NOT NULL,
+      name TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      email TEXT,
+      address TEXT,
+      site_id TEXT NOT NULL,
+      total_debt REAL DEFAULT 0,
+      paid_amount REAL DEFAULT 0,
+      remaining_balance REAL DEFAULT 0,
+      active INTEGER DEFAULT 1,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  // Table collections
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS collections (
+      id TEXT PRIMARY KEY,
+      vendor_id TEXT NOT NULL,
+      amount REAL NOT NULL,
+      collection_date TEXT NOT NULL,
+      collector_id TEXT NOT NULL,
+      payment_method TEXT NOT NULL,
+      notes TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (vendor_id) REFERENCES vendors(id) ON DELETE CASCADE,
+      FOREIGN KEY (collector_id) REFERENCES users(id)
+    )
+  `);
+
   // Insérer les données par défaut pour company_info
   const companyExists = db.prepare('SELECT COUNT(*) as count FROM company_info').get();
   if (companyExists.count === 0) {

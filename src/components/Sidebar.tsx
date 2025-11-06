@@ -20,7 +20,8 @@ import {
   Truck,
   ShoppingBag,
   LineChart,
-  LogOut
+  LogOut,
+  Wallet
 } from 'lucide-react';
 import Logo from './Logo';
 import { useAuth } from '@/contexts/AuthContext';
@@ -75,6 +76,8 @@ const Sidebar = () => {
     { name: 'Commandes', path: '/purchase-orders', icon: ShoppingBag },
     { name: 'Analyse', path: '/analytics', icon: LineChart },
     { name: 'Caisses', path: '/cash-registers', icon: CreditCard },
+    { name: 'Vendeurs', path: '/vendors', icon: UserCog },
+    { name: 'Recouvrements', path: '/collections', icon: Wallet },
     { name: 'Relances', path: '/reminders', icon: Bell },
     { name: 'Rapports', path: '/reports', icon: BarChart3 },
     { name: 'Utilisateurs', path: '/users', icon: UserCog },

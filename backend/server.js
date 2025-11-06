@@ -17,6 +17,8 @@ import remindersRoutes from './routes/reminders.js';
 import cashRegistersRoutes from './routes/cashRegisters.js';
 import stockMovementsRoutes from './routes/stockMovements.js';
 import companyRoutes from './routes/company.js';
+import vendorRoutes from './routes/vendors.js';
+import collectionRoutes from './routes/collections.js';
 
 dotenv.config();
 
@@ -49,6 +51,8 @@ fastify.register(remindersRoutes, { prefix: '/api/reminders' });
 fastify.register(cashRegistersRoutes, { prefix: '/api/cash-registers' });
 fastify.register(stockMovementsRoutes, { prefix: '/api/stock-movements' });
 fastify.register(companyRoutes, { prefix: '/api/company' });
+fastify.register(vendorRoutes, { prefix: '/api/vendors' });
+fastify.register(collectionRoutes, { prefix: '/api/collections' });
 
 // Démarrer le serveur
 const start = async () => {
