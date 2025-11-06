@@ -23,7 +23,8 @@ import {
   LogOut,
   Wallet,
   Shield,
-  Plug
+  Plug,
+  Sparkles
 } from 'lucide-react';
 import Logo from './Logo';
 import { useAuth } from '@/contexts/AuthContext';
@@ -89,6 +90,7 @@ const Sidebar = () => {
     { name: t('nav.collectionsDashboard'), path: '/collections/dashboard', icon: BarChart3 },
     { name: 'Sécurité & Audit', path: '/security', icon: Shield },
     { name: 'Intégrations', path: '/integrations', icon: Plug },
+    { name: 'Fonctionnalités Avancées', path: '/advanced-features', icon: Sparkles },
     { name: t('nav.reminders'), path: '/reminders', icon: Bell },
     { name: t('nav.reports'), path: '/reports', icon: BarChart3 },
     { name: t('nav.users'), path: '/users', icon: UserCog },

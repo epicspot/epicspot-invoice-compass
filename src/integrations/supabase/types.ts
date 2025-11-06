@@ -95,6 +95,39 @@ export type Database = {
         }
         Relationships: []
       }
+      push_notifications: {
+        Row: {
+          created_at: string | null
+          data: Json | null
+          id: string
+          message: string
+          read: boolean | null
+          title: string
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          message: string
+          read?: boolean | null
+          title: string
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          message?: string
+          read?: boolean | null
+          title?: string
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       system_backups: {
         Row: {
           backup_data: Json
@@ -119,6 +152,30 @@ export type Database = {
           created_by?: string
           description?: string | null
           id?: string
+        }
+        Relationships: []
+      }
+      user_presence: {
+        Row: {
+          current_page: string | null
+          last_seen: string | null
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          current_page?: string | null
+          last_seen?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          current_page?: string | null
+          last_seen?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
