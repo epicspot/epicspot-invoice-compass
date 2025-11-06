@@ -1,4 +1,7 @@
 import db from '../database.js';
+import { vendorSchema, validateSchema } from '../schemas/validation.js';
+
+const validateVendor = validateSchema(vendorSchema);
 
 export default async function vendorRoutes(fastify, options) {
   // Get all vendors

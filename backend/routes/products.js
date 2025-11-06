@@ -1,4 +1,7 @@
 import db from '../database.js';
+import { productSchema, validateSchema } from '../schemas/validation.js';
+
+const validateProduct = validateSchema(productSchema);
 
 export default async function productsRoutes(fastify) {
   fastify.get('/', async () => {
@@ -18,12 +21,14 @@ export default async function productsRoutes(fastify) {
   });
 
   fastify.post('/', async (request, reply) => {
-    const { description, unit_price, quantity, category } = request.body;
+    const validation = validateProduct(request.body);
     
-    if (!description || !unit_price) {
+    if (!validation.success) {
       reply.code(400);
-      return { error: 'Description et prix sont requis' };
+      return { error: 'Données invalides', details: validation.errors };
     }
+
+    const { description, unit_price, quantity, category } = validation.data;
 
     const id = `prod_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const reference = `PROD${Date.now().toString().slice(-6)}`;

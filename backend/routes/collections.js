@@ -1,4 +1,7 @@
 import db from '../database.js';
+import { collectionSchema, validateSchema } from '../schemas/validation.js';
+
+const validateCollection = validateSchema(collectionSchema);
 
 export default async function collectionRoutes(fastify, options) {
   // Get all collections

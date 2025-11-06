@@ -1,4 +1,7 @@
 import db from '../database.js';
+import { clientSchema, validateSchema } from '../schemas/validation.js';
+
+const validateClient = validateSchema(clientSchema);
 
 export default async function clientsRoutes(fastify) {
   // GET all clients
@@ -22,12 +25,14 @@ export default async function clientsRoutes(fastify) {
 
   // POST create client
   fastify.post('/', async (request, reply) => {
-    const { name, address, phone, email } = request.body;
+    const validation = validateClient(request.body);
     
-    if (!name) {
+    if (!validation.success) {
       reply.code(400);
-      return { error: 'Le nom est requis' };
+      return { error: 'Données invalides', details: validation.errors };
     }
+
+    const { name, address, phone, email } = validation.data;
 
     const id = `cli_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const code = `CLI${Date.now().toString().slice(-6)}`;

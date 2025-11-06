@@ -1,4 +1,7 @@
 import db from '../database.js';
+import { supplierSchema, validateSchema } from '../schemas/validation.js';
+
+const validateSupplier = validateSchema(supplierSchema);
 
 export default async function suppliersRoutes(fastify) {
   fastify.get('/', async () => {
@@ -18,12 +21,14 @@ export default async function suppliersRoutes(fastify) {
   });
 
   fastify.post('/', async (request, reply) => {
-    const { name, address, phone, email, vat_number } = request.body;
+    const validation = validateSupplier(request.body);
     
-    if (!name) {
+    if (!validation.success) {
       reply.code(400);
-      return { error: 'Le nom est requis' };
+      return { error: 'Données invalides', details: validation.errors };
     }
+
+    const { name, address, phone, email, vat_number } = validation.data;
 
     const id = `sup_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const code = `SUP${Date.now().toString().slice(-6)}`;
