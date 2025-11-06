@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Product } from '@/lib/types';
-
-const API_URL = 'http://localhost:3001/api';
+import { supabase } from '@/integrations/supabase/client';
 
 export function useProducts() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -9,9 +8,24 @@ export function useProducts() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch(`${API_URL}/products`);
-      const data = await response.json();
-      setProducts(data);
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const mappedProducts: Product[] = (data || []).map(p => ({
+        id: p.id,
+        reference: p.reference,
+        description: p.description,
+        price: Number(p.price),
+        category: p.category_id || '',
+        taxRate: p.tax_rate ? Number(p.tax_rate) : undefined,
+        minStock: p.min_stock || undefined,
+      }));
+
+      setProducts(mappedProducts);
     } catch (error) {
       console.error('Error fetching products:', error);
     } finally {
@@ -25,19 +39,26 @@ export function useProducts() {
 
   const createProduct = async (product: Omit<Product, 'id' | 'reference'>) => {
     try {
-      const response = await fetch(`${API_URL}/products`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      // Generate a unique reference for the product
+      const reference = `PROD-${Date.now().toString().slice(-8)}`;
+      
+      const { data, error } = await supabase
+        .from('products')
+        .insert({
+          reference,
           description: product.description,
-          unit_price: product.price,
-          quantity: 0,
-          category: product.category,
-        }),
-      });
-      const newProduct = await response.json();
+          price: product.price,
+          tax_rate: product.taxRate || 0,
+          min_stock: product.minStock || 0,
+          category_id: product.category || null,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
       await fetchProducts();
-      return newProduct;
+      return data;
     } catch (error) {
       console.error('Error creating product:', error);
       throw error;
@@ -46,16 +67,19 @@ export function useProducts() {
 
   const updateProduct = async (id: string, updates: Partial<Product>) => {
     try {
-      await fetch(`${API_URL}/products/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const { error } = await supabase
+        .from('products')
+        .update({
           description: updates.description,
-          unit_price: updates.price,
-          quantity: 0,
-          category: updates.category,
-        }),
-      });
+          price: updates.price,
+          tax_rate: updates.taxRate,
+          min_stock: updates.minStock,
+          category_id: updates.category || null,
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+
       await fetchProducts();
     } catch (error) {
       console.error('Error updating product:', error);
@@ -65,9 +89,13 @@ export function useProducts() {
 
   const deleteProduct = async (id: string) => {
     try {
-      await fetch(`${API_URL}/products/${id}`, {
-        method: 'DELETE',
-      });
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
       await fetchProducts();
     } catch (error) {
       console.error('Error deleting product:', error);
