@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useRef } from "react";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import Login from "./pages/Login";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -39,8 +40,9 @@ const App = () => {
   }
 
   return (
-    <QueryClientProvider client={queryClientRef.current}>
-      <AuthProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClientRef.current}>
+        <AuthProvider>
         <BrowserRouter>
           <TooltipProvider>
             <Routes>
@@ -84,8 +86,9 @@ const App = () => {
             <Sonner />
           </TooltipProvider>
         </BrowserRouter>
-      </AuthProvider>
-    </QueryClientProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 

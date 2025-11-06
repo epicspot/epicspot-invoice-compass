@@ -5,15 +5,52 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useCollections } from '@/hooks/useCollections';
 import { useVendors } from '@/hooks/useVendors';
+import { useCompanyInfo } from '@/hooks/useCompanyInfo';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { TrendingUp, TrendingDown, DollarSign, Users, AlertTriangle, Calendar, ArrowUpRight } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Users, AlertTriangle, Calendar, ArrowUpRight, FileDown } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, isWithinInterval, subMonths } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { exportCollectionsPDF, exportCollectionsExcel } from '@/lib/utils/exportCollectionsUtils';
+import { LoadingState } from '@/components/LoadingState';
+import { toast } from '@/hooks/use-toast';
 
 const CollectionsDashboard = () => {
   const { collections, loading: collectionsLoading } = useCollections();
   const { vendors, loading: vendorsLoading } = useVendors();
+  const { companyInfo } = useCompanyInfo();
   const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'quarter'>('month');
+
+  const handleExportPDF = () => {
+    try {
+      exportCollectionsPDF({ collections, vendors, stats }, companyInfo);
+      toast({
+        title: "Export réussi",
+        description: "Le rapport PDF a été téléchargé avec succès.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur d'export",
+        description: "Impossible de générer le rapport PDF.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleExportExcel = () => {
+    try {
+      exportCollectionsExcel({ collections, vendors, stats });
+      toast({
+        title: "Export réussi",
+        description: "Le rapport Excel a été téléchargé avec succès.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur d'export",
+        description: "Impossible de générer le rapport Excel.",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Calcul des statistiques
   const stats = useMemo(() => {
@@ -143,7 +180,7 @@ const CollectionsDashboard = () => {
   const COLORS = ['#0ea5e9', '#8b5cf6', '#f59e0b', '#10b981', '#ef4444'];
 
   if (collectionsLoading || vendorsLoading) {
-    return <div className="p-6">Chargement...</div>;
+    return <LoadingState variant="dashboard" message="Chargement du tableau de bord..." />;
   }
 
   return (
@@ -154,10 +191,16 @@ const CollectionsDashboard = () => {
           <h1 className="text-3xl font-bold">Tableau de bord - Recouvrements</h1>
           <p className="text-muted-foreground">Vue d'ensemble des performances de recouvrement</p>
         </div>
-        <Button>
-          <Calendar className="mr-2 h-4 w-4" />
-          Exporter le rapport
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={handleExportPDF} variant="outline" className="gap-2">
+            <FileDown className="h-4 w-4" />
+            Export PDF
+          </Button>
+          <Button onClick={handleExportExcel} className="gap-2">
+            <FileDown className="h-4 w-4" />
+            Export Excel
+          </Button>
+        </div>
       </div>
 
       {/* KPIs */}
