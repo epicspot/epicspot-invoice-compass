@@ -51,10 +51,10 @@ export function useVendors() {
           phone: vendor.phone,
           email: vendor.email,
           address: vendor.address,
-          site_id: vendor.siteId,
+          site_id: vendor.siteId || null,
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       await fetchVendors();
@@ -75,7 +75,7 @@ export function useVendors() {
           phone: updates.phone,
           email: updates.email,
           address: updates.address,
-          site_id: updates.siteId,
+          site_id: updates.siteId === '' ? null : updates.siteId,
           total_debt: updates.totalDebt,
           paid_amount: updates.paidAmount,
           remaining_balance: updates.remainingBalance,

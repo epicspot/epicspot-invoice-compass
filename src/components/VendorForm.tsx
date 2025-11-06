@@ -1,10 +1,12 @@
 import { useForm } from 'react-hook-form';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Vendor } from '@/lib/types';
+import { Vendor, Site } from '@/lib/types';
+import { supabase } from '@/integrations/supabase/client';
 
 interface VendorFormProps {
   vendor?: Vendor;
@@ -24,8 +26,18 @@ export function VendorForm({ vendor, onSubmit, onCancel }: VendorFormProps) {
     },
   });
 
-  const siteId = watch('siteId');
+  const [sites, setSites] = useState<Site[]>([]);
+  useEffect(() => {
+    supabase
+      .from('sites')
+      .select('id,name')
+      .order('created_at', { ascending: true })
+      .then(({ data, error }) => {
+        if (!error) setSites((data as Site[]) || []);
+      });
+  }, []);
 
+  const siteId = watch('siteId');
   return (
     <Card className="p-6">
       <h2 className="text-2xl font-bold mb-6">
@@ -83,15 +95,18 @@ export function VendorForm({ vendor, onSubmit, onCancel }: VendorFormProps) {
         <div>
           <Label htmlFor="siteId">Site *</Label>
           <Select
-            value={siteId}
+            value={siteId || ''}
             onValueChange={(value) => setValue('siteId', value)}
           >
             <SelectTrigger>
               <SelectValue placeholder="Sélectionner un site" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="site1">Site Principal</SelectItem>
-              <SelectItem value="site2">Site Secondaire</SelectItem>
+              {sites.map((s) => (
+                <SelectItem key={s.id} value={s.id}>
+                  {s.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
