@@ -35,6 +35,7 @@ import Vendors from "./pages/Vendors";
 import Collections from "./pages/Collections";
 import CollectionsDashboard from "./pages/CollectionsDashboard";
 import SecurityAudit from "./pages/SecurityAudit";
+import AdvancedAnalytics from "./pages/AdvancedAnalytics";
 import Sidebar from "./components/Sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
@@ -97,6 +98,7 @@ const App = () => {
                           <Route path="/collections" element={<Collections />} />
                           <Route path="/collections/dashboard" element={<CollectionsDashboard />} />
                           <Route path="/security" element={<SecurityAudit />} />
+                          <Route path="/advanced-analytics" element={<AdvancedAnalytics />} />
                           <Route path="/reminders" element={<Reminders />} />
                           <Route path="/reports" element={<Reports />} />
                           <Route path="/users" element={<Users />} />

@@ -81,6 +81,7 @@ const Sidebar = () => {
     { name: t('nav.suppliers'), path: '/suppliers', icon: Truck },
     { name: t('nav.purchaseOrders'), path: '/purchase-orders', icon: ShoppingBag },
     { name: t('nav.analytics'), path: '/analytics', icon: LineChart },
+    { name: 'Analytics Avancé', path: '/advanced-analytics', icon: BarChart3 },
     { name: t('nav.cashRegisters'), path: '/cash-registers', icon: CreditCard },
     { name: t('nav.vendors'), path: '/vendors', icon: UserCog },
     { name: t('nav.collections'), path: '/collections', icon: Wallet },
