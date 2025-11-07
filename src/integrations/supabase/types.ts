@@ -983,6 +983,65 @@ export type Database = {
           },
         ]
       }
+      subscriptions: {
+        Row: {
+          billing_day: number
+          client_id: string | null
+          created_at: string | null
+          end_date: string | null
+          id: string
+          last_billing_date: string | null
+          monthly_amount: number
+          next_billing_date: string | null
+          notes: string | null
+          service_name: string
+          service_type: string
+          start_date: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          billing_day?: number
+          client_id?: string | null
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          last_billing_date?: string | null
+          monthly_amount: number
+          next_billing_date?: string | null
+          notes?: string | null
+          service_name: string
+          service_type: string
+          start_date?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          billing_day?: number
+          client_id?: string | null
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          last_billing_date?: string | null
+          monthly_amount?: number
+          next_billing_date?: string | null
+          notes?: string | null
+          service_name?: string
+          service_type?: string
+          start_date?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       suppliers: {
         Row: {
           address: string | null
@@ -1158,6 +1217,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_next_billing_date: {
+        Args: { p_billing_day: number; p_current_date: string }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
