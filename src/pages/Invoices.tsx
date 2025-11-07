@@ -184,6 +184,25 @@ const Invoices = () => {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+          {invoice.status === 'draft' && (
+            <>
+              <DropdownMenuItem
+                className="flex items-center gap-2 cursor-pointer text-blue-600"
+                onClick={() => {
+                  if (invoice.id) {
+                    updateInvoice(invoice.id, { status: 'sent' });
+                    toast({
+                      title: "Facture validée",
+                      description: `La facture ${invoice.number} a été validée et peut maintenant être payée.`,
+                    });
+                  }
+                }}
+              >
+                <FileText className="h-4 w-4" /> Valider la facture
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )}
           {(invoice.status === 'sent' || invoice.status === 'overdue') && (
             <>
               <DropdownMenuItem

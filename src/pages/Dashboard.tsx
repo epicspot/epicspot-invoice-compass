@@ -130,30 +130,65 @@ const Dashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <DashboardCard 
-          title="Total factures" 
-          value={`${totalInvoices.toLocaleString()} FCFA`}
-          description={`${monthlyInvoices.length} factures ce mois`}
-          icon={<FileText />}
-        />
-        <DashboardCard 
-          title="Total devis" 
-          value={`${totalQuotes.toLocaleString()} FCFA`}
-          description={`${quotes.length} devis émis`}
-          icon={<FileCheck />}
-        />
-        <DashboardCard 
-          title="Clients actifs" 
-          value={clients.length.toString()}
-          description={`${monthlyClients.length} nouveaux ce mois`}
-          icon={<Users />}
-        />
-        <DashboardCard 
-          title="Produits/Services" 
-          value={products.length.toString()}
-          description="Catalogue de produits et services"
-          icon={<Package />}
-        />
+        <Card className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-primary/20">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Total factures</p>
+                <h3 className="text-2xl font-bold text-primary mt-2">{totalInvoices.toLocaleString()} FCFA</h3>
+                <p className="text-xs text-muted-foreground mt-1">{monthlyInvoices.length} factures ce mois</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <FileText className="h-6 w-6 text-primary" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-gradient-to-br from-accent/10 via-accent/5 to-transparent border-accent/20">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Total devis</p>
+                <h3 className="text-2xl font-bold text-accent mt-2">{totalQuotes.toLocaleString()} FCFA</h3>
+                <p className="text-xs text-muted-foreground mt-1">{quotes.length} devis émis</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-accent/10 flex items-center justify-center">
+                <FileCheck className="h-6 w-6 text-accent" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-gradient-to-br from-success/10 via-success/5 to-transparent border-success/20">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Clients actifs</p>
+                <h3 className="text-2xl font-bold text-success mt-2">{clients.length}</h3>
+                <p className="text-xs text-muted-foreground mt-1">{monthlyClients.length} nouveaux ce mois</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-success/10 flex items-center justify-center">
+                <Users className="h-6 w-6 text-success" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-gradient-to-br from-info/10 via-info/5 to-transparent border-info/20">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Produits/Services</p>
+                <h3 className="text-2xl font-bold text-info mt-2">{products.length}</h3>
+                <p className="text-xs text-muted-foreground mt-1">Catalogue de produits et services</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-info/10 flex items-center justify-center">
+                <Package className="h-6 w-6 text-info" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

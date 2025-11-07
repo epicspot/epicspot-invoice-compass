@@ -342,53 +342,61 @@ const Reports = () => {
 
       {/* KPIs principaux */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
+        <Card className="bg-gradient-to-br from-success/10 via-success/5 to-transparent border-success/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">CA Réalisé</CardTitle>
-            <DollarSign className="h-4 w-4 text-green-600" />
+            <div className="h-10 w-10 rounded-full bg-success/10 flex items-center justify-center">
+              <DollarSign className="h-5 w-5 text-success" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{totalRevenue.toLocaleString()} FCFA</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-2xl font-bold text-success">{totalRevenue.toLocaleString()} FCFA</div>
+            <p className="text-xs text-muted-foreground mt-1">
               {filteredInvoices.filter(i => i.status === 'paid').length} factures payées
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-gradient-to-br from-info/10 via-info/5 to-transparent border-info/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">CA Prévisionnel</CardTitle>
-            <TrendingUp className="h-4 w-4 text-blue-600" />
+            <div className="h-10 w-10 rounded-full bg-info/10 flex items-center justify-center">
+              <TrendingUp className="h-5 w-5 text-info" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{forecastRevenue.toLocaleString()} FCFA</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-2xl font-bold text-info">{forecastRevenue.toLocaleString()} FCFA</div>
+            <p className="text-xs text-muted-foreground mt-1">
               {filteredQuotes.filter(q => q.status === 'sent').length} devis en attente
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-gradient-to-br from-warning/10 via-warning/5 to-transparent border-warning/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">En attente</CardTitle>
-            <Calendar className="h-4 w-4 text-orange-600" />
+            <div className="h-10 w-10 rounded-full bg-warning/10 flex items-center justify-center">
+              <Calendar className="h-5 w-5 text-warning" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-600">{pendingAmount.toLocaleString()} FCFA</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-2xl font-bold text-warning">{pendingAmount.toLocaleString()} FCFA</div>
+            <p className="text-xs text-muted-foreground mt-1">
               {filteredInvoices.filter(i => i.status === 'sent' || i.status === 'overdue').length} factures impayées
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-primary/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Taxes collectées</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <BarChart3 className="h-5 w-5 text-primary" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalTax.toLocaleString()} FCFA</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-2xl font-bold text-primary">{totalTax.toLocaleString()} FCFA</div>
+            <p className="text-xs text-muted-foreground mt-1">
               Pour la période sélectionnée
             </p>
           </CardContent>
@@ -425,21 +433,21 @@ const Reports = () => {
             <CardContent>
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="p-4 bg-muted rounded-lg">
+                  <div className="p-4 bg-gradient-to-br from-chart-1/10 to-transparent rounded-lg border border-chart-1/20">
                     <div className="text-sm text-muted-foreground">Nombre de ventes</div>
-                    <div className="text-2xl font-bold">{filteredInvoices.filter(i => i.status === 'paid').length}</div>
+                    <div className="text-2xl font-bold text-chart-1">{filteredInvoices.filter(i => i.status === 'paid').length}</div>
                   </div>
-                  <div className="p-4 bg-muted rounded-lg">
+                  <div className="p-4 bg-gradient-to-br from-chart-2/10 to-transparent rounded-lg border border-chart-2/20">
                     <div className="text-sm text-muted-foreground">Panier moyen</div>
-                    <div className="text-2xl font-bold">
+                    <div className="text-2xl font-bold text-chart-2">
                       {filteredInvoices.filter(i => i.status === 'paid').length > 0
                         ? (totalRevenue / filteredInvoices.filter(i => i.status === 'paid').length).toLocaleString()
                         : 0} FCFA
                     </div>
                   </div>
-                  <div className="p-4 bg-muted rounded-lg">
+                  <div className="p-4 bg-gradient-to-br from-chart-3/10 to-transparent rounded-lg border border-chart-3/20">
                     <div className="text-sm text-muted-foreground">Articles vendus</div>
-                    <div className="text-2xl font-bold">
+                    <div className="text-2xl font-bold text-chart-3">
                       {filteredInvoices.reduce((sum, inv) => 
                         sum + (inv.items?.reduce((s, item) => s + item.quantity, 0) || 0), 0
                       )}
