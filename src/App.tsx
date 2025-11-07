@@ -42,6 +42,7 @@ const SecurityAudit = lazy(() => import("./pages/SecurityAudit"));
 const AdvancedAnalytics = lazy(() => import("./pages/AdvancedAnalytics"));
 const Integrations = lazy(() => import("./pages/Integrations"));
 const AdvancedFeatures = lazy(() => import("./pages/AdvancedFeatures"));
+const Subscriptions = lazy(() => import("./pages/Subscriptions"));
 import { AIAssistant } from "./components/AIAssistant";
 import Sidebar from "./components/Sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
@@ -103,6 +104,7 @@ const App = () => {
                             <Route path="/pos" element={<POS />} />
                             <Route path="/cash-registers" element={<CashRegisters />} />
                             <Route path="/vendors" element={<Vendors />} />
+                            <Route path="/subscriptions" element={<Subscriptions />} />
                             <Route path="/collections" element={<Collections />} />
                             <Route path="/collections/dashboard" element={<CollectionsDashboard />} />
                             <Route path="/security" element={<SecurityAudit />} />
