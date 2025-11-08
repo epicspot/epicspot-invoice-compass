@@ -383,6 +383,56 @@ export type Database = {
         }
         Relationships: []
       }
+      email_reminders_history: {
+        Row: {
+          amount: number | null
+          client_email: string
+          client_name: string | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          invoice_id: string | null
+          invoice_number: string | null
+          reminder_id: string | null
+          sent_at: string | null
+          status: string | null
+        }
+        Insert: {
+          amount?: number | null
+          client_email: string
+          client_name?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          invoice_id?: string | null
+          invoice_number?: string | null
+          reminder_id?: string | null
+          sent_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          amount?: number | null
+          client_email?: string
+          client_name?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          invoice_id?: string | null
+          invoice_number?: string | null
+          reminder_id?: string | null
+          sent_at?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_reminders_history_reminder_id_fkey"
+            columns: ["reminder_id"]
+            isOneToOne: false
+            referencedRelation: "reminders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_items: {
         Row: {
           amount: number
@@ -1141,11 +1191,15 @@ export type Database = {
       }
       reminders: {
         Row: {
+          attempts: number | null
           created_at: string | null
           description: string | null
           due_date: string
           id: string
+          last_sent_at: string | null
+          notification_type: string | null
           priority: string
+          recipient_email: string | null
           related_id: string | null
           status: string
           title: string
@@ -1154,11 +1208,15 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          attempts?: number | null
           created_at?: string | null
           description?: string | null
           due_date: string
           id?: string
+          last_sent_at?: string | null
+          notification_type?: string | null
           priority?: string
+          recipient_email?: string | null
           related_id?: string | null
           status?: string
           title: string
@@ -1167,11 +1225,15 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          attempts?: number | null
           created_at?: string | null
           description?: string | null
           due_date?: string
           id?: string
+          last_sent_at?: string | null
+          notification_type?: string | null
           priority?: string
+          recipient_email?: string | null
           related_id?: string | null
           status?: string
           title?: string

@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { FileText, Download, Eye, Calendar, DollarSign, User, X, FileDown } from 'lucide-react';
+import { FileText, Download, Eye, Calendar, DollarSign, User, X, FileDown, Mail } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { generateSubscriptionReport } from '@/lib/utils/subscriptionReportPdfUtils';
@@ -19,6 +19,7 @@ interface SubscriptionInvoice {
   clientId: string;
   clientName: string;
   clientPhone: string;
+  clientEmail?: string;
   serviceName: string;
   monthlyAmount: number;
   status: string;
@@ -81,7 +82,7 @@ const SubscriptionInvoices = () => {
           paid_amount,
           remaining_balance,
           client_id,
-          clients!inner(id, name, phone),
+          clients!inner(id, name, phone, email),
           invoice_items!inner(
             product_id,
             products(description)
@@ -114,6 +115,7 @@ const SubscriptionInvoices = () => {
             clientId: invoice.client_id,
             clientName: invoice.clients?.name || 'N/A',
             clientPhone: invoice.clients?.phone || 'N/A',
+            clientEmail: invoice.clients?.email || undefined,
             serviceName: subscription.service_name,
             monthlyAmount: parseFloat(String(subscription.monthly_amount)),
             status: invoice.status,
@@ -121,7 +123,7 @@ const SubscriptionInvoices = () => {
             paidAmount: parseFloat(invoice.paid_amount || 0),
             remainingBalance: parseFloat(invoice.remaining_balance || 0),
             subscriptionId: subscription.id,
-          };
+          } as SubscriptionInvoice;
         })
         .filter((inv): inv is SubscriptionInvoice => inv !== null);
 
@@ -192,18 +194,48 @@ const SubscriptionInvoices = () => {
 
   const hasActiveFilters = selectedMonth !== 'all' || selectedYear !== 'all';
 
+  const handleSendEmailReminder = async (invoice: SubscriptionInvoice) => {
+    if (!invoice.clientEmail) {
+      toast({
+        title: "Email manquant",
+        description: `Le client ${invoice.clientName} n'a pas d'adresse email enregistrée`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase.functions.invoke('send-invoice-email-reminder', {
+        body: {
+          invoiceId: invoice.id,
+          clientEmail: invoice.clientEmail,
+          clientName: invoice.clientName,
+          invoiceNumber: invoice.number,
+          amount: invoice.remainingBalance,
+          dueDate: invoice.date,
+        },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Email envoyé",
+        description: `Un rappel de paiement a été envoyé à ${invoice.clientName}`,
+      });
+    } catch (error) {
+      console.error('Error sending email reminder:', error);
+      toast({
+        title: "Erreur",
+        description: error instanceof Error ? error.message : "Impossible d'envoyer l'email de rappel",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleGenerateReport = async () => {
     setIsGeneratingPdf(true);
+    
     try {
-      if (!companyInfo) {
-        toast({
-          title: 'Erreur',
-          description: 'Informations de l\'entreprise non disponibles',
-          variant: 'destructive',
-        });
-        return;
-      }
-
       await generateSubscriptionReport(
         filteredInvoices,
         stats,
@@ -216,20 +248,19 @@ const SubscriptionInvoices = () => {
           address: companyInfo.address || '',
           phone: companyInfo.phone || '',
           email: companyInfo.email || '',
-          logo: companyInfo.logo || undefined,
         }
       );
 
       toast({
-        title: 'Succès',
-        description: 'Le rapport PDF a été généré avec succès',
+        title: "Rapport généré",
+        description: "Le rapport PDF a été téléchargé avec succès.",
       });
     } catch (error) {
-      console.error('Erreur lors de la génération du rapport:', error);
+      console.error('Error generating report:', error);
       toast({
-        title: 'Erreur',
-        description: 'Impossible de générer le rapport PDF',
-        variant: 'destructive',
+        title: "Erreur",
+        description: "Impossible de générer le rapport PDF.",
+        variant: "destructive",
       });
     } finally {
       setIsGeneratingPdf(false);
@@ -318,16 +349,28 @@ const SubscriptionInvoices = () => {
   ];
 
   const renderActions = (invoice: SubscriptionInvoice) => (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={() => {
-        window.location.href = `/invoices`;
-      }}
-    >
-      <Eye className="h-4 w-4 mr-2" />
-      Voir
-    </Button>
+    <div className="flex gap-2">
+      {invoice.paymentStatus !== 'paid' && invoice.clientEmail && (
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => handleSendEmailReminder(invoice)}
+        >
+          <Mail className="h-4 w-4 mr-1" />
+          Rappel
+        </Button>
+      )}
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => {
+          window.location.href = `/invoices`;
+        }}
+      >
+        <Eye className="h-4 w-4 mr-2" />
+        Voir
+      </Button>
+    </div>
   );
 
   return (
