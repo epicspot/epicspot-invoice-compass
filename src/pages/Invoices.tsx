@@ -113,6 +113,57 @@ const Invoices = () => {
     });
   };
   
+  const validateInvoiceForPayment = (invoice: Invoice): { isValid: boolean; errors: string[] } => {
+    const errors: string[] = [];
+
+    // Vérifier le client
+    if (!invoice.client && !invoice.clientId) {
+      errors.push("La facture n'a pas de client associé");
+    } else if (invoice.client && !invoice.client.name) {
+      errors.push("Le client de la facture n'a pas de nom");
+    }
+
+    // Vérifier les produits/articles
+    if (!invoice.items || invoice.items.length === 0) {
+      errors.push("La facture ne contient aucun article");
+    } else {
+      // Vérifier que chaque article a les données nécessaires
+      invoice.items.forEach((item, index) => {
+        if (!item.product) {
+          errors.push(`L'article ${index + 1} n'a pas de produit associé`);
+        } else {
+          if (!item.product.description && !item.product.reference) {
+            errors.push(`L'article ${index + 1} n'a ni description ni référence`);
+          }
+          if (item.product.price === undefined || item.product.price === null) {
+            errors.push(`L'article ${index + 1} n'a pas de prix défini`);
+          }
+        }
+        if (!item.quantity || item.quantity <= 0) {
+          errors.push(`L'article ${index + 1} n'a pas de quantité valide`);
+        }
+        if (item.amount === undefined || item.amount === null || item.amount < 0) {
+          errors.push(`L'article ${index + 1} n'a pas de montant valide`);
+        }
+      });
+    }
+
+    // Vérifier les montants
+    if (invoice.total === undefined || invoice.total === null || invoice.total <= 0) {
+      errors.push("La facture n'a pas de montant total valide");
+    }
+
+    // Vérifier le numéro de facture
+    if (!invoice.number) {
+      errors.push("La facture n'a pas de numéro");
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  };
+
   const handlePayment = (paymentData: any) => {
     if (!paymentInvoice) return;
 
@@ -216,14 +267,52 @@ const Invoices = () => {
       return;
     }
 
+    const invoicesToPrint = invoices.filter(inv => selectedInvoices.has(inv.id));
+    
+    // Valider toutes les factures avant impression
+    const invalidInvoices: { number: string; errors: string[] }[] = [];
+    invoicesToPrint.forEach(invoice => {
+      const validation = validateInvoiceForPayment(invoice);
+      if (!validation.isValid) {
+        invalidInvoices.push({
+          number: invoice.number,
+          errors: validation.errors
+        });
+      }
+    });
+
+    if (invalidInvoices.length > 0) {
+      toast({
+        title: "Factures incomplètes détectées",
+        description: (
+          <div className="space-y-2 max-h-60 overflow-y-auto">
+            {invalidInvoices.map((inv, idx) => (
+              <div key={idx} className="text-sm">
+                <p className="font-semibold">Facture {inv.number} :</p>
+                <ul className="list-disc list-inside ml-2">
+                  {inv.errors.slice(0, 3).map((error, errIdx) => (
+                    <li key={errIdx}>{error}</li>
+                  ))}
+                  {inv.errors.length > 3 && <li>... et {inv.errors.length - 3} autre(s)</li>}
+                </ul>
+              </div>
+            ))}
+          </div>
+        ),
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsPrintingBatch(true);
 
     try {
-      const invoicesToPrint = invoices.filter(inv => selectedInvoices.has(inv.id));
+      // Utiliser les factures déjà validées
+      const validInvoices = invoicesToPrint;
       const doc = new jsPDF();
       
-      for (let i = 0; i < invoicesToPrint.length; i++) {
-        const invoice = invoicesToPrint[i];
+      for (let i = 0; i < validInvoices.length; i++) {
+        const invoice = validInvoices[i];
         
         if (i > 0) {
           doc.addPage();
@@ -295,7 +384,7 @@ const Invoices = () => {
         const pageHeight = doc.internal.pageSize.height;
         doc.setFontSize(8);
         doc.setFont('helvetica', 'italic');
-        doc.text(`Facture ${i + 1} sur ${invoicesToPrint.length}`, 105, pageHeight - 10, { align: 'center' });
+        doc.text(`Facture ${i + 1} sur ${validInvoices.length}`, 105, pageHeight - 10, { align: 'center' });
       }
 
       doc.save(`Factures_lot_${new Date().toISOString().split('T')[0]}.pdf`);
@@ -383,7 +472,30 @@ const Invoices = () => {
             <>
               <DropdownMenuItem
                 className="flex items-center gap-2 cursor-pointer text-green-600"
-                onClick={() => setPaymentInvoice(invoice as Invoice)}
+                onClick={() => {
+                  // Valider la facture avant d'ouvrir le dialogue de paiement
+                  const validation = validateInvoiceForPayment(invoice as Invoice);
+                  
+                  if (!validation.isValid) {
+                    toast({
+                      title: "Facture incomplète",
+                      description: (
+                        <div className="space-y-1">
+                          <p>Impossible d'enregistrer le paiement :</p>
+                          <ul className="list-disc list-inside text-sm">
+                            {validation.errors.map((error, idx) => (
+                              <li key={idx}>{error}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      ),
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+                  
+                  setPaymentInvoice(invoice as Invoice);
+                }}
               >
                 <DollarSign className="h-4 w-4" /> Enregistrer paiement
               </DropdownMenuItem>
@@ -400,6 +512,27 @@ const Invoices = () => {
             className="flex items-center gap-2 cursor-pointer"
             onClick={() => {
               if (invoice.id) {
+                // Valider la facture avant l'impression
+                const validation = validateInvoiceForPayment(invoice as Invoice);
+                
+                if (!validation.isValid) {
+                  toast({
+                    title: "Facture incomplète",
+                    description: (
+                      <div className="space-y-1">
+                        <p>Impossible d'imprimer la facture :</p>
+                        <ul className="list-disc list-inside text-sm">
+                          {validation.errors.map((error, idx) => (
+                            <li key={idx}>{error}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ),
+                    variant: "destructive",
+                  });
+                  return;
+                }
+                
                 generateInvoicePDF(invoice as Invoice, companyInfo);
               }
             }}
