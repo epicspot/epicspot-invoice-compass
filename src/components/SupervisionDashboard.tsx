@@ -7,6 +7,7 @@ import { useRetryMonitoring } from '@/hooks/useRetryMonitoring';
 import { usePerformanceMetrics } from '@/hooks/usePerformanceMetrics';
 import { PerformanceMetrics } from './PerformanceMetrics';
 import { RetryCharts } from './RetryCharts';
+import { SupervisionWidgets } from './supervision/SupervisionWidgets';
 import { 
   Activity, 
   AlertCircle, 
@@ -15,7 +16,8 @@ import {
   TrendingUp,
   Settings,
   Download,
-  Trash2
+  Trash2,
+  LayoutGrid
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -169,13 +171,21 @@ export function SupervisionDashboard() {
       )}
 
       {/* Main Content Tabs */}
-      <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+      <Tabs defaultValue="widgets" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="widgets" className="gap-2">
+            <LayoutGrid className="h-4 w-4" />
+            Widgets
+          </TabsTrigger>
           <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
           <TabsTrigger value="logs">Logs</TabsTrigger>
           <TabsTrigger value="retry">Retry Monitoring</TabsTrigger>
           <TabsTrigger value="performance">Performance</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="widgets" className="space-y-4">
+          <SupervisionWidgets />
+        </TabsContent>
 
         <TabsContent value="overview" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
