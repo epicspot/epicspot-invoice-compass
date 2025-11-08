@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useMarkets } from '@/hooks/useMarkets';
+import { useMarkets, useMarketMilestones } from '@/hooks/useMarkets';
 import { MarketMilestones } from '@/components/MarketMilestones';
+import { MarketDocuments } from '@/components/MarketDocuments';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +15,7 @@ export default function MarketDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { markets, loading } = useMarkets();
+  const { milestones } = useMarketMilestones(id || '');
 
   if (loading) {
     return <div className="p-6">Chargement...</div>;
@@ -136,7 +138,7 @@ export default function MarketDetails() {
         <TabsList>
           <TabsTrigger value="details">Détails</TabsTrigger>
           <TabsTrigger value="milestones">Jalons</TabsTrigger>
-          <TabsTrigger value="documents">Documents</TabsTrigger>
+          <TabsTrigger value="documents">Documents contractuels</TabsTrigger>
         </TabsList>
 
         <TabsContent value="details" className="space-y-4">
@@ -192,21 +194,7 @@ export default function MarketDetails() {
         </TabsContent>
 
         <TabsContent value="documents">
-          <Card>
-            <CardHeader>
-              <CardTitle>Documents du Marché</CardTitle>
-              <CardDescription>Gérez les documents et pièces jointes</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Aucun document pour le moment</p>
-                <Button className="mt-4" variant="outline">
-                  Ajouter un document
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <MarketDocuments market={market} milestones={milestones} />
         </TabsContent>
       </Tabs>
     </div>
