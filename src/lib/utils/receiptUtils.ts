@@ -71,15 +71,15 @@ export const generateReceipt = (data: ReceiptData, companyInfo?: any) => {
   yPosition += 6;
 
   doc.setFont('helvetica', 'normal');
-  doc.text(data.client.name, 14, yPosition);
+  doc.text(data.client?.name || 'Client inconnu', 14, yPosition);
   yPosition += 5;
   
-  if (data.client.address && data.client.address !== '-') {
+  if (data.client?.address && data.client.address !== '-') {
     doc.text(data.client.address, 14, yPosition);
     yPosition += 5;
   }
   
-  if (data.client.phone && data.client.phone !== '-') {
+  if (data.client?.phone && data.client.phone !== '-') {
     doc.text(`Tél: ${data.client.phone}`, 14, yPosition);
     yPosition += 5;
   }
@@ -230,12 +230,12 @@ export const generateReceiptFromInvoice = (invoice: Invoice, paymentData: any, c
     paymentMethod,
     paymentDetails,
     invoiceNumber: invoice.number,
-    items: invoice.items.map(item => ({
-      description: item.product.description,
-      quantity: item.quantity,
-      price: item.product.price,
-      amount: item.amount
-    })),
+    items: invoice.items?.map(item => ({
+      description: item.product?.description || 'Article',
+      quantity: item.quantity || 0,
+      price: item.product?.price || 0,
+      amount: item.amount || 0
+    })) || [],
     notes: paymentData.notes
   }, companyInfo);
 };

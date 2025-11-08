@@ -116,55 +116,76 @@ const Invoices = () => {
   const handlePayment = (paymentData: any) => {
     if (!paymentInvoice) return;
 
-    // Préparer les notes de paiement
-    let paymentNotes = `Paiement ${
-      paymentData.method === 'cash' ? 'espèces' : 
-      paymentData.method === 'card' ? 'carte bancaire' : 
-      'chèque'
-    }`;
-    
-    if (paymentData.method === 'card') {
-      paymentNotes += ` - Transaction: ${paymentData.cardTransactionNumber}`;
-      if (paymentData.cardTerminal) paymentNotes += ` - Terminal: ${paymentData.cardTerminal}`;
-    }
-    
-    if (paymentData.method === 'check') {
-      paymentNotes += ` - Chèque N°${paymentData.checkNumber} - Banque: ${paymentData.checkBank} - Date: ${new Date(paymentData.checkDate).toLocaleDateString('fr-FR')}`;
-    }
+    try {
+      // Préparer les notes de paiement
+      let paymentNotes = `Paiement ${
+        paymentData.method === 'cash' ? 'espèces' : 
+        paymentData.method === 'card' ? 'carte bancaire' : 
+        'chèque'
+      }`;
+      
+      if (paymentData.method === 'card') {
+        paymentNotes += ` - Transaction: ${paymentData.cardTransactionNumber}`;
+        if (paymentData.cardTerminal) paymentNotes += ` - Terminal: ${paymentData.cardTerminal}`;
+      }
+      
+      if (paymentData.method === 'check') {
+        paymentNotes += ` - Chèque N°${paymentData.checkNumber} - Banque: ${paymentData.checkBank} - Date: ${new Date(paymentData.checkDate).toLocaleDateString('fr-FR')}`;
+      }
 
-    if (paymentData.notes) {
-      paymentNotes += ` - ${paymentData.notes}`;
-    }
+      if (paymentData.notes) {
+        paymentNotes += ` - ${paymentData.notes}`;
+      }
 
-    // Mettre à jour la facture
-    updateInvoice(paymentInvoice.id, {
-      status: 'paid',
-      notes: `${paymentInvoice.notes || ''}\n${paymentNotes}`.trim()
-    });
-
-    // Enregistrer la transaction en caisse
-    if (paymentInvoice.cashRegisterId) {
-      addTransaction({
-        cashRegisterId: paymentInvoice.cashRegisterId,
-        amount: paymentInvoice.total,
-        type: 'sale',
-        reference: paymentInvoice.number,
-        userId: 'current-user',
-        notes: paymentNotes
+      // Mettre à jour la facture
+      updateInvoice(paymentInvoice.id, {
+        status: 'paid',
+        notes: `${paymentInvoice.notes || ''}\n${paymentNotes}`.trim()
       });
+
+      // Enregistrer la transaction en caisse
+      if (paymentInvoice.cashRegisterId) {
+        addTransaction({
+          cashRegisterId: paymentInvoice.cashRegisterId,
+          amount: paymentInvoice.total,
+          type: 'sale',
+          reference: paymentInvoice.number,
+          userId: 'current-user',
+          notes: paymentNotes
+        });
+      }
+
+      // Générer la quittance si demandé
+      let receiptGenerated = false;
+      if (paymentData.generateReceipt) {
+        try {
+          generateReceiptFromInvoice(paymentInvoice, paymentData, companyInfo);
+          receiptGenerated = true;
+        } catch (error) {
+          console.error('Erreur lors de la génération de la quittance:', error);
+          toast({
+            title: "Avertissement",
+            description: "Le paiement a été enregistré mais la génération de la quittance a échoué.",
+            variant: "destructive",
+          });
+        }
+      }
+
+      toast({
+        title: "Paiement enregistré",
+        description: `La facture ${paymentInvoice.number} a été marquée comme payée.${receiptGenerated ? ' Quittance générée.' : ''}`,
+      });
+    } catch (error) {
+      console.error('Erreur lors du traitement du paiement:', error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur s'est produite lors de l'enregistrement du paiement.",
+        variant: "destructive",
+      });
+    } finally {
+      // Toujours fermer le dialogue, même en cas d'erreur
+      setPaymentInvoice(null);
     }
-
-    // Générer la quittance si demandé
-    if (paymentData.generateReceipt) {
-      generateReceiptFromInvoice(paymentInvoice, paymentData, companyInfo);
-    }
-
-    toast({
-      title: "Paiement enregistré",
-      description: `La facture ${paymentInvoice.number} a été marquée comme payée.${paymentData.generateReceipt ? ' Quittance générée.' : ''}`,
-    });
-
-    setPaymentInvoice(null);
   };
 
   const toggleInvoiceSelection = (invoiceId: string) => {

@@ -57,9 +57,9 @@ export const generateQuotePDF = (quote: Quote, companyInfo: any) => {
 
   // Table des articles
   const tableData = quote.items.map(item => [
-    item.product.reference,
-    item.product.description,
-    formatFCFA(item.product.price),
+    item.product?.reference || '-',
+    item.product?.description || 'Article',
+    formatFCFA(item.product?.price || 0),
     item.quantity.toString(),
     formatFCFA(item.amount)
   ]);
