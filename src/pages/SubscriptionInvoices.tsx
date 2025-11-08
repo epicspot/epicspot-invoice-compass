@@ -3,10 +3,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import DataTable from '@/components/DataTable';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { FileText, Download, Eye, Calendar, DollarSign, User } from 'lucide-react';
-import { format } from 'date-fns';
+import { FileText, Download, Eye, Calendar, DollarSign, User, X } from 'lucide-react';
+import { format, startOfMonth, endOfMonth, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 interface SubscriptionInvoice {
@@ -28,12 +29,37 @@ interface SubscriptionInvoice {
 const SubscriptionInvoices = () => {
   const [invoices, setInvoices] = useState<SubscriptionInvoice[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedMonth, setSelectedMonth] = useState<string>('');
+  const [selectedYear, setSelectedYear] = useState<string>('');
   const [stats, setStats] = useState({
     totalInvoices: 0,
     totalAmount: 0,
     paidAmount: 0,
     pendingAmount: 0,
   });
+
+  // Générer les options de mois
+  const months = [
+    { value: '01', label: 'Janvier' },
+    { value: '02', label: 'Février' },
+    { value: '03', label: 'Mars' },
+    { value: '04', label: 'Avril' },
+    { value: '05', label: 'Mai' },
+    { value: '06', label: 'Juin' },
+    { value: '07', label: 'Juillet' },
+    { value: '08', label: 'Août' },
+    { value: '09', label: 'Septembre' },
+    { value: '10', label: 'Octobre' },
+    { value: '11', label: 'Novembre' },
+    { value: '12', label: 'Décembre' },
+  ];
+
+  // Générer les années (5 dernières années)
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 5 }, (_, i) => ({
+    value: String(currentYear - i),
+    label: String(currentYear - i),
+  }));
 
   const fetchInvoices = async () => {
     try {
@@ -126,6 +152,41 @@ const SubscriptionInvoices = () => {
   useEffect(() => {
     fetchInvoices();
   }, []);
+
+  // Filtrer les factures par période
+  const filteredInvoices = invoices.filter((invoice) => {
+    if (!selectedMonth && !selectedYear) return true;
+
+    const invoiceDate = parseISO(invoice.date);
+    const invoiceMonth = format(invoiceDate, 'MM');
+    const invoiceYear = format(invoiceDate, 'yyyy');
+
+    const monthMatch = !selectedMonth || invoiceMonth === selectedMonth;
+    const yearMatch = !selectedYear || invoiceYear === selectedYear;
+
+    return monthMatch && yearMatch;
+  });
+
+  // Recalculer les statistiques basées sur les factures filtrées
+  useEffect(() => {
+    const totalAmount = filteredInvoices.reduce((sum, inv) => sum + inv.monthlyAmount, 0);
+    const paidAmount = filteredInvoices.reduce((sum, inv) => sum + inv.paidAmount, 0);
+    const pendingAmount = filteredInvoices.reduce((sum, inv) => sum + inv.remainingBalance, 0);
+
+    setStats({
+      totalInvoices: filteredInvoices.length,
+      totalAmount,
+      paidAmount,
+      pendingAmount,
+    });
+  }, [filteredInvoices]);
+
+  const resetFilters = () => {
+    setSelectedMonth('');
+    setSelectedYear('');
+  };
+
+  const hasActiveFilters = selectedMonth || selectedYear;
 
   const getPaymentStatusBadge = (status: string) => {
     const statusConfig = {
@@ -236,6 +297,72 @@ const SubscriptionInvoices = () => {
           </div>
         </div>
 
+        {/* Filtres par période */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Filtrer par période
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-4 items-end">
+              <div className="flex-1 min-w-[200px]">
+                <label className="text-sm font-medium mb-2 block">Mois</label>
+                <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Tous les mois" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Tous les mois</SelectItem>
+                    {months.map((month) => (
+                      <SelectItem key={month.value} value={month.value}>
+                        {month.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex-1 min-w-[200px]">
+                <label className="text-sm font-medium mb-2 block">Année</label>
+                <Select value={selectedYear} onValueChange={setSelectedYear}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Toutes les années" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Toutes les années</SelectItem>
+                    {years.map((year) => (
+                      <SelectItem key={year.value} value={year.value}>
+                        {year.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {hasActiveFilters && (
+                <Button variant="outline" onClick={resetFilters} className="gap-2">
+                  <X className="h-4 w-4" />
+                  Réinitialiser
+                </Button>
+              )}
+            </div>
+
+            {hasActiveFilters && (
+              <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
+                <span>Filtres actifs:</span>
+                {selectedMonth && (
+                  <Badge variant="secondary">
+                    {months.find((m) => m.value === selectedMonth)?.label}
+                  </Badge>
+                )}
+                {selectedYear && <Badge variant="secondary">{selectedYear}</Badge>}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Statistiques */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
@@ -298,12 +425,14 @@ const SubscriptionInvoices = () => {
           <CardHeader>
             <CardTitle>Liste des Factures</CardTitle>
             <CardDescription>
-              Toutes les factures générées pour les abonnements internet
+              {hasActiveFilters
+                ? `${filteredInvoices.length} facture(s) pour la période sélectionnée`
+                : 'Toutes les factures générées pour les abonnements internet'}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <DataTable
-              data={invoices}
+              data={filteredInvoices}
               columns={columns}
               actions={renderActions}
             />
