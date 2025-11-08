@@ -245,6 +245,66 @@ export type Database = {
           },
         ]
       }
+      company_info: {
+        Row: {
+          address: string
+          bank_account: string | null
+          bank_iban: string | null
+          bank_name: string | null
+          bank_swift: string | null
+          created_at: string | null
+          email: string | null
+          id: string
+          logo: string | null
+          name: string
+          phone: string | null
+          signatory: string | null
+          signatory_title: string | null
+          slogan: string | null
+          tax_id: string | null
+          updated_at: string | null
+          website: string | null
+        }
+        Insert: {
+          address: string
+          bank_account?: string | null
+          bank_iban?: string | null
+          bank_name?: string | null
+          bank_swift?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          logo?: string | null
+          name: string
+          phone?: string | null
+          signatory?: string | null
+          signatory_title?: string | null
+          slogan?: string | null
+          tax_id?: string | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Update: {
+          address?: string
+          bank_account?: string | null
+          bank_iban?: string | null
+          bank_name?: string | null
+          bank_swift?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          logo?: string | null
+          name?: string
+          phone?: string | null
+          signatory?: string | null
+          signatory_title?: string | null
+          slogan?: string | null
+          tax_id?: string | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
       document_signatures: {
         Row: {
           document_id: string
@@ -1121,6 +1181,33 @@ export type Database = {
         }
         Relationships: []
       }
+      role_permissions: {
+        Row: {
+          action: Database["public"]["Enums"]["permission_action"]
+          created_at: string | null
+          id: string
+          resource: Database["public"]["Enums"]["permission_resource"]
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at: string | null
+        }
+        Insert: {
+          action: Database["public"]["Enums"]["permission_action"]
+          created_at?: string | null
+          id?: string
+          resource: Database["public"]["Enums"]["permission_resource"]
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at?: string | null
+        }
+        Update: {
+          action?: Database["public"]["Enums"]["permission_action"]
+          created_at?: string | null
+          id?: string
+          resource?: Database["public"]["Enums"]["permission_resource"]
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       sites: {
         Row: {
           address: string | null
@@ -1564,6 +1651,21 @@ export type Database = {
         Args: { p_billing_day: number; p_current_date: string }
         Returns: string
       }
+      get_user_permissions: {
+        Args: { _user_id: string }
+        Returns: {
+          action: Database["public"]["Enums"]["permission_action"]
+          resource: Database["public"]["Enums"]["permission_resource"]
+        }[]
+      }
+      has_permission: {
+        Args: {
+          _action: Database["public"]["Enums"]["permission_action"]
+          _resource: Database["public"]["Enums"]["permission_resource"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1595,6 +1697,40 @@ export type Database = {
         | "EXPORT"
         | "PRINT"
         | "SIGN"
+      permission_action:
+        | "create"
+        | "read"
+        | "update"
+        | "delete"
+        | "export"
+        | "import"
+        | "approve"
+        | "manage"
+      permission_resource:
+        | "invoices"
+        | "quotes"
+        | "clients"
+        | "vendors"
+        | "products"
+        | "inventory"
+        | "purchase_orders"
+        | "suppliers"
+        | "users"
+        | "settings"
+        | "cash_registers"
+        | "cash_transactions"
+        | "collections"
+        | "sites"
+        | "reports"
+        | "analytics"
+        | "markets"
+        | "subscriptions"
+        | "tax_declarations"
+        | "audit_logs"
+        | "backups"
+        | "templates"
+        | "reminders"
+        | "leads"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1732,6 +1868,42 @@ export const Constants = {
         "EXPORT",
         "PRINT",
         "SIGN",
+      ],
+      permission_action: [
+        "create",
+        "read",
+        "update",
+        "delete",
+        "export",
+        "import",
+        "approve",
+        "manage",
+      ],
+      permission_resource: [
+        "invoices",
+        "quotes",
+        "clients",
+        "vendors",
+        "products",
+        "inventory",
+        "purchase_orders",
+        "suppliers",
+        "users",
+        "settings",
+        "cash_registers",
+        "cash_transactions",
+        "collections",
+        "sites",
+        "reports",
+        "analytics",
+        "markets",
+        "subscriptions",
+        "tax_declarations",
+        "audit_logs",
+        "backups",
+        "templates",
+        "reminders",
+        "leads",
       ],
     },
   },

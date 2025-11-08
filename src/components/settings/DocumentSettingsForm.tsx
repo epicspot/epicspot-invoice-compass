@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Upload, X } from 'lucide-react';
 
 const DocumentSettingsForm = () => {
-  const { companyInfo, updateCompanyInfo } = useCompanyInfo();
+  const { companyInfo, saveCompanyInfo } = useCompanyInfo();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -23,7 +23,7 @@ const DocumentSettingsForm = () => {
       reader.onloadend = () => {
         const base64 = reader.result as string;
         setLogoPreview(base64);
-        updateCompanyInfo({ logo: base64 });
+        saveCompanyInfo({ logo: base64 });
         toast({
           title: "Logo importé",
           description: "Le logo a été importé avec succès.",
@@ -35,7 +35,7 @@ const DocumentSettingsForm = () => {
 
   const handleRemoveLogo = () => {
     setLogoPreview('');
-    updateCompanyInfo({ logo: undefined });
+    saveCompanyInfo({ logo: undefined });
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
