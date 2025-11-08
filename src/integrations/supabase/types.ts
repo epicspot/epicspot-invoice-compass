@@ -1211,30 +1211,48 @@ export type Database = {
       sites: {
         Row: {
           address: string | null
+          bank_account: string | null
+          bank_iban: string | null
+          bank_name: string | null
+          bank_swift: string | null
           created_at: string | null
           email: string | null
           id: string
           name: string
           phone: string | null
+          tax_id: string | null
           updated_at: string | null
+          use_headquarters_info: boolean | null
         }
         Insert: {
           address?: string | null
+          bank_account?: string | null
+          bank_iban?: string | null
+          bank_name?: string | null
+          bank_swift?: string | null
           created_at?: string | null
           email?: string | null
           id?: string
           name: string
           phone?: string | null
+          tax_id?: string | null
           updated_at?: string | null
+          use_headquarters_info?: boolean | null
         }
         Update: {
           address?: string | null
+          bank_account?: string | null
+          bank_iban?: string | null
+          bank_name?: string | null
+          bank_swift?: string | null
           created_at?: string | null
           email?: string | null
           id?: string
           name?: string
           phone?: string | null
+          tax_id?: string | null
           updated_at?: string | null
+          use_headquarters_info?: boolean | null
         }
         Relationships: []
       }
@@ -1651,6 +1669,7 @@ export type Database = {
         Args: { p_billing_day: number; p_current_date: string }
         Returns: string
       }
+      get_site_complete_info: { Args: { p_site_id: string }; Returns: Json }
       get_user_permissions: {
         Args: { _user_id: string }
         Returns: {

@@ -145,6 +145,12 @@ export interface Site {
   phone?: string;
   email?: string;
   isMainSite: boolean;
+  useHeadquartersInfo?: boolean; // Sync with headquarters
+  taxId?: string;
+  bankAccount?: string;
+  bankName?: string;
+  bankIBAN?: string;
+  bankSwift?: string;
   cashRegisters?: CashRegister[];
 }
 

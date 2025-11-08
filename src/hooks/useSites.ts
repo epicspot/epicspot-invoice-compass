@@ -21,7 +21,13 @@ export function useSites() {
         address: s.address || '',
         phone: s.phone || undefined,
         email: s.email || undefined,
-        isMainSite: false, // Can be extended later
+        isMainSite: false,
+        useHeadquartersInfo: s.use_headquarters_info ?? true,
+        taxId: s.tax_id || undefined,
+        bankAccount: s.bank_account || undefined,
+        bankName: s.bank_name || undefined,
+        bankIBAN: s.bank_iban || undefined,
+        bankSwift: s.bank_swift || undefined,
       }));
 
       setSites(mappedSites);

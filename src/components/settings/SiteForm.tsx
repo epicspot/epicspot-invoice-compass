@@ -26,7 +26,13 @@ const SiteForm: React.FC<SiteFormProps> = ({ site, onSave, onCancel }) => {
     address: site?.address || "",
     phone: site?.phone || "",
     email: site?.email || "",
-    isMainSite: site?.isMainSite || false
+    isMainSite: site?.isMainSite || false,
+    useHeadquartersInfo: site?.useHeadquartersInfo ?? true,
+    taxId: site?.taxId || "",
+    bankAccount: site?.bankAccount || "",
+    bankName: site?.bankName || "",
+    bankIBAN: site?.bankIBAN || "",
+    bankSwift: site?.bankSwift || ""
   });
 
   const handleChange = (field: keyof typeof formData, value: string | boolean) => {
@@ -101,6 +107,78 @@ const SiteForm: React.FC<SiteFormProps> = ({ site, onSave, onCancel }) => {
               />
             </div>
           </div>
+          
+          <div className="flex items-center space-x-2 p-4 bg-muted/50 rounded-lg">
+            <Switch
+              id="useHeadquartersInfo"
+              checked={formData.useHeadquartersInfo ?? true}
+              onCheckedChange={(checked) => handleChange("useHeadquartersInfo", checked)}
+            />
+            <div className="flex-1">
+              <Label htmlFor="useHeadquartersInfo" className="cursor-pointer">
+                Synchroniser avec le siège
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                Utiliser automatiquement les informations fiscales et bancaires du siège
+              </p>
+            </div>
+          </div>
+
+          {!formData.useHeadquartersInfo && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="taxId">Numéro de TVA / RC</Label>
+                <Input
+                  id="taxId"
+                  placeholder="RC: XXXXXXX - IF: XXXXXXX"
+                  value={formData.taxId}
+                  onChange={(e) => handleChange("taxId", e.target.value)}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="bankName">Nom de la banque</Label>
+                  <Input
+                    id="bankName"
+                    placeholder="Nom de la banque"
+                    value={formData.bankName}
+                    onChange={(e) => handleChange("bankName", e.target.value)}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="bankAccount">Numéro de compte</Label>
+                  <Input
+                    id="bankAccount"
+                    placeholder="Numéro de compte"
+                    value={formData.bankAccount}
+                    onChange={(e) => handleChange("bankAccount", e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="bankIBAN">IBAN</Label>
+                  <Input
+                    id="bankIBAN"
+                    placeholder="Code IBAN"
+                    value={formData.bankIBAN}
+                    onChange={(e) => handleChange("bankIBAN", e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="bankSwift">Code SWIFT/BIC</Label>
+                  <Input
+                    id="bankSwift"
+                    placeholder="Code SWIFT/BIC"
+                    value={formData.bankSwift}
+                    onChange={(e) => handleChange("bankSwift", e.target.value)}
+                  />
+                </div>
+              </div>
+            </>
+          )}
           
           <div className="flex items-center space-x-2">
             <Switch
