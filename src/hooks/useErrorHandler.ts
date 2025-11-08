@@ -2,6 +2,7 @@ import { useToast } from "@/hooks/use-toast";
 import { PostgrestError } from "@supabase/supabase-js";
 import { createElement } from "react";
 import { ToastAction } from "@/components/ui/toast";
+import { useLogger } from "./useLogger";
 
 export type ErrorSeverity = 'info' | 'warning' | 'error' | 'critical';
 
@@ -17,6 +18,7 @@ interface ErrorHandlerOptions {
 
 export const useErrorHandler = () => {
   const { toast } = useToast();
+  const logger = useLogger();
 
   const handleError = (error: unknown, options: ErrorHandlerOptions = {}) => {
     const {
@@ -43,6 +45,21 @@ export const useErrorHandler = () => {
       message = getPostgrestErrorMessage(error);
       errorCode = error.code;
     }
+
+    // Log error to logger system
+    const logLevel = severity === 'error' || severity === 'critical' ? 'error' : 
+                     severity === 'warning' ? 'warn' : 'info';
+    
+    logger.log(logLevel, 'system', `Error handled: ${title || getDefaultTitle(severity)}`, {
+      message,
+      errorCode,
+      severity,
+      error: error instanceof Error ? {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      } : error
+    });
 
     // Critical errors should be re-thrown to ErrorBoundary
     if (severity === 'critical') {

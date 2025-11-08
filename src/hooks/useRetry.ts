@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useErrorHandler } from './useErrorHandler';
 import { useRetryMonitoring } from './useRetryMonitoring';
+import { useLogger } from './useLogger';
 
 export interface RetryOptions {
   maxAttempts?: number;
@@ -25,6 +26,7 @@ export const useRetry = (operationName = 'unknown') => {
   const [retryCount, setRetryCount] = useState(0);
   const { handleError } = useErrorHandler();
   const { recordRetry } = useRetryMonitoring();
+  const logger = useLogger();
 
   const shouldRetry = (error: unknown, attempt: number, options: RetryOptions): boolean => {
     const opts = { ...DEFAULT_OPTIONS, ...options };
@@ -74,6 +76,10 @@ export const useRetry = (operationName = 'unknown') => {
         setIsRetrying(attempt > 0);
         setRetryCount(attempt);
 
+        if (attempt > 0) {
+          logger.info('system', `Retry attempt ${attempt} for ${operationName}`, { attempt, operationName });
+        }
+
         const result = await operation();
         
         // Success - reset state and record metrics
@@ -84,6 +90,11 @@ export const useRetry = (operationName = 'unknown') => {
         // Record successful retry (if there were retries)
         if (attempt > 0) {
           recordRetry(operationName, true, attempt, duration);
+          logger.success('system', `Retry successful for ${operationName} after ${attempt} attempts`, {
+            operationName,
+            attempts: attempt,
+            duration: Math.round(duration)
+          });
         }
         
         return result;
@@ -91,12 +102,21 @@ export const useRetry = (operationName = 'unknown') => {
         lastError = error;
         attempt++;
 
+        const errorCode = typeof error === 'object' && error !== null && 'code' in error 
+          ? (error as any).code 
+          : undefined;
+
         if (!shouldRetry(error, attempt, opts)) {
           // Error is not retryable or max attempts reached
           const duration = performance.now() - startTime;
-          const errorCode = typeof error === 'object' && error !== null && 'code' in error 
-            ? (error as any).code 
-            : undefined;
+          
+          logger.error('system', `Retry failed for ${operationName} after ${attempt} attempts`, {
+            operationName,
+            attempts: attempt,
+            duration: Math.round(duration),
+            errorCode,
+            error: error instanceof Error ? error.message : String(error)
+          });
           
           recordRetry(operationName, false, attempt, duration, errorCode);
           
@@ -109,6 +129,15 @@ export const useRetry = (operationName = 'unknown') => {
         const baseDelay = calculateDelay(attempt - 1, opts);
         const jitter = Math.random() * 0.3 * baseDelay; // ±30% jitter
         const delay = baseDelay + jitter;
+
+        logger.warn('system', `Retry scheduled for ${operationName} (attempt ${attempt}/${opts.maxAttempts})`, {
+          operationName,
+          attempt,
+          maxAttempts: opts.maxAttempts,
+          delay: Math.round(delay),
+          errorCode,
+          error: error instanceof Error ? error.message : String(error)
+        });
 
         // Notify about retry
         opts.onRetry(attempt, error);
@@ -129,6 +158,14 @@ export const useRetry = (operationName = 'unknown') => {
     const errorCode = typeof lastError === 'object' && lastError !== null && 'code' in lastError 
       ? (lastError as any).code 
       : undefined;
+    
+    logger.error('system', `All retries exhausted for ${operationName}`, {
+      operationName,
+      attempts: attempt,
+      duration: Math.round(duration),
+      errorCode,
+      error: lastError instanceof Error ? lastError.message : String(lastError)
+    });
     
     recordRetry(operationName, false, attempt, duration, errorCode);
     
