@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { TemplatePreview } from '@/components/TemplatePreview';
 import { DocumentTemplate, TemplateSection } from '@/hooks/useDocumentTemplates';
-import { GripVertical, Eye } from 'lucide-react';
+import { GripVertical, Eye, EyeOff } from 'lucide-react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -44,6 +45,8 @@ function SortableSection({ section, onToggle }: { section: TemplateSection; onTo
 
 export function TemplateEditor({ template, onChange, onSave, onCancel }: TemplateEditorProps) {
   const [sections, setSections] = useState<TemplateSection[]>(template.sections);
+  const [showPreview, setShowPreview] = useState(true);
+  const [autoRefresh, setAutoRefresh] = useState(true);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -51,6 +54,11 @@ export function TemplateEditor({ template, onChange, onSave, onCancel }: Templat
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
+  // Update sections when template changes
+  useEffect(() => {
+    setSections(template.sections);
+  }, [template.sections]);
 
   const handleDragEnd = (event: any) => {
     const { active, over } = event;
@@ -78,62 +86,84 @@ export function TemplateEditor({ template, onChange, onSave, onCancel }: Templat
   };
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="template-name">Nom du template</Label>
-          <Input
-            id="template-name"
-            value={template.name}
-            onChange={(e) => onChange({ name: e.target.value })}
-            placeholder="Nom du template"
-          />
+    <div className="grid grid-cols-2 gap-6 h-[calc(100vh-200px)]">
+      {/* Editor Section */}
+      <div className="space-y-6 overflow-y-auto pr-4">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="space-y-2 flex-1 mr-4">
+              <Label htmlFor="template-name">Nom du template</Label>
+              <Input
+                id="template-name"
+                value={template.name}
+                onChange={(e) => onChange({ name: e.target.value })}
+                placeholder="Nom du template"
+              />
+            </div>
+
+            <div className="flex items-center gap-4 pt-6">
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={showPreview}
+                  onCheckedChange={setShowPreview}
+                />
+                <Label className="text-sm">{showPreview ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={autoRefresh}
+                  onCheckedChange={setAutoRefresh}
+                  disabled={!showPreview}
+                />
+                <Label className="text-sm">Auto</Label>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={template.is_default}
+              onCheckedChange={(checked) => onChange({ is_default: checked })}
+            />
+            <Label>Template par défaut</Label>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Switch
-            checked={template.is_default}
-            onCheckedChange={(checked) => onChange({ is_default: checked })}
-          />
-          <Label>Template par défaut</Label>
-        </div>
-      </div>
+        <Tabs defaultValue="sections" className="space-y-4">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="sections">Sections</TabsTrigger>
+            <TabsTrigger value="layout">Mise en page</TabsTrigger>
+            <TabsTrigger value="styles">Styles</TabsTrigger>
+          </TabsList>
 
-      <Tabs defaultValue="sections" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="sections">Sections</TabsTrigger>
-          <TabsTrigger value="layout">Mise en page</TabsTrigger>
-          <TabsTrigger value="styles">Styles</TabsTrigger>
-        </TabsList>
+          <TabsContent value="sections" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Sections du document</CardTitle>
+                <CardDescription>Activez/désactivez et réorganisez les sections</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                  <SortableContext items={sections.map(s => s.id)} strategy={verticalListSortingStrategy}>
+                    <div className="space-y-2">
+                      {sections.map((section) => (
+                        <SortableSection key={section.id} section={section} onToggle={toggleSection} />
+                      ))}
+                    </div>
+                  </SortableContext>
+                </DndContext>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-        <TabsContent value="sections" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Sections du document</CardTitle>
-              <CardDescription>Activez/désactivez et réorganisez les sections</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                <SortableContext items={sections.map(s => s.id)} strategy={verticalListSortingStrategy}>
+          <TabsContent value="layout" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Configuration de la page</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    {sections.map((section) => (
-                      <SortableSection key={section.id} section={section} onToggle={toggleSection} />
-                    ))}
-                  </div>
-                </SortableContext>
-              </DndContext>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="layout" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Configuration de la page</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
                   <Label>Format de page</Label>
                   <Select
                     value={template.layout.pageSize}
@@ -343,19 +373,27 @@ export function TemplateEditor({ template, onChange, onSave, onCancel }: Templat
                   />
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
 
-      <div className="flex justify-end gap-2">
-        <Button variant="outline" onClick={onCancel}>
-          Annuler
-        </Button>
-        <Button onClick={onSave}>
-          Enregistrer le template
-        </Button>
+        <div className="flex justify-end gap-2 sticky bottom-0 bg-background pt-4 border-t">
+          <Button variant="outline" onClick={onCancel}>
+            Annuler
+          </Button>
+          <Button onClick={onSave}>
+            Enregistrer le template
+          </Button>
+        </div>
       </div>
+
+      {/* Preview Section */}
+      {showPreview && (
+        <div className="sticky top-0 h-full">
+          <TemplatePreview template={template} autoRefresh={autoRefresh} />
+        </div>
+      )}
     </div>
   );
 }
