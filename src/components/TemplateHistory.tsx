@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useTemplateVersions, TemplateVersion } from '@/hooks/useTemplateVersions';
+import { useTemplateVersions, TemplateVersion, ComparisonResult } from '@/hooks/useTemplateVersions';
 import { DocumentTemplate } from '@/hooks/useDocumentTemplates';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,10 +25,9 @@ export function TemplateHistory({ template, onRestore }: TemplateHistoryProps) {
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [showCompareDialog, setShowCompareDialog] = useState(false);
   const [changeSummary, setChangeSummary] = useState('');
-  const [selectedVersion, setSelectedVersion] = useState<TemplateVersion | null>(null);
-  const [showRestoreDialog, setShowRestoreDialog] = useState(false);
-  const [compareVersion1, setCompareVersion1] = useState<string>('');
-  const [compareVersion2, setCompareVersion2] = useState<string>('');
+  const [selectedVersion1, setSelectedVersion1] = useState<TemplateVersion | null>(null);
+  const [selectedVersion2, setSelectedVersion2] = useState<TemplateVersion | null>(null);
+  const [comparisonData, setComparisonData] = useState<ComparisonResult | null>(null);
 
   const handleSaveVersion = async () => {
     if (!changeSummary.trim()) {
@@ -52,12 +51,12 @@ export function TemplateHistory({ template, onRestore }: TemplateHistoryProps) {
     setChangeSummary('');
   };
 
-  const handleRestore = async (versionId: string) => {
+  const handleRestore = async (version: TemplateVersion) => {
     if (!confirm('Êtes-vous sûr de vouloir restaurer cette version ? Les modifications non sauvegardées seront perdues.')) {
       return;
     }
 
-    const result = await restoreVersion(versionId, template.id);
+    const result = await restoreVersion(version, template.id);
     if (result.success && onRestore) {
       onRestore();
     }
@@ -68,6 +67,8 @@ export function TemplateHistory({ template, onRestore }: TemplateHistoryProps) {
       toast.error('Veuillez sélectionner deux versions à comparer');
       return;
     }
+    const result = compareVersions(selectedVersion1.id, selectedVersion2.id);
+    setComparisonData(result);
     setShowCompareDialog(true);
   };
 
@@ -170,7 +171,7 @@ export function TemplateHistory({ template, onRestore }: TemplateHistoryProps) {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleRestore(version.id)}
+                          onClick={() => handleRestore(version)}
                         >
                           <RotateCcw className="h-4 w-4 mr-2" />
                           Restaurer
@@ -267,6 +268,6 @@ export function TemplateHistory({ template, onRestore }: TemplateHistoryProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 }
