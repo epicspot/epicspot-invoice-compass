@@ -23,9 +23,6 @@ export function useCollections() {
             clients:client_id (
               name
             )
-          ),
-          profiles:collected_by (
-            name
           )
         `)
         .order('created_at', { ascending: false });
@@ -44,7 +41,7 @@ export function useCollections() {
         createdAt: c.created_at,
         invoiceNumber: c.invoices?.number,
         clientName: c.invoices?.clients?.name,
-        collectorName: c.profiles?.name,
+        collectorName: undefined,
       }));
       setCollections(formattedCollections);
     } catch (error) {

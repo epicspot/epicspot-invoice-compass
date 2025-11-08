@@ -236,10 +236,10 @@ export function TemplateHistory({ template, onRestore }: TemplateHistoryProps) {
 
       {/* Save Version Dialog */}
       <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
-        <DialogContent>
+        <DialogContent aria-describedby="save-version-description">
           <DialogHeader>
             <DialogTitle>Sauvegarder une version</DialogTitle>
-            <DialogDescription>
+            <DialogDescription id="save-version-description">
               Créez un point de sauvegarde manuel de votre template
             </DialogDescription>
           </DialogHeader>
@@ -269,10 +269,10 @@ export function TemplateHistory({ template, onRestore }: TemplateHistoryProps) {
 
       {/* Compare Versions Dialog */}
       <Dialog open={showCompareDialog} onOpenChange={setShowCompareDialog}>
-        <DialogContent className="max-w-5xl max-h-[90vh]">
+        <DialogContent className="max-w-5xl max-h-[90vh]" aria-describedby="compare-versions-description">
           <DialogHeader>
             <DialogTitle>Comparer les versions</DialogTitle>
-            <DialogDescription>
+            <DialogDescription id="compare-versions-description">
               Différences entre la version {selectedVersion1?.version_number} et la version {selectedVersion2?.version_number}
             </DialogDescription>
           </DialogHeader>
@@ -289,10 +289,10 @@ export function TemplateHistory({ template, onRestore }: TemplateHistoryProps) {
 
       {/* Add Tag Dialog */}
       <Dialog open={showTagDialog} onOpenChange={setShowTagDialog}>
-        <DialogContent>
+        <DialogContent aria-describedby="add-tag-description">
           <DialogHeader>
             <DialogTitle>Ajouter un tag</DialogTitle>
-            <DialogDescription>
+            <DialogDescription id="add-tag-description">
               Marquez cette version avec un tag (stable, test, production, etc.)
             </DialogDescription>
           </DialogHeader>
