@@ -8,6 +8,7 @@ import { usePerformanceMetrics } from '@/hooks/usePerformanceMetrics';
 import { PerformanceMetrics } from './PerformanceMetrics';
 import { RetryCharts } from './RetryCharts';
 import { SupervisionWidgets } from './supervision/SupervisionWidgets';
+import { ReportGenerator } from './supervision/ReportGenerator';
 import { 
   Activity, 
   AlertCircle, 
@@ -172,19 +173,24 @@ export function SupervisionDashboard() {
 
       {/* Main Content Tabs */}
       <Tabs defaultValue="widgets" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="widgets" className="gap-2">
             <LayoutGrid className="h-4 w-4" />
             Widgets
           </TabsTrigger>
           <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
+          <TabsTrigger value="reports">Rapports</TabsTrigger>
           <TabsTrigger value="logs">Logs</TabsTrigger>
-          <TabsTrigger value="retry">Retry Monitoring</TabsTrigger>
+          <TabsTrigger value="retry">Retry</TabsTrigger>
           <TabsTrigger value="performance">Performance</TabsTrigger>
         </TabsList>
 
         <TabsContent value="widgets" className="space-y-4">
           <SupervisionWidgets />
+        </TabsContent>
+
+        <TabsContent value="reports" className="space-y-4">
+          <ReportGenerator />
         </TabsContent>
 
         <TabsContent value="overview" className="space-y-4">
