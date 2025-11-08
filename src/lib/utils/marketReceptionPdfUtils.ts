@@ -3,6 +3,7 @@ import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Market, MarketMilestone } from '@/hooks/useMarkets';
+import { formatFCFA } from '@/lib/utils';
 
 interface ReceptionReport {
   date: string;
@@ -96,7 +97,7 @@ export async function generateMarketReceptionPDF(
       head: [['Jalon', 'Montant', 'Statut', 'Date de réalisation']],
       body: milestones.map(m => [
         m.title,
-        `${Number(m.amount).toLocaleString('fr-FR')} FCFA`,
+        formatFCFA(Number(m.amount)),
         m.status === 'completed' ? 'Terminé' : m.status === 'in_progress' ? 'En cours' : 'En attente',
         m.completion_date ? format(new Date(m.completion_date), 'dd/MM/yyyy', { locale: fr }) : '-'
       ]),

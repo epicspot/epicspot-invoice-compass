@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Invoice } from '@/lib/types';
+import { formatFCFA } from '@/lib/utils';
 
 export const generateInvoicePDF = (invoice: Invoice, companyInfo: any) => {
   const doc = new jsPDF();
@@ -58,9 +59,9 @@ export const generateInvoicePDF = (invoice: Invoice, companyInfo: any) => {
   const tableData = invoice.items.map(item => [
     item.product.reference,
     item.product.description,
-    item.product.price.toLocaleString() + ' FCFA',
+    formatFCFA(item.product.price),
     item.quantity.toString(),
-    item.amount.toLocaleString() + ' FCFA'
+    formatFCFA(item.amount)
   ]);
 
   autoTable(doc, {
@@ -79,26 +80,26 @@ export const generateInvoicePDF = (invoice: Invoice, companyInfo: any) => {
   doc.setFontSize(10);
   
   doc.text('Sous-total:', totalsX, yPosition);
-  doc.text(`${invoice.subtotal.toLocaleString()} FCFA`, 200, yPosition, { align: 'right' });
+  doc.text(formatFCFA(invoice.subtotal), 200, yPosition, { align: 'right' });
   yPosition += 6;
 
   if (invoice.tax && invoice.tax > 0) {
     const taxAmount = (invoice.subtotal * invoice.tax) / 100;
     doc.text(`TVA (${invoice.tax}%):`, totalsX, yPosition);
-    doc.text(`${taxAmount.toLocaleString()} FCFA`, 200, yPosition, { align: 'right' });
+    doc.text(formatFCFA(taxAmount), 200, yPosition, { align: 'right' });
     yPosition += 6;
   }
 
   if (invoice.discount && invoice.discount > 0) {
     doc.text('Remise:', totalsX, yPosition);
-    doc.text(`-${invoice.discount.toLocaleString()} FCFA`, 200, yPosition, { align: 'right' });
+    doc.text(`-${formatFCFA(invoice.discount)}`, 200, yPosition, { align: 'right' });
     yPosition += 6;
   }
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(12);
   doc.text('TOTAL:', totalsX, yPosition);
-  doc.text(`${invoice.total.toLocaleString()} FCFA`, 200, yPosition, { align: 'right' });
+  doc.text(formatFCFA(invoice.total), 200, yPosition, { align: 'right' });
 
   // Notes
   if (invoice.notes) {

@@ -3,6 +3,7 @@ import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Market } from '@/hooks/useMarkets';
+import { formatFCFA } from '@/lib/utils';
 
 export async function generateMarketContractPDF(
   market: Market,
@@ -85,13 +86,13 @@ export async function generateMarketContractPDF(
 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
-  doc.text(`Montant estimé: ${market.estimated_amount.toLocaleString('fr-FR')} FCFA`, 20, yPos);
+  doc.text(`Montant estimé: ${formatFCFA(market.estimated_amount)}`, 20, yPos);
   yPos += 6;
-  doc.text(`Montant réel: ${market.actual_amount.toLocaleString('fr-FR')} FCFA`, 20, yPos);
+  doc.text(`Montant réel: ${formatFCFA(market.actual_amount)}`, 20, yPos);
   yPos += 6;
 
   if (market.deposit_percentage && market.deposit_percentage > 0) {
-    doc.text(`Acompte: ${market.deposit_percentage}% (${(market.deposit_amount || 0).toLocaleString('fr-FR')} FCFA)`, 20, yPos);
+    doc.text(`Acompte: ${market.deposit_percentage}% (${formatFCFA(market.deposit_amount || 0)})`, 20, yPos);
     yPos += 6;
   }
   yPos += 5;

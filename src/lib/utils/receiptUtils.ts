@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf';
 import { Invoice, Client } from '@/lib/types';
+import { formatFCFA } from '@/lib/utils';
 
 interface ReceiptData {
   receiptNumber: string;
@@ -141,8 +142,8 @@ export const generateReceipt = (data: ReceiptData, companyInfo?: any) => {
 
       doc.text(item.description.substring(0, 50), 14, yPosition);
       doc.text(String(item.quantity), 120, yPosition, { align: 'right' });
-      doc.text(`${item.price.toLocaleString()}`, 150, yPosition, { align: 'right' });
-      doc.text(`${item.amount.toLocaleString()}`, pageWidth - 14, yPosition, { align: 'right' });
+      doc.text(formatFCFA(item.price), 150, yPosition, { align: 'right' });
+      doc.text(formatFCFA(item.amount), pageWidth - 14, yPosition, { align: 'right' });
       yPosition += 6;
     });
 
@@ -155,13 +156,13 @@ export const generateReceipt = (data: ReceiptData, companyInfo?: any) => {
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   doc.text('MONTANT PAYÉ:', 14, yPosition);
-  doc.text(`${data.amount.toLocaleString()} FCFA`, pageWidth - 14, yPosition, { align: 'right' });
+  doc.text(formatFCFA(data.amount), pageWidth - 14, yPosition, { align: 'right' });
   yPosition += 10;
 
   // Montant en lettres (simple approximation)
   doc.setFontSize(10);
   doc.setFont('helvetica', 'italic');
-  doc.text(`Arrêté la présente quittance à la somme de ${data.amount.toLocaleString()} Francs CFA`, 14, yPosition);
+  doc.text(`Arrêté la présente quittance à la somme de ${formatFCFA(data.amount)}`, 14, yPosition);
   yPosition += 10;
 
   // Notes
@@ -217,8 +218,8 @@ export const generateReceiptFromInvoice = (invoice: Invoice, paymentData: any, c
     paymentDetails += `\nBanque: ${paymentData.checkBank}`;
     paymentDetails += `\nDate: ${new Date(paymentData.checkDate).toLocaleDateString('fr-FR')}`;
   } else if (paymentData.method === 'cash' && paymentData.amount > invoice.total) {
-    paymentDetails = `Montant reçu: ${paymentData.amount.toLocaleString()} FCFA`;
-    paymentDetails += `\nRendu: ${(paymentData.amount - invoice.total).toLocaleString()} FCFA`;
+    paymentDetails = `Montant reçu: ${formatFCFA(paymentData.amount)}`;
+    paymentDetails += `\nRendu: ${formatFCFA(paymentData.amount - invoice.total)}`;
   }
 
   generateReceipt({

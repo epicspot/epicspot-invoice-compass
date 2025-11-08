@@ -2,6 +2,7 @@ import jsPDF from 'jspdf';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Market } from '@/hooks/useMarkets';
+import { formatFCFA } from '@/lib/utils';
 
 interface Amendment {
   number: string;

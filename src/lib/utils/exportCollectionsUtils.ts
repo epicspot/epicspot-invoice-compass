@@ -4,6 +4,7 @@ import * as XLSX from 'xlsx';
 import { Collection } from '@/lib/types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { formatFCFA } from '@/lib/utils';
 
 export interface CollectionExportData {
   collections: any[];
@@ -43,7 +44,7 @@ export const exportCollectionsPDF = (data: CollectionExportData, companyInfo?: a
   doc.setFont('helvetica', 'normal');
   
   const kpis = [
-    ['Recouvrements ce mois', `${data.stats.totalThisMonth.toLocaleString()} FCFA`],
+    ['Recouvrements ce mois', formatFCFA(data.stats.totalThisMonth)],
     ['Évolution vs mois dernier', `${data.stats.percentChange >= 0 ? '+' : ''}${data.stats.percentChange.toFixed(1)}%`],
     ['Taux de recouvrement', `${data.stats.collectionRate.toFixed(1)}%`],
   ];
@@ -71,7 +72,7 @@ export const exportCollectionsPDF = (data: CollectionExportData, companyInfo?: a
       format(new Date(c.createdAt), 'dd/MM/yyyy'),
       c.invoiceNumber || 'N/A',
       c.clientName || 'N/A',
-      `${c.amount.toLocaleString()} FCFA`,
+      formatFCFA(c.amount),
       c.paymentMethod === 'cash' ? 'Espèces' : 
       c.paymentMethod === 'check' ? 'Chèque' :
       c.paymentMethod === 'mobile_money' ? 'Mobile Money' : 'Virement',
@@ -97,7 +98,7 @@ export const exportCollectionsExcel = (data: CollectionExportData) => {
     ['Indicateurs clés de performance'],
     [],
     ['Indicateur', 'Valeur'],
-    ['Recouvrements ce mois', `${data.stats.totalThisMonth.toLocaleString()} FCFA`],
+    ['Recouvrements ce mois', formatFCFA(data.stats.totalThisMonth)],
     ['Évolution vs mois dernier', `${data.stats.percentChange >= 0 ? '+' : ''}${data.stats.percentChange.toFixed(1)}%`],
     ['Taux de recouvrement', `${data.stats.collectionRate.toFixed(1)}%`],
   ];

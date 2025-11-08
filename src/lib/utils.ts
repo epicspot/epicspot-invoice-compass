@@ -5,15 +5,20 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-// Fonction utilitaire pour formater les montants en FCFA
+// Fonction utilitaire pour formater les montants en FCFA avec séparateur de milliers
 export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("fr-FR", {
     style: "currency",
-    currency: "XOF"
+    currency: "XOF",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
   }).format(amount);
 }
 
-// Fonction alternative simple pour formater avec FCFA
+// Fonction pour formater avec FCFA et séparateur de milliers (espaces)
 export function formatFCFA(amount: number): string {
-  return `${amount.toLocaleString('fr-FR')} FCFA`;
+  return `${new Intl.NumberFormat('fr-FR', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(amount)} FCFA`;
 }

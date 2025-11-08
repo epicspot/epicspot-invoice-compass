@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Quote } from '@/lib/types';
+import { formatFCFA } from '@/lib/utils';
 
 export const generateQuotePDF = (quote: Quote, companyInfo: any) => {
   const doc = new jsPDF();
@@ -58,9 +59,9 @@ export const generateQuotePDF = (quote: Quote, companyInfo: any) => {
   const tableData = quote.items.map(item => [
     item.product.reference,
     item.product.description,
-    item.product.price.toLocaleString() + ' FCFA',
+    formatFCFA(item.product.price),
     item.quantity.toString(),
-    item.amount.toLocaleString() + ' FCFA'
+    formatFCFA(item.amount)
   ]);
 
   autoTable(doc, {
@@ -79,19 +80,19 @@ export const generateQuotePDF = (quote: Quote, companyInfo: any) => {
   doc.setFontSize(10);
   
   doc.text('Sous-total:', totalsX, yPosition);
-  doc.text(`${quote.subtotal.toLocaleString()} FCFA`, 200, yPosition, { align: 'right' });
+  doc.text(formatFCFA(quote.subtotal), 200, yPosition, { align: 'right' });
   yPosition += 6;
 
   if (quote.discount && quote.discount > 0) {
     doc.text('Remise:', totalsX, yPosition);
-    doc.text(`-${quote.discount.toLocaleString()} FCFA`, 200, yPosition, { align: 'right' });
+    doc.text(`-${formatFCFA(quote.discount)}`, 200, yPosition, { align: 'right' });
     yPosition += 6;
   }
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(12);
   doc.text('TOTAL:', totalsX, yPosition);
-  doc.text(`${quote.total.toLocaleString()} FCFA`, 200, yPosition, { align: 'right' });
+  doc.text(formatFCFA(quote.total), 200, yPosition, { align: 'right' });
 
   // Notes
   if (quote.notes) {

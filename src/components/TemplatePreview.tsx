@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Download, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
+import { formatFCFA } from '@/lib/utils';
 
 interface TemplatePreviewProps {
   template: DocumentTemplate;
@@ -188,13 +189,13 @@ export function TemplatePreview({ template, autoRefresh = false }: TemplatePrevi
             if (template.type === 'contract') {
               yPos = addSection(
                 'MONTANTS',
-                `Montant estimé: ${sampleData.contract.market.estimated_amount.toLocaleString('fr-FR')} FCFA\nMontant réel: ${sampleData.contract.market.actual_amount.toLocaleString('fr-FR')} FCFA\nAcompte: ${sampleData.contract.market.deposit_percentage}% (${sampleData.contract.market.deposit_amount?.toLocaleString('fr-FR')} FCFA)`,
+                `Montant estimé: ${formatFCFA(sampleData.contract.market.estimated_amount)}\nMontant réel: ${formatFCFA(sampleData.contract.market.actual_amount)}\nAcompte: ${sampleData.contract.market.deposit_percentage}% (${formatFCFA(sampleData.contract.market.deposit_amount || 0)})`,
                 yPos
               );
             } else if (template.type === 'amendment') {
               yPos = addSection(
                 'MODIFICATION DES MONTANTS',
-                `Montant initial: ${sampleData.amendment.previousAmount.toLocaleString('fr-FR')} FCFA\nNouveau montant: ${sampleData.amendment.newAmount.toLocaleString('fr-FR')} FCFA\nDifférence: +${(sampleData.amendment.newAmount - sampleData.amendment.previousAmount).toLocaleString('fr-FR')} FCFA`,
+                `Montant initial: ${formatFCFA(sampleData.amendment.previousAmount)}\nNouveau montant: ${formatFCFA(sampleData.amendment.newAmount)}\nDifférence: +${formatFCFA(sampleData.amendment.newAmount - sampleData.amendment.previousAmount)}`,
                 yPos
               );
             }

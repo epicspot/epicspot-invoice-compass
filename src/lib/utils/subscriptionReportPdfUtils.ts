@@ -2,6 +2,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { formatFCFA } from '@/lib/utils';
 
 interface SubscriptionInvoice {
   id: string;
