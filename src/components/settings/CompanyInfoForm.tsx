@@ -9,11 +9,13 @@ import { Label } from "@/components/ui/label";
 import { useCompanyInfo } from "@/hooks/useCompanyInfo";
 import { companyInfoSchema, type CompanyInfoFormData } from "@/lib/validation/companySchema";
 import { useAuditLog } from "@/hooks/useAuditLog";
+import { useValidationAlert } from "@/hooks/useValidationAlert";
 
 
 const CompanyInfoForm = () => {
   const { companyInfo, loading, saveCompanyInfo } = useCompanyInfo();
   const { logAction } = useAuditLog();
+  const { recordFailure } = useValidationAlert();
   
   const {
     register,
@@ -39,6 +41,7 @@ const CompanyInfoForm = () => {
       message: error.message
     }));
     
+    // Log audit
     await logAction(
       'UPDATE',
       'company_info',
@@ -47,6 +50,9 @@ const CompanyInfoForm = () => {
       { validation_errors: errorMessages },
       `Échec de validation lors de la modification des informations du siège: ${errorMessages.length} erreur(s)`
     );
+
+    // Record failure for alert system
+    await recordFailure('Informations du siège', errorMessages.length);
   };
 
   if (loading) {

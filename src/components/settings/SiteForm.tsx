@@ -17,6 +17,7 @@ import { Switch } from "@/components/ui/switch";
 import { Site } from "@/lib/types";
 import { siteSchema, type SiteFormData } from "@/lib/validation/companySchema";
 import { useAuditLog } from "@/hooks/useAuditLog";
+import { useValidationAlert } from "@/hooks/useValidationAlert";
 
 interface SiteFormProps {
   site?: Site;
@@ -26,6 +27,7 @@ interface SiteFormProps {
 
 const SiteForm: React.FC<SiteFormProps> = ({ site, onSave, onCancel }) => {
   const { logAction } = useAuditLog();
+  const { recordFailure } = useValidationAlert();
   
   const {
     register,
@@ -55,6 +57,7 @@ const SiteForm: React.FC<SiteFormProps> = ({ site, onSave, onCancel }) => {
       message: error.message
     }));
     
+    // Log audit
     await logAction(
       'UPDATE',
       'sites',
@@ -63,6 +66,9 @@ const SiteForm: React.FC<SiteFormProps> = ({ site, onSave, onCancel }) => {
       { validation_errors: errorMessages },
       `Échec de validation lors de ${site ? 'la modification' : 'la création'} du site: ${errorMessages.length} erreur(s)`
     );
+
+    // Record failure for alert system
+    await recordFailure(site ? `Site: ${site.name}` : 'Nouveau site', errorMessages.length);
   };
 
   const useHeadquartersInfo = watch("useHeadquartersInfo");
