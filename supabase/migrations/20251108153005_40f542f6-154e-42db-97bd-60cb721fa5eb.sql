@@ -1,0 +1,20 @@
+-- Enable realtime for all main tables (excluding non-existent cash_register_transactions)
+ALTER PUBLICATION supabase_realtime ADD TABLE public.clients;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.products;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.invoices;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.invoice_items;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.quotes;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.quote_items;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.suppliers;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.vendors;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.sites;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.stock_movements;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.product_stock;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.cash_registers;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.cash_transactions;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.collections;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.reminders;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.tax_declarations;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.leads;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.purchase_orders;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.purchase_order_items;

@@ -40,6 +40,26 @@ export function useSites() {
 
   useEffect(() => {
     fetchSites();
+
+    // Subscribe to realtime changes
+    const channel = supabase
+      .channel('sites-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'sites'
+        },
+        () => {
+          fetchSites();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   return {

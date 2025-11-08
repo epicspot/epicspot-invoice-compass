@@ -49,6 +49,37 @@ export function useInvoices() {
 
   useEffect(() => {
     fetchInvoices();
+
+    // Subscribe to realtime changes
+    const channel = supabase
+      .channel('invoices-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'invoices'
+        },
+        () => {
+          fetchInvoices();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'invoice_items'
+        },
+        () => {
+          fetchInvoices();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const createInvoice = async (invoice: Omit<Invoice, 'id' | 'number'>) => {
