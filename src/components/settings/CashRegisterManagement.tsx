@@ -95,7 +95,7 @@ const CashRegisterManagement: React.FC<CashRegisterManagementProps> = ({ siteId 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("fr-FR", {
       style: "currency",
-      currency: "EUR"
+      currency: "XOF"
     }).format(amount);
   };
 

@@ -95,7 +95,7 @@ const CashRegisterForm: React.FC<CashRegisterFormProps> = ({
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="initialAmount">Montant initial (€)</Label>
+              <Label htmlFor="initialAmount">Montant initial (FCFA)</Label>
               <Input
                 id="initialAmount"
                 type="number"
@@ -109,7 +109,7 @@ const CashRegisterForm: React.FC<CashRegisterFormProps> = ({
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="currentAmount">Montant actuel (€)</Label>
+              <Label htmlFor="currentAmount">Montant actuel (FCFA)</Label>
               <Input
                 id="currentAmount"
                 type="number"

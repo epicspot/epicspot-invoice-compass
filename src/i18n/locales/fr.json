@@ -16,7 +16,9 @@
     "back": "Retour",
     "next": "Suivant",
     "previous": "Précédent",
-    "close": "Fermer"
+    "close": "Fermer",
+    "currency": "FCFA",
+    "currencyCode": "XOF"
   },
   "nav": {
     "dashboard": "Tableau de bord",

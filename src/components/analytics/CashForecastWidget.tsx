@@ -94,7 +94,7 @@ export function CashForecastWidget() {
                   <YAxis tick={{ fontSize: 12 }} />
                   <Tooltip 
                     formatter={(value: number, name: string) => {
-                      if (name === 'amount') return [`${value.toFixed(2)} €`, 'Montant'];
+                      if (name === 'amount') return [`${value.toLocaleString()} FCFA`, 'Montant'];
                       if (name === 'confidence') return [`${(value * 100).toFixed(0)}%`, 'Confiance'];
                       return value;
                     }}

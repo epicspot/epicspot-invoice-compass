@@ -135,13 +135,13 @@ export default function Vendors() {
                   <TableCell>{vendor.phone}</TableCell>
                   <TableCell>{vendor.siteId}</TableCell>
                   <TableCell className="text-right">
-                    {vendor.totalDebt.toFixed(2)} FCFA
+                    {vendor.totalDebt.toLocaleString()} FCFA
                   </TableCell>
                   <TableCell className="text-right">
-                    {vendor.paidAmount.toFixed(2)} FCFA
+                    {vendor.paidAmount.toLocaleString()} FCFA
                   </TableCell>
                   <TableCell className="text-right font-semibold">
-                    {vendor.remainingBalance.toFixed(2)} FCFA
+                    {vendor.remainingBalance.toLocaleString()} FCFA
                   </TableCell>
                   <TableCell>
                     <span

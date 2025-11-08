@@ -76,7 +76,8 @@ const PurchaseOrderForm = ({ onSubmit, onCancel, initialData }: PurchaseOrderFor
   };
 
   const subtotal = items.reduce((sum, item) => sum + item.amount, 0);
-  const tax = subtotal * 0.2;
+  const taxRate = 0.2; // 20% TVA
+  const tax = subtotal * taxRate;
   const total = subtotal + tax;
 
   const [error, setError] = useState<string>('');
@@ -275,15 +276,15 @@ const PurchaseOrderForm = ({ onSubmit, onCancel, initialData }: PurchaseOrderFor
         <div className="space-y-2 max-w-xs ml-auto">
           <div className="flex justify-between">
             <span>Sous-total:</span>
-            <span>{subtotal.toFixed(2)} €</span>
+            <span>{subtotal.toLocaleString()} FCFA</span>
           </div>
           <div className="flex justify-between">
-            <span>TVA (20%):</span>
-            <span>{tax.toFixed(2)} €</span>
+            <span>TVA ({(taxRate * 100).toFixed(0)}%):</span>
+            <span>{tax.toLocaleString()} FCFA</span>
           </div>
           <div className="flex justify-between font-bold text-lg">
             <span>Total:</span>
-            <span>{total.toFixed(2)} €</span>
+            <span>{total.toLocaleString()} FCFA</span>
           </div>
         </div>
       </div>
