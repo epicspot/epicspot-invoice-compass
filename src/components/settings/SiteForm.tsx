@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Site } from "@/lib/types";
 import { siteSchema, type SiteFormData } from "@/lib/validation/companySchema";
+import { useAuditLog } from "@/hooks/useAuditLog";
 
 interface SiteFormProps {
   site?: Site;
@@ -24,6 +25,8 @@ interface SiteFormProps {
 }
 
 const SiteForm: React.FC<SiteFormProps> = ({ site, onSave, onCancel }) => {
+  const { logAction } = useAuditLog();
+  
   const {
     register,
     handleSubmit,
@@ -46,6 +49,22 @@ const SiteForm: React.FC<SiteFormProps> = ({ site, onSave, onCancel }) => {
     }
   });
 
+  const onError = async (errors: any) => {
+    const errorMessages = Object.entries(errors).map(([field, error]: [string, any]) => ({
+      field,
+      message: error.message
+    }));
+    
+    await logAction(
+      'UPDATE',
+      'sites',
+      site?.id,
+      undefined,
+      { validation_errors: errorMessages },
+      `Échec de validation lors de ${site ? 'la modification' : 'la création'} du site: ${errorMessages.length} erreur(s)`
+    );
+  };
+
   const useHeadquartersInfo = watch("useHeadquartersInfo");
 
   const onSubmit = (data: SiteFormData) => {
@@ -58,7 +77,7 @@ const SiteForm: React.FC<SiteFormProps> = ({ site, onSave, onCancel }) => {
 
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <form onSubmit={handleSubmit(onSubmit, onError)}>
       <Card>
         <CardHeader>
           <CardTitle>{site ? "Modifier le site" : "Ajouter un site"}</CardTitle>

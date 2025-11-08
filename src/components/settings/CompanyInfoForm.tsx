@@ -8,10 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useCompanyInfo } from "@/hooks/useCompanyInfo";
 import { companyInfoSchema, type CompanyInfoFormData } from "@/lib/validation/companySchema";
+import { useAuditLog } from "@/hooks/useAuditLog";
 
 
 const CompanyInfoForm = () => {
   const { companyInfo, loading, saveCompanyInfo } = useCompanyInfo();
+  const { logAction } = useAuditLog();
   
   const {
     register,
@@ -31,13 +33,29 @@ const CompanyInfoForm = () => {
     await saveCompanyInfo(data);
   };
 
+  const onError = async (errors: any) => {
+    const errorMessages = Object.entries(errors).map(([field, error]: [string, any]) => ({
+      field,
+      message: error.message
+    }));
+    
+    await logAction(
+      'UPDATE',
+      'company_info',
+      'company_info',
+      undefined,
+      { validation_errors: errorMessages },
+      `Échec de validation lors de la modification des informations du siège: ${errorMessages.length} erreur(s)`
+    );
+  };
+
   if (loading) {
     return <div className="flex items-center justify-center p-8">Chargement...</div>;
   }
 
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <form onSubmit={handleSubmit(onSubmit, onError)}>
       <Card>
         <CardHeader>
           <CardTitle>Informations de l'entreprise</CardTitle>
