@@ -16,7 +16,7 @@ export type PermissionResource =
   | 'vendors';
 
 export type PermissionAction = 'create' | 'read' | 'update' | 'delete';
-export type AppRole = 'admin' | 'manager' | 'user' | 'viewer';
+export type AppRole = 'admin' | 'manager' | 'user' | 'viewer' | 'cashier';
 
 export interface RolePermission {
   id: string;
@@ -45,6 +45,19 @@ const defaultPermissions: RolePermission[] = [
   { id: '13', role: 'manager', resource: 'cash_registers', action: 'read' },
   { id: '14', role: 'manager', resource: 'cash_registers', action: 'update' },
   { id: '15', role: 'manager', resource: 'reports', action: 'read' },
+  
+  // Cashier permissions
+  { id: '26', role: 'cashier', resource: 'invoices', action: 'create' },
+  { id: '27', role: 'cashier', resource: 'invoices', action: 'read' },
+  { id: '28', role: 'cashier', resource: 'clients', action: 'create' },
+  { id: '29', role: 'cashier', resource: 'clients', action: 'read' },
+  { id: '30', role: 'cashier', resource: 'clients', action: 'update' },
+  { id: '31', role: 'cashier', resource: 'products', action: 'read' },
+  { id: '32', role: 'cashier', resource: 'cash_registers', action: 'create' },
+  { id: '33', role: 'cashier', resource: 'cash_registers', action: 'read' },
+  { id: '34', role: 'cashier', resource: 'cash_registers', action: 'update' },
+  { id: '35', role: 'cashier', resource: 'collections', action: 'create' },
+  { id: '36', role: 'cashier', resource: 'collections', action: 'read' },
   
   // User permissions
   { id: '16', role: 'user', resource: 'invoices', action: 'create' },

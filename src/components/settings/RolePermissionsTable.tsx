@@ -50,6 +50,10 @@ const RolePermissionsTable: React.FC = () => {
       label: "Gestionnaire", 
       color: "bg-primary/10 text-primary" 
     },
+    cashier: { 
+      label: "Caissier", 
+      color: "bg-accent/50 text-accent-foreground" 
+    },
     user: { 
       label: "Utilisateur", 
       color: "bg-secondary/50 text-secondary-foreground" 
