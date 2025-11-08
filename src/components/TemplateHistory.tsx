@@ -15,18 +15,20 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { toast } from 'sonner';
 
-interface TemplateVersionHistoryProps {
+interface TemplateHistoryProps {
   template: DocumentTemplate;
   onRestore?: () => void;
 }
 
-export function TemplateVersionHistory({ template, onRestore }: TemplateVersionHistoryProps) {
+export function TemplateHistory({ template, onRestore }: TemplateHistoryProps) {
   const { versions, loading, createManualVersion, restoreVersion, compareVersions } = useTemplateVersions(template.id);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [showCompareDialog, setShowCompareDialog] = useState(false);
   const [changeSummary, setChangeSummary] = useState('');
-  const [selectedVersion1, setSelectedVersion1] = useState<TemplateVersion | null>(null);
-  const [selectedVersion2, setSelectedVersion2] = useState<TemplateVersion | null>(null);
+  const [selectedVersion, setSelectedVersion] = useState<TemplateVersion | null>(null);
+  const [showRestoreDialog, setShowRestoreDialog] = useState(false);
+  const [compareVersion1, setCompareVersion1] = useState<string>('');
+  const [compareVersion2, setCompareVersion2] = useState<string>('');
 
   const handleSaveVersion = async () => {
     if (!changeSummary.trim()) {
@@ -220,87 +222,51 @@ export function TemplateVersionHistory({ template, onRestore }: TemplateVersionH
       <Dialog open={showCompareDialog} onOpenChange={setShowCompareDialog}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Comparaison des versions</DialogTitle>
+            <DialogTitle>Comparer les versions</DialogTitle>
             <DialogDescription>
-              Différences entre la version {selectedVersion1?.version_number} et {selectedVersion2?.version_number}
+              Sélectionnez deux versions pour voir les différences
             </DialogDescription>
           </DialogHeader>
-          {selectedVersion1 && selectedVersion2 && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-sm">
-                      Version {selectedVersion1.version_number}
-                    </CardTitle>
-                    <CardDescription className="text-xs">
-                      {format(new Date(selectedVersion1.created_at), 'dd/MM/yyyy HH:mm', { locale: fr })}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="text-sm space-y-2">
-                    <div>
-                      <span className="font-medium">Nom:</span> {selectedVersion1.name}
-                    </div>
-                    <div>
-                      <span className="font-medium">Sections actives:</span>{' '}
-                      {selectedVersion1.sections.filter(s => s.enabled).length}
-                    </div>
-                    <div>
-                      <span className="font-medium">Format:</span> {selectedVersion1.layout.pageSize}
-                    </div>
-                  </CardContent>
-                </Card>
+          <div className="space-y-4 py-4">
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-sm">
-                      Version {selectedVersion2.version_number}
-                    </CardTitle>
-                    <CardDescription className="text-xs">
-                      {format(new Date(selectedVersion2.created_at), 'dd/MM/yyyy HH:mm', { locale: fr })}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="text-sm space-y-2">
-                    <div>
-                      <span className="font-medium">Nom:</span> {selectedVersion2.name}
-                    </div>
-                    <div>
-                      <span className="font-medium">Sections actives:</span>{' '}
-                      {selectedVersion2.sections.filter(s => s.enabled).length}
-                    </div>
-                    <div>
-                      <span className="font-medium">Format:</span> {selectedVersion2.layout.pageSize}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
+            {comparisonData && comparisonData.hasChanges && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-sm">Modifications détectées</CardTitle>
+                  <CardTitle className="text-base">Différences détectées</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {compareVersions(selectedVersion1, selectedVersion2).length === 0 ? (
-                    <p className="text-sm text-muted-foreground">Aucune différence détectée</p>
-                  ) : (
-                    <ul className="space-y-2">
-                      {compareVersions(selectedVersion1, selectedVersion2).map((change, index) => (
-                        <li key={index} className="text-sm flex items-start gap-2">
-                          <Badge variant="outline" className="mt-0.5">•</Badge>
-                          {change}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                  <div className="space-y-2">
+                    {comparisonData.differences.name && (
+                      <Badge variant="outline">Nom modifié</Badge>
+                    )}
+                    {comparisonData.differences.sections && (
+                      <Badge variant="outline">Sections modifiées</Badge>
+                    )}
+                    {comparisonData.differences.layout && (
+                      <Badge variant="outline">Mise en page modifiée</Badge>
+                    )}
+                    {comparisonData.differences.styles && (
+                      <Badge variant="outline">Styles modifiés</Badge>
+                    )}
+                    {comparisonData.differences.logo_url && (
+                      <Badge variant="outline">Logo modifié</Badge>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
-            </div>
-          )}
+            )}
+
+            {comparisonData && !comparisonData.hasChanges && (
+              <p className="text-center text-muted-foreground py-4">
+                Aucune différence détectée
+              </p>
+            )}
+          </div>
           <DialogFooter>
             <Button onClick={() => setShowCompareDialog(false)}>Fermer</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }

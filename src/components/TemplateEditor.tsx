@@ -7,7 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TemplatePreview } from '@/components/TemplatePreview';
-import { TemplateVersionHistory } from '@/components/TemplateVersionHistory';
+import { TemplateHistory } from '@/components/TemplateHistory';
 import { DocumentTemplate, TemplateSection } from '@/hooks/useDocumentTemplates';
 import { GripVertical, Eye, EyeOff, History } from 'lucide-react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
@@ -49,6 +49,7 @@ export function TemplateEditor({ template, onChange, onSave, onCancel, onVersion
   const [sections, setSections] = useState<TemplateSection[]>(template.sections);
   const [showPreview, setShowPreview] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [showHistory, setShowHistory] = useState(false);
   const [activeTab, setActiveTab] = useState<'sections' | 'layout' | 'styles' | 'history'>('sections');
 
   const sensors = useSensors(
@@ -88,6 +89,11 @@ export function TemplateEditor({ template, onChange, onSave, onCancel, onVersion
     onChange({ sections: updatedSections });
   };
 
+  const handleHistoryRestore = () => {
+    // Trigger re-render by updating sections from restored template
+    setSections([...template.sections]);
+  };
+
   return (
     <div className="grid grid-cols-2 gap-6 h-[calc(100vh-200px)]">
       {/* Editor Section */}
@@ -120,6 +126,14 @@ export function TemplateEditor({ template, onChange, onSave, onCancel, onVersion
                 />
                 <Label className="text-sm">Auto</Label>
               </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowHistory(!showHistory)}
+              >
+                <History className="h-4 w-4 mr-2" />
+                {showHistory ? 'Masquer' : 'Historique'}
+              </Button>
             </div>
           </div>
 
@@ -386,7 +400,7 @@ export function TemplateEditor({ template, onChange, onSave, onCancel, onVersion
 
           <TabsContent value="history">
             {template.id && (
-              <TemplateVersionHistory 
+              <TemplateHistory 
                 template={template} 
                 onRestore={onVersionRestore}
               />
