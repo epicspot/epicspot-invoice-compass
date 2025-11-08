@@ -11,6 +11,7 @@ import { format, startOfMonth, endOfMonth, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { generateSubscriptionReport } from '@/lib/utils/subscriptionReportPdfUtils';
 import { useCompanyInfo } from '@/hooks/useCompanyInfo';
+import ManualInvoiceGeneration from '@/components/ManualInvoiceGeneration';
 
 interface SubscriptionInvoice {
   id: string;
@@ -70,7 +71,7 @@ const SubscriptionInvoices = () => {
     try {
       setLoading(true);
       
-      // Récupérer les factures avec les informations client et abonnement
+      // Récupérer les factures d'abonnement
       const { data: invoicesData, error: invoicesError } = await supabase
         .from('invoices')
         .select(`
@@ -81,32 +82,26 @@ const SubscriptionInvoices = () => {
           payment_status,
           paid_amount,
           remaining_balance,
+          subscription_id,
           client_id,
           clients!inner(id, name, phone, email),
-          invoice_items!inner(
-            product_id,
-            products(description)
-          )
+          subscriptions!inner(id, service_name, monthly_amount)
         `)
+        .eq('invoice_type', 'subscription')
+        .not('subscription_id', 'is', null)
         .order('date', { ascending: false });
 
       if (invoicesError) throw invoicesError;
 
-      // Récupérer les abonnements
-      const { data: subscriptionsData, error: subscriptionsError } = await supabase
-        .from('subscriptions')
-        .select('id, client_id, service_name, monthly_amount');
-
-      if (subscriptionsError) throw subscriptionsError;
-
-      // Filtrer les factures d'abonnement et les enrichir
+      // Mapper les factures
       const subscriptionInvoices = (invoicesData || [])
         .map((invoice: any) => {
-          const subscription = subscriptionsData?.find(
-            (sub) => sub.client_id === invoice.client_id
-          );
-
-          if (!subscription) return null;
+          const subscription = invoice.subscriptions;
+          
+          if (!subscription) {
+            console.warn('Invoice without subscription:', invoice.id);
+            return null;
+          }
 
           return {
             id: invoice.id,
@@ -395,6 +390,9 @@ const SubscriptionInvoices = () => {
             {isGeneratingPdf ? 'Génération...' : 'Générer Rapport PDF'}
           </Button>
         </div>
+
+        {/* Génération manuelle */}
+        <ManualInvoiceGeneration />
 
         {/* Filtres par période */}
         <Card>

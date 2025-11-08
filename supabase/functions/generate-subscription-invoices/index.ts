@@ -81,6 +81,8 @@ serve(async (req) => {
           .insert({
             number: invoiceNumber,
             client_id: subscription.client_id,
+            subscription_id: subscription.id,
+            invoice_type: 'subscription',
             date: todayStr,
             subtotal: subscription.monthly_amount,
             tax: 0,

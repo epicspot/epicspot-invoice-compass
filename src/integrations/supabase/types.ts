@@ -523,6 +523,7 @@ export type Database = {
           date: string
           discount: number | null
           id: string
+          invoice_type: string | null
           notes: string | null
           number: string
           paid_amount: number | null
@@ -530,6 +531,7 @@ export type Database = {
           remaining_balance: number | null
           site_id: string | null
           status: string
+          subscription_id: string | null
           subtotal: number
           tax: number
           total: number
@@ -544,6 +546,7 @@ export type Database = {
           date: string
           discount?: number | null
           id?: string
+          invoice_type?: string | null
           notes?: string | null
           number: string
           paid_amount?: number | null
@@ -551,6 +554,7 @@ export type Database = {
           remaining_balance?: number | null
           site_id?: string | null
           status?: string
+          subscription_id?: string | null
           subtotal: number
           tax?: number
           total: number
@@ -565,6 +569,7 @@ export type Database = {
           date?: string
           discount?: number | null
           id?: string
+          invoice_type?: string | null
           notes?: string | null
           number?: string
           paid_amount?: number | null
@@ -572,6 +577,7 @@ export type Database = {
           remaining_balance?: number | null
           site_id?: string | null
           status?: string
+          subscription_id?: string | null
           subtotal?: number
           tax?: number
           total?: number
@@ -598,6 +604,13 @@ export type Database = {
             columns: ["site_id"]
             isOneToOne: false
             referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
             referencedColumns: ["id"]
           },
           {
