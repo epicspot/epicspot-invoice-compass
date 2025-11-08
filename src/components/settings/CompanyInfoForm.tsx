@@ -1,145 +1,217 @@
 
-import React from "react";
+import React, { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
+import { Label } from "@/components/ui/label";
 import { useCompanyInfo } from "@/hooks/useCompanyInfo";
+import { companyInfoSchema, type CompanyInfoFormData } from "@/lib/validation/companySchema";
+
 
 const CompanyInfoForm = () => {
   const { companyInfo, loading, saveCompanyInfo } = useCompanyInfo();
-  const [formData, setFormData] = React.useState(companyInfo);
+  
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm<CompanyInfoFormData>({
+    resolver: zodResolver(companyInfoSchema),
+    defaultValues: companyInfo,
+  });
 
-  React.useEffect(() => {
-    setFormData(companyInfo);
-  }, [companyInfo]);
+  useEffect(() => {
+    reset(companyInfo);
+  }, [companyInfo, reset]);
 
-  const handleChange = (field: string, value: string) => {
-    setFormData({ ...formData, [field]: value });
-  };
-
-  const handleSave = () => {
-    saveCompanyInfo(formData);
+  const onSubmit = async (data: CompanyInfoFormData) => {
+    await saveCompanyInfo(data);
   };
 
   if (loading) {
-    return <div>Chargement...</div>;
+    return <div className="flex items-center justify-center p-8">Chargement...</div>;
   }
 
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Informations de l'entreprise</CardTitle>
-        <CardDescription>
-          Ces informations apparaîtront sur vos devis et factures.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Nom de l'entreprise</label>
-            <Input 
-              value={formData.name} 
-              onChange={(e) => handleChange('name', e.target.value)} 
-            />
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <Card>
+        <CardHeader>
+          <CardTitle>Informations de l'entreprise</CardTitle>
+          <CardDescription>
+            Ces informations apparaîtront sur vos devis et factures.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="name">Nom de l'entreprise *</Label>
+              <Input 
+                id="name"
+                {...register('name')}
+              />
+              {errors.name && (
+                <p className="text-sm text-destructive">{errors.name.message}</p>
+              )}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="address">Adresse *</Label>
+              <Input 
+                id="address"
+                {...register('address')}
+              />
+              {errors.address && (
+                <p className="text-sm text-destructive">{errors.address.message}</p>
+              )}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="phone">Téléphone</Label>
+              <Input 
+                id="phone"
+                {...register('phone')}
+                placeholder="+225 XX XX XX XX"
+              />
+              {errors.phone && (
+                <p className="text-sm text-destructive">{errors.phone.message}</p>
+              )}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input 
+                id="email"
+                type="email"
+                {...register('email')}
+                placeholder="contact@entreprise.com"
+              />
+              {errors.email && (
+                <p className="text-sm text-destructive">{errors.email.message}</p>
+              )}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="website">Site web</Label>
+              <Input 
+                id="website"
+                {...register('website')}
+                placeholder="https://www.entreprise.com"
+              />
+              {errors.website && (
+                <p className="text-sm text-destructive">{errors.website.message}</p>
+              )}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="taxId">Numéro de TVA / RC</Label>
+              <Input 
+                id="taxId"
+                {...register('taxId')}
+                placeholder="RC: XXXXXXX - IF: XXXXXXX"
+              />
+              {errors.taxId && (
+                <p className="text-sm text-destructive">{errors.taxId.message}</p>
+              )}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="signatory">Signataire</Label>
+              <Input 
+                id="signatory"
+                {...register('signatory')}
+                placeholder="Nom du signataire"
+              />
+              {errors.signatory && (
+                <p className="text-sm text-destructive">{errors.signatory.message}</p>
+              )}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="signatoryTitle">Titre du signataire</Label>
+              <Input 
+                id="signatoryTitle"
+                {...register('signatoryTitle')}
+                placeholder="Ex: Directeur Général"
+              />
+              {errors.signatoryTitle && (
+                <p className="text-sm text-destructive">{errors.signatoryTitle.message}</p>
+              )}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="bankName">Nom de la banque</Label>
+              <Input 
+                id="bankName"
+                {...register('bankName')}
+                placeholder="Nom de la banque"
+              />
+              {errors.bankName && (
+                <p className="text-sm text-destructive">{errors.bankName.message}</p>
+              )}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="bankAccount">Numéro de compte bancaire</Label>
+              <Input 
+                id="bankAccount"
+                {...register('bankAccount')}
+                placeholder="Numéro de compte"
+              />
+              {errors.bankAccount && (
+                <p className="text-sm text-destructive">{errors.bankAccount.message}</p>
+              )}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="bankIBAN">IBAN</Label>
+              <Input 
+                id="bankIBAN"
+                {...register('bankIBAN')}
+                placeholder="FR76 XXXX XXXX XXXX XXXX XXXX XXX"
+              />
+              {errors.bankIBAN && (
+                <p className="text-sm text-destructive">{errors.bankIBAN.message}</p>
+              )}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="bankSwift">Code SWIFT/BIC</Label>
+              <Input 
+                id="bankSwift"
+                {...register('bankSwift')}
+                placeholder="BNPAFRPPXXX"
+                maxLength={11}
+              />
+              {errors.bankSwift && (
+                <p className="text-sm text-destructive">{errors.bankSwift.message}</p>
+              )}
+            </div>
+            
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="slogan">Slogan de l'entreprise</Label>
+              <Input 
+                id="slogan"
+                {...register('slogan')}
+                placeholder="Ex: Votre partenaire de confiance"
+              />
+              {errors.slogan && (
+                <p className="text-sm text-destructive">{errors.slogan.message}</p>
+              )}
+            </div>
           </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Adresse</label>
-            <Input 
-              value={formData.address} 
-              onChange={(e) => handleChange('address', e.target.value)} 
-            />
+          
+          <div className="flex justify-end">
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Enregistrement..." : "Enregistrer"}
+            </Button>
           </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Téléphone</label>
-            <Input 
-              value={formData.phone || ''} 
-              onChange={(e) => handleChange('phone', e.target.value)} 
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Email</label>
-            <Input 
-              value={formData.email || ''} 
-              onChange={(e) => handleChange('email', e.target.value)} 
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Site web</label>
-            <Input 
-              value={formData.website || ''} 
-              onChange={(e) => handleChange('website', e.target.value)} 
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Numéro de TVA / RC</label>
-            <Input 
-              value={formData.taxId || ''} 
-              onChange={(e) => handleChange('taxId', e.target.value)} 
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Signataire</label>
-            <Input 
-              value={formData.signatory || ''} 
-              onChange={(e) => handleChange('signatory', e.target.value)} 
-              placeholder="Nom du signataire"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Titre du signataire</label>
-            <Input 
-              value={formData.signatoryTitle || ''} 
-              onChange={(e) => handleChange('signatoryTitle', e.target.value)} 
-              placeholder="Ex: Directeur Général"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Nom de la banque</label>
-            <Input 
-              value={formData.bankName || ''} 
-              onChange={(e) => handleChange('bankName', e.target.value)} 
-              placeholder="Nom de la banque"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Numéro de compte bancaire</label>
-            <Input 
-              value={formData.bankAccount || ''} 
-              onChange={(e) => handleChange('bankAccount', e.target.value)} 
-              placeholder="Numéro de compte"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">IBAN</label>
-            <Input 
-              value={formData.bankIBAN || ''} 
-              onChange={(e) => handleChange('bankIBAN', e.target.value)} 
-              placeholder="Code IBAN"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Code SWIFT/BIC</label>
-            <Input 
-              value={formData.bankSwift || ''} 
-              onChange={(e) => handleChange('bankSwift', e.target.value)} 
-              placeholder="Code SWIFT/BIC"
-            />
-          </div>
-          <div className="space-y-2 md:col-span-2">
-            <label className="text-sm font-medium">Slogan de l'entreprise</label>
-            <Input 
-              value={formData.slogan || ''} 
-              onChange={(e) => handleChange('slogan', e.target.value)} 
-              placeholder="Ex: Votre partenaire de confiance"
-            />
-          </div>
-        </div>
-        <div className="flex justify-end">
-          <Button onClick={handleSave}>Enregistrer</Button>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </form>
   );
 };
 

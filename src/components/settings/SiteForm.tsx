@@ -1,5 +1,7 @@
 
-import React, { useState } from "react";
+import React from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { 
   Card, 
   CardContent, 
@@ -13,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Site } from "@/lib/types";
+import { siteSchema, type SiteFormData } from "@/lib/validation/companySchema";
 
 interface SiteFormProps {
   site?: Site;
@@ -21,40 +24,41 @@ interface SiteFormProps {
 }
 
 const SiteForm: React.FC<SiteFormProps> = ({ site, onSave, onCancel }) => {
-  const [formData, setFormData] = useState<Omit<Site, "id" | "cashRegisters">>({
-    name: site?.name || "",
-    address: site?.address || "",
-    phone: site?.phone || "",
-    email: site?.email || "",
-    isMainSite: site?.isMainSite || false,
-    useHeadquartersInfo: site?.useHeadquartersInfo ?? true,
-    taxId: site?.taxId || "",
-    bankAccount: site?.bankAccount || "",
-    bankName: site?.bankName || "",
-    bankIBAN: site?.bankIBAN || "",
-    bankSwift: site?.bankSwift || ""
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm<SiteFormData>({
+    resolver: zodResolver(siteSchema),
+    defaultValues: {
+      name: site?.name || "",
+      address: site?.address || "",
+      phone: site?.phone || "",
+      email: site?.email || "",
+      isMainSite: site?.isMainSite || false,
+      useHeadquartersInfo: site?.useHeadquartersInfo ?? true,
+      taxId: site?.taxId || "",
+      bankAccount: site?.bankAccount || "",
+      bankName: site?.bankName || "",
+      bankIBAN: site?.bankIBAN || "",
+      bankSwift: site?.bankSwift || ""
+    }
   });
 
-  const handleChange = (field: keyof typeof formData, value: string | boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
+  const useHeadquartersInfo = watch("useHeadquartersInfo");
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const onSubmit = (data: SiteFormData) => {
     const newSite: Site = {
       id: site?.id || `site-${Date.now()}`,
-      ...formData
+      ...data
     };
-
     onSave(newSite);
   };
 
+
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit(onSubmit)}>
       <Card>
         <CardHeader>
           <CardTitle>{site ? "Modifier le site" : "Ajouter un site"}</CardTitle>
@@ -64,25 +68,27 @@ const SiteForm: React.FC<SiteFormProps> = ({ site, onSave, onCancel }) => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Nom du site</Label>
+            <Label htmlFor="name">Nom du site *</Label>
             <Input
               id="name"
               placeholder="Siège social, Succursale Lyon, etc."
-              value={formData.name}
-              onChange={(e) => handleChange("name", e.target.value)}
-              required
+              {...register("name")}
             />
+            {errors.name && (
+              <p className="text-sm text-destructive">{errors.name.message}</p>
+            )}
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="address">Adresse</Label>
+            <Label htmlFor="address">Adresse *</Label>
             <Input
               id="address"
               placeholder="123 rue Example, Ville 75000"
-              value={formData.address}
-              onChange={(e) => handleChange("address", e.target.value)}
-              required
+              {...register("address")}
             />
+            {errors.address && (
+              <p className="text-sm text-destructive">{errors.address.message}</p>
+            )}
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -91,9 +97,11 @@ const SiteForm: React.FC<SiteFormProps> = ({ site, onSave, onCancel }) => {
               <Input
                 id="phone"
                 placeholder="+33 1 23 45 67 89"
-                value={formData.phone}
-                onChange={(e) => handleChange("phone", e.target.value)}
+                {...register("phone")}
               />
+              {errors.phone && (
+                <p className="text-sm text-destructive">{errors.phone.message}</p>
+              )}
             </div>
             
             <div className="space-y-2">
@@ -102,17 +110,18 @@ const SiteForm: React.FC<SiteFormProps> = ({ site, onSave, onCancel }) => {
                 id="email"
                 placeholder="contact@site.com"
                 type="email"
-                value={formData.email}
-                onChange={(e) => handleChange("email", e.target.value)}
+                {...register("email")}
               />
+              {errors.email && (
+                <p className="text-sm text-destructive">{errors.email.message}</p>
+              )}
             </div>
           </div>
           
           <div className="flex items-center space-x-2 p-4 bg-muted/50 rounded-lg">
             <Switch
               id="useHeadquartersInfo"
-              checked={formData.useHeadquartersInfo ?? true}
-              onCheckedChange={(checked) => handleChange("useHeadquartersInfo", checked)}
+              {...register("useHeadquartersInfo")}
             />
             <div className="flex-1">
               <Label htmlFor="useHeadquartersInfo" className="cursor-pointer">
@@ -124,16 +133,18 @@ const SiteForm: React.FC<SiteFormProps> = ({ site, onSave, onCancel }) => {
             </div>
           </div>
 
-          {!formData.useHeadquartersInfo && (
+          {!useHeadquartersInfo && (
             <>
               <div className="space-y-2">
                 <Label htmlFor="taxId">Numéro de TVA / RC</Label>
                 <Input
                   id="taxId"
                   placeholder="RC: XXXXXXX - IF: XXXXXXX"
-                  value={formData.taxId}
-                  onChange={(e) => handleChange("taxId", e.target.value)}
+                  {...register("taxId")}
                 />
+                {errors.taxId && (
+                  <p className="text-sm text-destructive">{errors.taxId.message}</p>
+                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -142,9 +153,11 @@ const SiteForm: React.FC<SiteFormProps> = ({ site, onSave, onCancel }) => {
                   <Input
                     id="bankName"
                     placeholder="Nom de la banque"
-                    value={formData.bankName}
-                    onChange={(e) => handleChange("bankName", e.target.value)}
+                    {...register("bankName")}
                   />
+                  {errors.bankName && (
+                    <p className="text-sm text-destructive">{errors.bankName.message}</p>
+                  )}
                 </div>
                 
                 <div className="space-y-2">
@@ -152,29 +165,36 @@ const SiteForm: React.FC<SiteFormProps> = ({ site, onSave, onCancel }) => {
                   <Input
                     id="bankAccount"
                     placeholder="Numéro de compte"
-                    value={formData.bankAccount}
-                    onChange={(e) => handleChange("bankAccount", e.target.value)}
+                    {...register("bankAccount")}
                   />
+                  {errors.bankAccount && (
+                    <p className="text-sm text-destructive">{errors.bankAccount.message}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="bankIBAN">IBAN</Label>
                   <Input
                     id="bankIBAN"
-                    placeholder="Code IBAN"
-                    value={formData.bankIBAN}
-                    onChange={(e) => handleChange("bankIBAN", e.target.value)}
+                    placeholder="FR76 XXXX XXXX"
+                    {...register("bankIBAN")}
                   />
+                  {errors.bankIBAN && (
+                    <p className="text-sm text-destructive">{errors.bankIBAN.message}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="bankSwift">Code SWIFT/BIC</Label>
                   <Input
                     id="bankSwift"
-                    placeholder="Code SWIFT/BIC"
-                    value={formData.bankSwift}
-                    onChange={(e) => handleChange("bankSwift", e.target.value)}
+                    placeholder="BNPAFRPPXXX"
+                    maxLength={11}
+                    {...register("bankSwift")}
                   />
+                  {errors.bankSwift && (
+                    <p className="text-sm text-destructive">{errors.bankSwift.message}</p>
+                  )}
                 </div>
               </div>
             </>
@@ -183,8 +203,7 @@ const SiteForm: React.FC<SiteFormProps> = ({ site, onSave, onCancel }) => {
           <div className="flex items-center space-x-2">
             <Switch
               id="isMainSite"
-              checked={formData.isMainSite}
-              onCheckedChange={(checked) => handleChange("isMainSite", checked)}
+              {...register("isMainSite")}
               disabled={site?.isMainSite}
             />
             <Label htmlFor="isMainSite">Site principal</Label>
@@ -194,8 +213,8 @@ const SiteForm: React.FC<SiteFormProps> = ({ site, onSave, onCancel }) => {
           <Button variant="outline" type="button" onClick={onCancel}>
             Annuler
           </Button>
-          <Button type="submit">
-            {site ? "Mettre à jour" : "Ajouter"}
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Enregistrement..." : (site ? "Mettre à jour" : "Ajouter")}
           </Button>
         </CardFooter>
       </Card>
