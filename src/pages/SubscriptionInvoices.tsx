@@ -6,9 +6,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { FileText, Download, Eye, Calendar, DollarSign, User, X } from 'lucide-react';
+import { FileText, Download, Eye, Calendar, DollarSign, User, X, FileDown } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { generateSubscriptionReport } from '@/lib/utils/subscriptionReportPdfUtils';
+import { useCompanyInfo } from '@/hooks/useCompanyInfo';
 
 interface SubscriptionInvoice {
   id: string;
@@ -27,8 +29,10 @@ interface SubscriptionInvoice {
 }
 
 const SubscriptionInvoices = () => {
+  const { companyInfo } = useCompanyInfo();
   const [invoices, setInvoices] = useState<SubscriptionInvoice[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState<string>('');
   const [selectedYear, setSelectedYear] = useState<string>('');
   const [stats, setStats] = useState({
@@ -188,6 +192,50 @@ const SubscriptionInvoices = () => {
 
   const hasActiveFilters = selectedMonth || selectedYear;
 
+  const handleGenerateReport = async () => {
+    setIsGeneratingPdf(true);
+    try {
+      if (!companyInfo) {
+        toast({
+          title: 'Erreur',
+          description: 'Informations de l\'entreprise non disponibles',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      await generateSubscriptionReport(
+        filteredInvoices,
+        stats,
+        {
+          month: selectedMonth,
+          year: selectedYear,
+        },
+        {
+          name: companyInfo.name || 'Entreprise',
+          address: companyInfo.address || '',
+          phone: companyInfo.phone || '',
+          email: companyInfo.email || '',
+          logo: companyInfo.logo || undefined,
+        }
+      );
+
+      toast({
+        title: 'Succès',
+        description: 'Le rapport PDF a été généré avec succès',
+      });
+    } catch (error) {
+      console.error('Erreur lors de la génération du rapport:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de générer le rapport PDF',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
   const getPaymentStatusBadge = (status: string) => {
     const statusConfig = {
       paid: { label: 'Payé', variant: 'default' as const },
@@ -295,6 +343,14 @@ const SubscriptionInvoices = () => {
               Gestion et suivi des factures des abonnements internet
             </p>
           </div>
+          <Button
+            onClick={handleGenerateReport}
+            disabled={isGeneratingPdf || filteredInvoices.length === 0}
+            className="gap-2"
+          >
+            <FileDown className="h-4 w-4" />
+            {isGeneratingPdf ? 'Génération...' : 'Générer Rapport PDF'}
+          </Button>
         </div>
 
         {/* Filtres par période */}
