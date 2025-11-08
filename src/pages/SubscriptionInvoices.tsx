@@ -33,8 +33,8 @@ const SubscriptionInvoices = () => {
   const [invoices, setInvoices] = useState<SubscriptionInvoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
-  const [selectedMonth, setSelectedMonth] = useState<string>('');
-  const [selectedYear, setSelectedYear] = useState<string>('');
+  const [selectedMonth, setSelectedMonth] = useState<string>('all');
+  const [selectedYear, setSelectedYear] = useState<string>('all');
   const [stats, setStats] = useState({
     totalInvoices: 0,
     totalAmount: 0,
@@ -159,14 +159,14 @@ const SubscriptionInvoices = () => {
 
   // Filtrer les factures par période
   const filteredInvoices = invoices.filter((invoice) => {
-    if (!selectedMonth && !selectedYear) return true;
+    if (selectedMonth === 'all' && selectedYear === 'all') return true;
 
     const invoiceDate = parseISO(invoice.date);
     const invoiceMonth = format(invoiceDate, 'MM');
     const invoiceYear = format(invoiceDate, 'yyyy');
 
-    const monthMatch = !selectedMonth || invoiceMonth === selectedMonth;
-    const yearMatch = !selectedYear || invoiceYear === selectedYear;
+    const monthMatch = selectedMonth === 'all' || invoiceMonth === selectedMonth;
+    const yearMatch = selectedYear === 'all' || invoiceYear === selectedYear;
 
     return monthMatch && yearMatch;
   });
@@ -186,11 +186,11 @@ const SubscriptionInvoices = () => {
   }, [filteredInvoices]);
 
   const resetFilters = () => {
-    setSelectedMonth('');
-    setSelectedYear('');
+    setSelectedMonth('all');
+    setSelectedYear('all');
   };
 
-  const hasActiveFilters = selectedMonth || selectedYear;
+  const hasActiveFilters = selectedMonth !== 'all' || selectedYear !== 'all';
 
   const handleGenerateReport = async () => {
     setIsGeneratingPdf(true);
@@ -208,8 +208,8 @@ const SubscriptionInvoices = () => {
         filteredInvoices,
         stats,
         {
-          month: selectedMonth,
-          year: selectedYear,
+          month: selectedMonth === 'all' ? undefined : selectedMonth,
+          year: selectedYear === 'all' ? undefined : selectedYear,
         },
         {
           name: companyInfo.name || 'Entreprise',
@@ -370,7 +370,7 @@ const SubscriptionInvoices = () => {
                     <SelectValue placeholder="Tous les mois" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Tous les mois</SelectItem>
+                    <SelectItem value="all">Tous les mois</SelectItem>
                     {months.map((month) => (
                       <SelectItem key={month.value} value={month.value}>
                         {month.label}
@@ -387,7 +387,7 @@ const SubscriptionInvoices = () => {
                     <SelectValue placeholder="Toutes les années" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Toutes les années</SelectItem>
+                    <SelectItem value="all">Toutes les années</SelectItem>
                     {years.map((year) => (
                       <SelectItem key={year.value} value={year.value}>
                         {year.label}
@@ -408,12 +408,12 @@ const SubscriptionInvoices = () => {
             {hasActiveFilters && (
               <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
                 <span>Filtres actifs:</span>
-                {selectedMonth && (
+                {selectedMonth !== 'all' && (
                   <Badge variant="secondary">
                     {months.find((m) => m.value === selectedMonth)?.label}
                   </Badge>
                 )}
-                {selectedYear && <Badge variant="secondary">{selectedYear}</Badge>}
+                {selectedYear !== 'all' && <Badge variant="secondary">{selectedYear}</Badge>}
               </div>
             )}
           </CardContent>
