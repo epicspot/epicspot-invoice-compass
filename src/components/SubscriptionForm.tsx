@@ -45,7 +45,15 @@ export const SubscriptionForm: React.FC<SubscriptionFormProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    
+    // Convert empty strings to null/undefined for optional date fields
+    const submissionData = {
+      ...formData,
+      endDate: formData.endDate || undefined,
+      notes: formData.notes || undefined,
+    };
+    
+    onSubmit(submissionData);
     onClose();
   };
 
