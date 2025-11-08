@@ -48,6 +48,7 @@ const TaxAnalyticsDashboard = lazy(() => import("./pages/TaxAnalyticsDashboard")
 const Markets = lazy(() => import("./pages/Markets"));
 const MarketDetails = lazy(() => import("./pages/MarketDetails"));
 const DocumentTemplates = lazy(() => import("./pages/DocumentTemplates"));
+const Monitoring = lazy(() => import("./pages/Monitoring"));
 import { AIAssistant } from "./components/AIAssistant";
 import Sidebar from "./components/Sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
@@ -125,6 +126,7 @@ const App = () => {
                             <Route path="/markets" element={<Markets />} />
                             <Route path="/markets/:id" element={<MarketDetails />} />
                             <Route path="/document-templates" element={<DocumentTemplates />} />
+                            <Route path="/monitoring" element={<Monitoring />} />
                             <Route path="*" element={<NotFound />} />
                           </Routes>
                         </Suspense>

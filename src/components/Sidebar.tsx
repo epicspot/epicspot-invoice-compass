@@ -28,7 +28,8 @@ import {
   Wifi,
   Receipt,
   Briefcase,
-  Layout
+  Layout,
+  Activity
 } from 'lucide-react';
 import Logo from './Logo';
 import { useAuth } from '@/contexts/AuthContext';
@@ -89,6 +90,7 @@ const Sidebar = () => {
     { name: t('nav.purchaseOrders'), path: '/purchase-orders', icon: ShoppingBag },
     { name: 'Marchés', path: '/markets', icon: Briefcase },
     { name: 'Templates Documents', path: '/document-templates', icon: Layout },
+    { name: 'Monitoring', path: '/monitoring', icon: Activity },
     { name: t('nav.analytics'), path: '/analytics', icon: LineChart },
     { name: 'Analytics Avancé', path: '/advanced-analytics', icon: BarChart3 },
     { name: t('nav.cashRegisters'), path: '/cash-registers', icon: CreditCard },

@@ -17,7 +17,7 @@ export function useRoles(userId?: string) {
   const [roles, setRoles] = useState<UserRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const { executeWithRetry } = useRetry();
+  const { executeWithRetry } = useRetry('fetchRoles');
   const { handleError } = useErrorHandler();
 
   useEffect(() => {

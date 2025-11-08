@@ -14,7 +14,7 @@ export function useCollections() {
   const [collections, setCollections] = useState<CollectionWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const { handleError } = useErrorHandler();
-  const { executeWithRetry } = useRetry();
+  const { executeWithRetry } = useRetry('fetchCollections');
 
   const fetchCollections = async () => {
     try {

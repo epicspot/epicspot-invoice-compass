@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useErrorHandler } from './useErrorHandler';
+import { useRetryMonitoring } from './useRetryMonitoring';
 
 export interface RetryOptions {
   maxAttempts?: number;
@@ -19,10 +20,11 @@ const DEFAULT_OPTIONS: Required<RetryOptions> = {
   onRetry: () => {},
 };
 
-export const useRetry = () => {
+export const useRetry = (operationName = 'unknown') => {
   const [isRetrying, setIsRetrying] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const { handleError } = useErrorHandler();
+  const { recordRetry } = useRetryMonitoring();
 
   const shouldRetry = (error: unknown, attempt: number, options: RetryOptions): boolean => {
     const opts = { ...DEFAULT_OPTIONS, ...options };
@@ -65,6 +67,7 @@ export const useRetry = () => {
     const opts = { ...DEFAULT_OPTIONS, ...options };
     let lastError: unknown;
     let attempt = 0;
+    const startTime = performance.now();
 
     while (attempt < opts.maxAttempts) {
       try {
@@ -73,9 +76,15 @@ export const useRetry = () => {
 
         const result = await operation();
         
-        // Success - reset state
+        // Success - reset state and record metrics
+        const duration = performance.now() - startTime;
         setIsRetrying(false);
         setRetryCount(0);
+        
+        // Record successful retry (if there were retries)
+        if (attempt > 0) {
+          recordRetry(operationName, true, attempt, duration);
+        }
         
         return result;
       } catch (error) {
@@ -84,6 +93,13 @@ export const useRetry = () => {
 
         if (!shouldRetry(error, attempt, opts)) {
           // Error is not retryable or max attempts reached
+          const duration = performance.now() - startTime;
+          const errorCode = typeof error === 'object' && error !== null && 'code' in error 
+            ? (error as any).code 
+            : undefined;
+          
+          recordRetry(operationName, false, attempt, duration, errorCode);
+          
           setIsRetrying(false);
           setRetryCount(0);
           throw error;
@@ -109,6 +125,13 @@ export const useRetry = () => {
     }
 
     // All retries failed
+    const duration = performance.now() - startTime;
+    const errorCode = typeof lastError === 'object' && lastError !== null && 'code' in lastError 
+      ? (lastError as any).code 
+      : undefined;
+    
+    recordRetry(operationName, false, attempt, duration, errorCode);
+    
     setIsRetrying(false);
     setRetryCount(0);
     throw lastError;
