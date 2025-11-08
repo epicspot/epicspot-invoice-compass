@@ -39,6 +39,26 @@ export function useLeads() {
 
   useEffect(() => {
     fetchLeads();
+
+    // Subscribe to realtime changes
+    const channel = supabase
+      .channel('leads-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'leads'
+        },
+        () => {
+          fetchLeads();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const createLead = async (lead: Omit<Lead, 'id' | 'createdAt'>) => {
