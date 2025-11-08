@@ -1395,6 +1395,56 @@ export type Database = {
         }
         Relationships: []
       }
+      template_versions: {
+        Row: {
+          change_summary: string | null
+          created_at: string | null
+          created_by: string | null
+          id: string
+          layout: Json
+          logo_url: string | null
+          name: string
+          sections: Json
+          styles: Json
+          template_id: string
+          version_number: number
+        }
+        Insert: {
+          change_summary?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          layout: Json
+          logo_url?: string | null
+          name: string
+          sections: Json
+          styles: Json
+          template_id: string
+          version_number: number
+        }
+        Update: {
+          change_summary?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          layout?: Json
+          logo_url?: string | null
+          name?: string
+          sections?: Json
+          styles?: Json
+          template_id?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_versions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "document_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_presence: {
         Row: {
           current_page: string | null

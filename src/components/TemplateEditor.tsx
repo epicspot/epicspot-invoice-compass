@@ -7,8 +7,9 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TemplatePreview } from '@/components/TemplatePreview';
+import { TemplateVersionHistory } from '@/components/TemplateVersionHistory';
 import { DocumentTemplate, TemplateSection } from '@/hooks/useDocumentTemplates';
-import { GripVertical, Eye, EyeOff } from 'lucide-react';
+import { GripVertical, Eye, EyeOff, History } from 'lucide-react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -18,6 +19,7 @@ interface TemplateEditorProps {
   onChange: (template: Partial<DocumentTemplate>) => void;
   onSave: () => void;
   onCancel: () => void;
+  onVersionRestore?: () => void;
 }
 
 function SortableSection({ section, onToggle }: { section: TemplateSection; onToggle: (id: string) => void }) {
@@ -43,10 +45,11 @@ function SortableSection({ section, onToggle }: { section: TemplateSection; onTo
   );
 }
 
-export function TemplateEditor({ template, onChange, onSave, onCancel }: TemplateEditorProps) {
+export function TemplateEditor({ template, onChange, onSave, onCancel, onVersionRestore }: TemplateEditorProps) {
   const [sections, setSections] = useState<TemplateSection[]>(template.sections);
   const [showPreview, setShowPreview] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [activeTab, setActiveTab] = useState<'sections' | 'layout' | 'styles' | 'history'>('sections');
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -129,11 +132,15 @@ export function TemplateEditor({ template, onChange, onSave, onCancel }: Templat
           </div>
         </div>
 
-        <Tabs defaultValue="sections" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="space-y-4">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="sections">Sections</TabsTrigger>
             <TabsTrigger value="layout">Mise en page</TabsTrigger>
             <TabsTrigger value="styles">Styles</TabsTrigger>
+            <TabsTrigger value="history">
+              <History className="h-4 w-4 mr-2" />
+              Historique
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="sections" className="space-y-4">
@@ -375,6 +382,23 @@ export function TemplateEditor({ template, onChange, onSave, onCancel }: Templat
               </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="history">
+            {template.id && (
+              <TemplateVersionHistory 
+                template={template} 
+                onRestore={onVersionRestore}
+              />
+            )}
+            {!template.id && (
+              <Card>
+                <CardContent className="py-8 text-center text-muted-foreground">
+                  <History className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>L'historique sera disponible après la première sauvegarde du template</p>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
         </Tabs>
 

@@ -249,6 +249,11 @@ export default function DocumentTemplates() {
                 setIsDialogOpen(false);
                 setEditingTemplate(null);
               }}
+              onVersionRestore={() => {
+                // Refetch templates when a version is restored
+                setIsDialogOpen(false);
+                setEditingTemplate(null);
+              }}
             />
           )}
         </DialogContent>
