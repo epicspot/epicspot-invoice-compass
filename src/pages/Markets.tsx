@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useMarkets } from '@/hooks/useMarkets';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,6 +25,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 export default function Markets() {
+  const navigate = useNavigate();
   const { markets, loading, createMarket, updateMarket, deleteMarket } = useMarkets();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingMarket, setEditingMarket] = useState<any>(null);
@@ -216,6 +218,10 @@ export default function Markets() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => navigate(`/markets/${market.id}`)}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            Voir détails
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => { setEditingMarket(market); setIsFormOpen(true); }}>
                             <Edit className="h-4 w-4 mr-2" />
                             Modifier
