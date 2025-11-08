@@ -6,6 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Activity, 
   CheckCircle2, 
@@ -14,9 +15,11 @@ import {
   TrendingUp, 
   AlertTriangle,
   Trash2,
-  BarChart3
+  BarChart3,
+  LineChart
 } from 'lucide-react';
 import { useRetryMonitoring } from '@/hooks/useRetryMonitoring';
+import { RetryCharts } from './RetryCharts';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -85,8 +88,21 @@ export const RetryMonitoring = () => {
         </div>
       </div>
 
-      {/* Overview Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="overview" className="gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Vue d'ensemble
+          </TabsTrigger>
+          <TabsTrigger value="charts" className="gap-2">
+            <LineChart className="h-4 w-4" />
+            Graphiques
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-6">
+          {/* Overview Cards */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Taux de Succès</CardTitle>
@@ -281,6 +297,12 @@ export const RetryMonitoring = () => {
           </ScrollArea>
         </CardContent>
       </Card>
+        </TabsContent>
+
+        <TabsContent value="charts" className="space-y-6">
+          <RetryCharts stats={stats} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
