@@ -5,7 +5,8 @@ import DataTable from '@/components/DataTable';
 import { SubscriptionForm } from '@/components/SubscriptionForm';
 import { useSubscriptions, Subscription } from '@/hooks/useSubscriptions';
 import { toast } from '@/hooks/use-toast';
-import { Wifi, Plus, Edit, Trash, Pause, Play, XCircle } from 'lucide-react';
+import { Wifi, Plus, Edit, Trash, Pause, Play, XCircle, FileText } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,6 +41,32 @@ const Subscriptions = () => {
   const [editingSubscription, setEditingSubscription] = useState<Subscription | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [subscriptionToDelete, setSubscriptionToDelete] = useState<string | null>(null);
+  const [isGeneratingInvoices, setIsGeneratingInvoices] = useState(false);
+
+  const handleGenerateInvoices = async () => {
+    setIsGeneratingInvoices(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-subscription-invoices', {
+        body: { source: 'manual' }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Factures générées",
+        description: `${data.successCount} facture(s) créée(s) avec succès.${data.errorCount > 0 ? ` ${data.errorCount} erreur(s).` : ''}`,
+      });
+    } catch (error: any) {
+      console.error('Error generating invoices:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de générer les factures.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingInvoices(false);
+    }
+  };
 
   const handleCreate = async (data: any) => {
     try {
@@ -252,12 +279,22 @@ const Subscriptions = () => {
           <Wifi className="h-6 w-6 text-primary" />
           Abonnements Internet
         </h1>
-        <Button onClick={() => {
-          setEditingSubscription(null);
-          setIsFormOpen(true);
-        }}>
-          <Plus className="h-4 w-4 mr-2" /> Nouvel abonnement
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={handleGenerateInvoices}
+            disabled={isGeneratingInvoices}
+          >
+            <FileText className="h-4 w-4 mr-2" />
+            {isGeneratingInvoices ? 'Génération...' : 'Générer les factures'}
+          </Button>
+          <Button onClick={() => {
+            setEditingSubscription(null);
+            setIsFormOpen(true);
+          }}>
+            <Plus className="h-4 w-4 mr-2" /> Nouvel abonnement
+          </Button>
+        </div>
       </div>
 
       <DataTable
