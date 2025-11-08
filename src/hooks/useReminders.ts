@@ -39,6 +39,26 @@ export function useReminders() {
 
   useEffect(() => {
     fetchReminders();
+
+    // Subscribe to realtime changes
+    const channel = supabase
+      .channel('reminders-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'reminders'
+        },
+        () => {
+          fetchReminders();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const createReminder = async (reminder: Omit<Reminder, 'id' | 'attempts'>) => {
