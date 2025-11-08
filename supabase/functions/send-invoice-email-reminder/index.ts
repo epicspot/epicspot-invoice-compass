@@ -45,100 +45,63 @@ serve(async (req) => {
 
     const resend = new Resend(resendApiKey);
 
-    // Formater le montant
+    // Récupérer le template par défaut depuis la base de données
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    const { data: template, error: templateError } = await supabase
+      .from('email_templates')
+      .select('*')
+      .eq('type', 'invoice_reminder')
+      .eq('is_default', true)
+      .single();
+
+    if (templateError || !template) {
+      console.error('Template not found:', templateError);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Email template not configured',
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    // Formater le montant et la date
     const formattedAmount = amount.toLocaleString('fr-FR');
     const formattedDueDate = dueDate ? new Date(dueDate).toLocaleDateString('fr-FR') : '';
 
-    // Créer le contenu de l'email
-    const emailHtml = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <style>
-            body {
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-              line-height: 1.6;
-              color: #333;
-              max-width: 600px;
-              margin: 0 auto;
-              padding: 20px;
-            }
-            .header {
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-              color: white;
-              padding: 30px;
-              border-radius: 10px 10px 0 0;
-              text-align: center;
-            }
-            .content {
-              background: #f9fafb;
-              padding: 30px;
-              border-radius: 0 0 10px 10px;
-            }
-            .invoice-details {
-              background: white;
-              padding: 20px;
-              border-radius: 8px;
-              margin: 20px 0;
-              border-left: 4px solid #667eea;
-            }
-            .amount {
-              font-size: 28px;
-              font-weight: bold;
-              color: #667eea;
-              margin: 10px 0;
-            }
-            .footer {
-              text-align: center;
-              margin-top: 30px;
-              padding-top: 20px;
-              border-top: 1px solid #e5e7eb;
-              color: #6b7280;
-              font-size: 14px;
-            }
-            .highlight {
-              background-color: #fef3c7;
-              padding: 2px 6px;
-              border-radius: 4px;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h1 style="margin: 0;">Rappel de paiement</h1>
-          </div>
-          <div class="content">
-            <p>Bonjour ${clientName},</p>
-            
-            <p>Nous vous informons qu'une facture reste impayée et nécessite votre attention.</p>
-            
-            <div class="invoice-details">
-              <p><strong>Numéro de facture:</strong> <span class="highlight">${invoiceNumber}</span></p>
-              <p><strong>Montant dû:</strong></p>
-              <div class="amount">${formattedAmount} FCFA</div>
-              ${dueDate ? `<p><strong>Date d'échéance:</strong> ${formattedDueDate}</p>` : ''}
-            </div>
-            
-            <p>Nous vous prions de bien vouloir procéder au règlement de cette facture dans les meilleurs délais.</p>
-            
-            <p>Si vous avez déjà effectué le paiement, veuillez ignorer ce message. Dans le cas contraire, n'hésitez pas à nous contacter pour toute question.</p>
-            
-            <p>Cordialement,<br>
-            <strong>L'équipe de gestion</strong></p>
-          </div>
-          <div class="footer">
-            <p>Ceci est un message automatique, merci de ne pas y répondre directement.</p>
-          </div>
-        </body>
-      </html>
-    `;
+    // Variables pour le template
+    const variables: Record<string, string> = {
+      client_name: clientName,
+      invoice_number: invoiceNumber,
+      amount: formattedAmount,
+      due_date: formattedDueDate,
+      email_title: 'Rappel de paiement',
+      email_message: 'Nous vous informons qu\'une facture reste impayée et nécessite votre attention.',
+      signature: 'Cordialement,<br><strong>L\'équipe de gestion</strong>',
+      footer_text: 'Ceci est un message automatique, merci de ne pas y répondre directement.',
+    };
+
+    // Remplacer les variables dans le sujet et le body
+    let emailSubject = template.subject;
+    let emailHtml = template.body_html;
+
+    Object.entries(variables).forEach(([key, value]) => {
+      const regex = new RegExp(`{{${key}}}`, 'g');
+      emailSubject = emailSubject.replace(regex, value);
+      emailHtml = emailHtml.replace(regex, value);
+    });
 
     // Envoyer l'email via Resend
     const { data: emailData, error: emailError } = await resend.emails.send({
       from: 'Gestion <onboarding@resend.dev>',
       to: [clientEmail],
-      subject: `Rappel de paiement - Facture ${invoiceNumber}`,
+      subject: emailSubject,
       html: emailHtml,
     });
 
@@ -150,10 +113,6 @@ serve(async (req) => {
     console.log('Email sent successfully:', emailData?.id);
 
     // Enregistrer dans l'historique
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
     await supabase.from('email_reminders_history').insert({
       reminder_id: reminderId || null,
       invoice_id: invoiceId,
