@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { InvoiceItem, Invoice } from '@/lib/types';
-import { FileText, Plus, Trash, Printer } from 'lucide-react';
+import { FileText, Plus, Trash, Printer, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent } from '@/components/ui/card';
 import { useClients } from '@/hooks/useClients';
 import { useVendors } from '@/hooks/useVendors';
@@ -48,11 +49,14 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
   });
 
   const [showPreview, setShowPreview] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
   const handleClientChange = (clientId: string) => {
     const selectedClient = clients.find(c => c.id === clientId);
     if (selectedClient) {
       setInvoice({ ...invoice, client: selectedClient, clientId, vendor: undefined, vendorId: undefined });
+      // Réinitialiser les erreurs de validation
+      setValidationErrors([]);
     }
   };
 
@@ -60,10 +64,14 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
     const selectedVendor = vendors.find(v => v.id === vendorId);
     if (selectedVendor) {
       setInvoice({ ...invoice, vendor: selectedVendor, vendorId, client: undefined, clientId: undefined });
+      // Réinitialiser les erreurs de validation
+      setValidationErrors([]);
     }
   };
 
   const addItem = () => {
+    // Réinitialiser les erreurs de validation
+    setValidationErrors([]);
     const newItem: InvoiceItem = {
       id: String(Date.now()),
       product: { id: '', reference: '', description: '', price: 0 },
@@ -92,6 +100,9 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
   const handleProductChange = (itemId: string, productId: string) => {
     const selectedProduct = products.find(p => p.id === productId);
     if (!selectedProduct) return;
+    
+    // Réinitialiser les erreurs de validation
+    setValidationErrors([]);
     
     const updatedItems = (invoice.items || []).map(item => {
       if (item.id === itemId) {
@@ -171,8 +182,87 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
     setInvoice(recalculatedInvoice);
   };
 
+  const validateInvoice = (invoiceData: Partial<Invoice>): { isValid: boolean; errors: string[] } => {
+    const errors: string[] = [];
+
+    // Validation du destinataire
+    if (!invoiceData.client && !invoiceData.clientId && !invoiceData.vendor && !invoiceData.vendorId) {
+      errors.push("Veuillez sélectionner un client ou un fournisseur");
+    }
+
+    // Validation des articles
+    if (!invoiceData.items || invoiceData.items.length === 0) {
+      errors.push("Veuillez ajouter au moins un article à la facture");
+    } else {
+      invoiceData.items.forEach((item, index) => {
+        if (!item.product || !item.product.id) {
+          errors.push(`Article ${index + 1} : Veuillez sélectionner un produit`);
+        } else {
+          if (!item.product.description && !item.product.reference) {
+            errors.push(`Article ${index + 1} : Le produit doit avoir une description ou une référence`);
+          }
+          if (item.product.price === undefined || item.product.price === null || item.product.price < 0) {
+            errors.push(`Article ${index + 1} : Le produit doit avoir un prix valide`);
+          }
+        }
+        
+        if (!item.quantity || item.quantity <= 0) {
+          errors.push(`Article ${index + 1} : La quantité doit être supérieure à 0`);
+        }
+        
+        if (item.amount === undefined || item.amount === null || item.amount < 0) {
+          errors.push(`Article ${index + 1} : Le montant calculé est invalide`);
+        }
+      });
+    }
+
+    // Validation des montants
+    if (invoiceData.total === undefined || invoiceData.total === null || invoiceData.total <= 0) {
+      errors.push("Le montant total de la facture doit être supérieur à 0");
+    }
+
+    if (invoiceData.subtotal === undefined || invoiceData.subtotal === null || invoiceData.subtotal < 0) {
+      errors.push("Le sous-total de la facture est invalide");
+    }
+
+    // Validation de la TVA
+    if (invoiceData.tax !== undefined && invoiceData.tax !== null) {
+      if (invoiceData.tax < 0 || invoiceData.tax > 100) {
+        errors.push("Le taux de TVA doit être entre 0 et 100%");
+      }
+    }
+
+    // Validation de la remise
+    if (invoiceData.discount !== undefined && invoiceData.discount !== null) {
+      if (invoiceData.discount < 0) {
+        errors.push("La remise ne peut pas être négative");
+      }
+      if (invoiceData.discount > invoiceData.subtotal!) {
+        errors.push("La remise ne peut pas être supérieure au sous-total");
+      }
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Valider la facture avant soumission
+    const validation = validateInvoice(invoice);
+    
+    if (!validation.isValid) {
+      setValidationErrors(validation.errors);
+      // Scroll vers le haut pour voir les erreurs
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    
+    // Réinitialiser les erreurs si tout est valide
+    setValidationErrors([]);
     onSubmit(invoice);
   };
 
@@ -198,6 +288,21 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
               </Button>
             </div>
           </div>
+
+          {/* Alert d'erreurs de validation */}
+          {validationErrors.length > 0 && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Erreurs de validation</AlertTitle>
+              <AlertDescription>
+                <ul className="list-disc list-inside space-y-1 mt-2">
+                  {validationErrors.map((error, index) => (
+                    <li key={index}>{error}</li>
+                  ))}
+                </ul>
+              </AlertDescription>
+            </Alert>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {initialInvoice && (
