@@ -8,7 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useRetryMonitoring } from '@/hooks/useRetryMonitoring';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { Activity, AlertCircle, CheckCircle2, Info, Save } from 'lucide-react';
+import { useAlertSystem } from '@/hooks/useAlertSystem';
+import { Activity, AlertCircle, CheckCircle2, Info, Save, Bell } from 'lucide-react';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -22,6 +23,7 @@ interface RetrySettings {
 export const SystemSettings = () => {
   const { toast } = useToast();
   const { isEnabled, toggleMonitoring, stats, getSuccessRate } = useRetryMonitoring();
+  const { config: alertConfig, updateConfig: updateAlertConfig } = useAlertSystem();
   
   const [retrySettings, setRetrySettings] = useLocalStorage<RetrySettings>('retry-settings', {
     maxAttempts: 3,
@@ -291,6 +293,147 @@ export const SystemSettings = () => {
               <AlertDescription>
                 Les notifications de retry peuvent être fréquentes. Activez cette option uniquement
                 pour le débogage.
+              </AlertDescription>
+            </Alert>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Alert System Settings */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Bell className="h-5 w-5" />
+            <div>
+              <CardTitle>Système d'Alertes</CardTitle>
+              <CardDescription>
+                Configuration des alertes automatiques en temps réel
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label>Activer le Système d'Alertes</Label>
+              <p className="text-sm text-muted-foreground">
+                Surveiller automatiquement les erreurs et les anomalies
+              </p>
+            </div>
+            <Switch
+              checked={alertConfig.enabled}
+              onCheckedChange={(checked) => updateAlertConfig({ enabled: checked })}
+            />
+          </div>
+
+          <Separator />
+
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label>Erreurs Critiques Uniquement</Label>
+              <p className="text-sm text-muted-foreground">
+                N'alerter que pour les erreurs critiques et de sécurité
+              </p>
+            </div>
+            <Switch
+              checked={alertConfig.criticalErrorsOnly}
+              onCheckedChange={(checked) => updateAlertConfig({ criticalErrorsOnly: checked })}
+              disabled={!alertConfig.enabled}
+            />
+          </div>
+
+          <Separator />
+
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="errorThreshold">
+                Seuil d'Erreurs (par minute)
+              </Label>
+              <Input
+                id="errorThreshold"
+                type="number"
+                min={1}
+                max={50}
+                value={alertConfig.errorThreshold}
+                onChange={(e) => updateAlertConfig({ 
+                  errorThreshold: parseInt(e.target.value) || 5 
+                })}
+                disabled={!alertConfig.enabled}
+              />
+              <p className="text-xs text-muted-foreground">
+                Déclencher une alerte si ce nombre d'erreurs est atteint
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="retryFailureThreshold">
+                Seuil d'Échec Retry (%)
+              </Label>
+              <Input
+                id="retryFailureThreshold"
+                type="number"
+                min={10}
+                max={100}
+                value={alertConfig.retryFailureThreshold}
+                onChange={(e) => updateAlertConfig({ 
+                  retryFailureThreshold: parseInt(e.target.value) || 50 
+                })}
+                disabled={!alertConfig.enabled}
+              />
+              <p className="text-xs text-muted-foreground">
+                Alerter si le taux d'échec des retries dépasse ce pourcentage
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="performanceThreshold">
+                Seuil de Performance (ms)
+              </Label>
+              <Input
+                id="performanceThreshold"
+                type="number"
+                min={1000}
+                max={10000}
+                step={500}
+                value={alertConfig.performanceThreshold}
+                onChange={(e) => updateAlertConfig({ 
+                  performanceThreshold: parseInt(e.target.value) || 3000 
+                })}
+                disabled={!alertConfig.enabled}
+              />
+              <p className="text-xs text-muted-foreground">
+                Temps de réponse considéré comme lent
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="checkInterval">
+                Intervalle de Vérification (minutes)
+              </Label>
+              <Input
+                id="checkInterval"
+                type="number"
+                min={1}
+                max={60}
+                value={alertConfig.checkInterval / 60000}
+                onChange={(e) => updateAlertConfig({ 
+                  checkInterval: (parseInt(e.target.value) || 1) * 60000 
+                })}
+                disabled={!alertConfig.enabled}
+              />
+              <p className="text-xs text-muted-foreground">
+                Fréquence de vérification des seuils
+              </p>
+            </div>
+          </div>
+
+          {alertConfig.enabled && (
+            <Alert>
+              <Info className="h-4 w-4" />
+              <AlertDescription>
+                <strong>Alertes actives :</strong> Le système surveille automatiquement les logs et
+                les statistiques de retry. Vous recevrez des notifications toast lorsque les seuils
+                sont dépassés. Les alertes sont limitées dans le temps pour éviter le spam.
               </AlertDescription>
             </Alert>
           )}

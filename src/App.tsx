@@ -52,6 +52,7 @@ const Monitoring = lazy(() => import("./pages/Monitoring"));
 const Logs = lazy(() => import("./pages/Logs"));
 const Supervision = lazy(() => import("./pages/Supervision"));
 import { AIAssistant } from "./components/AIAssistant";
+import { AlertSystemProvider } from "./components/AlertSystemProvider";
 import Sidebar from "./components/Sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
@@ -86,6 +87,7 @@ const App = () => {
       <QueryClientProvider client={queryClientRef.current}>
         <NotificationProvider>
         <AuthProvider>
+        <AlertSystemProvider>
         <BrowserRouter>
           <TooltipProvider>
             <Routes>
@@ -148,6 +150,7 @@ const App = () => {
             <OfflineIndicator />
           </TooltipProvider>
         </BrowserRouter>
+        </AlertSystemProvider>
         </AuthProvider>
         </NotificationProvider>
       </QueryClientProvider>
