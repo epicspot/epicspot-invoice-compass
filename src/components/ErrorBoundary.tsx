@@ -27,7 +27,22 @@ class ErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Error caught by boundary:', error, errorInfo);
     this.setState({ error, errorInfo });
+    
+    // Log error to backend for monitoring (optional)
+    this.logErrorToService(error, errorInfo);
   }
+
+  logErrorToService = (error: Error, errorInfo: ErrorInfo) => {
+    // In production, you could send errors to a logging service
+    // Example: Sentry, LogRocket, etc.
+    if (import.meta.env.PROD) {
+      console.log('Production error logged:', {
+        error: error.toString(),
+        componentStack: errorInfo.componentStack,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  };
 
   handleReset = () => {
     this.setState({ hasError: false, error: undefined, errorInfo: undefined });
@@ -42,13 +57,15 @@ class ErrorBoundary extends Component<Props, State> {
 
       return (
         <div className="min-h-screen flex items-center justify-center p-6 bg-background">
-          <Card className="max-w-2xl w-full">
+          <Card className="max-w-2xl w-full border-destructive/50 shadow-lg">
             <CardHeader>
               <div className="flex items-center gap-3">
-                <AlertTriangle className="h-8 w-8 text-destructive" />
+                <div className="p-3 rounded-full bg-destructive/10">
+                  <AlertTriangle className="h-8 w-8 text-destructive" />
+                </div>
                 <div>
-                  <CardTitle>Une erreur s'est produite</CardTitle>
-                  <CardDescription>
+                  <CardTitle className="text-2xl">Une erreur s'est produite</CardTitle>
+                  <CardDescription className="text-base mt-1">
                     L'application a rencontré un problème inattendu
                   </CardDescription>
                 </div>
@@ -56,14 +73,14 @@ class ErrorBoundary extends Component<Props, State> {
             </CardHeader>
             <CardContent className="space-y-4">
               {this.state.error && (
-                <div className="bg-muted p-4 rounded-lg">
-                  <p className="font-mono text-sm text-destructive">
+                <div className="bg-destructive/5 border border-destructive/20 p-4 rounded-lg">
+                  <p className="font-mono text-sm text-destructive break-words">
                     {this.state.error.toString()}
                   </p>
                 </div>
               )}
               
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-3">
                 <Button onClick={this.handleReset} className="gap-2">
                   <RefreshCw className="h-4 w-4" />
                   Recharger la page
@@ -73,16 +90,20 @@ class ErrorBoundary extends Component<Props, State> {
                 </Button>
               </div>
 
-              {process.env.NODE_ENV === 'development' && this.state.errorInfo && (
+              {import.meta.env.DEV && this.state.errorInfo && (
                 <details className="mt-4">
-                  <summary className="cursor-pointer text-sm font-medium">
+                  <summary className="cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
                     Détails techniques (développement)
                   </summary>
-                  <pre className="mt-2 text-xs bg-muted p-4 rounded overflow-auto max-h-96">
+                  <pre className="mt-2 text-xs bg-muted/50 p-4 rounded-lg overflow-auto max-h-96 border border-border">
                     {this.state.errorInfo.componentStack}
                   </pre>
                 </details>
               )}
+              
+              <p className="text-xs text-muted-foreground mt-4">
+                Si le problème persiste, veuillez contacter le support technique.
+              </p>
             </CardContent>
           </Card>
         </div>
