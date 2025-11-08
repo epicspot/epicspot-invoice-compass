@@ -27,7 +27,8 @@ import {
   Sparkles,
   Wifi,
   Receipt,
-  Briefcase
+  Briefcase,
+  Layout
 } from 'lucide-react';
 import Logo from './Logo';
 import { useAuth } from '@/contexts/AuthContext';
@@ -87,6 +88,7 @@ const Sidebar = () => {
     { name: t('nav.suppliers'), path: '/suppliers', icon: Truck },
     { name: t('nav.purchaseOrders'), path: '/purchase-orders', icon: ShoppingBag },
     { name: 'Marchés', path: '/markets', icon: Briefcase },
+    { name: 'Templates Documents', path: '/document-templates', icon: Layout },
     { name: t('nav.analytics'), path: '/analytics', icon: LineChart },
     { name: 'Analytics Avancé', path: '/advanced-analytics', icon: BarChart3 },
     { name: t('nav.cashRegisters'), path: '/cash-registers', icon: CreditCard },

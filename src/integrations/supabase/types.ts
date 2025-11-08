@@ -281,6 +281,48 @@ export type Database = {
         }
         Relationships: []
       }
+      document_templates: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_default: boolean | null
+          layout: Json
+          logo_url: string | null
+          name: string
+          sections: Json
+          styles: Json
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_default?: boolean | null
+          layout?: Json
+          logo_url?: string | null
+          name: string
+          sections?: Json
+          styles?: Json
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_default?: boolean | null
+          layout?: Json
+          logo_url?: string | null
+          name?: string
+          sections?: Json
+          styles?: Json
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       invoice_items: {
         Row: {
           amount: number
