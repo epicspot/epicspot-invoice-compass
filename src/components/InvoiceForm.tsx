@@ -50,12 +50,22 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
 
   const [showPreview, setShowPreview] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  
+  // États pour les erreurs en temps réel par champ
+  const [fieldErrors, setFieldErrors] = useState<{
+    recipient?: string;
+    items?: Record<string, string[]>;
+    tax?: string;
+    discount?: string;
+    total?: string;
+  }>({});
 
   const handleClientChange = (clientId: string) => {
     const selectedClient = clients.find(c => c.id === clientId);
     if (selectedClient) {
       setInvoice({ ...invoice, client: selectedClient, clientId, vendor: undefined, vendorId: undefined });
-      // Réinitialiser les erreurs de validation
+      // Effacer l'erreur du destinataire
+      setFieldErrors(prev => ({ ...prev, recipient: undefined }));
       setValidationErrors([]);
     }
   };
@@ -64,7 +74,8 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
     const selectedVendor = vendors.find(v => v.id === vendorId);
     if (selectedVendor) {
       setInvoice({ ...invoice, vendor: selectedVendor, vendorId, client: undefined, clientId: undefined });
-      // Réinitialiser les erreurs de validation
+      // Effacer l'erreur du destinataire
+      setFieldErrors(prev => ({ ...prev, recipient: undefined }));
       setValidationErrors([]);
     }
   };
@@ -101,9 +112,6 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
     const selectedProduct = products.find(p => p.id === productId);
     if (!selectedProduct) return;
     
-    // Réinitialiser les erreurs de validation
-    setValidationErrors([]);
-    
     const updatedItems = (invoice.items || []).map(item => {
       if (item.id === itemId) {
         const updatedItem = { 
@@ -122,6 +130,10 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
     });
     
     setInvoice(recalculatedInvoice);
+    
+    // Validation en temps réel de l'article
+    validateItemRealtime(itemId, recalculatedInvoice.items || []);
+    setValidationErrors([]);
   };
 
   const handleQuantityChange = (itemId: string, quantity: number) => {
@@ -143,6 +155,9 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
     });
     
     setInvoice(recalculatedInvoice);
+    
+    // Validation en temps réel de la quantité
+    validateItemRealtime(itemId, recalculatedInvoice.items || []);
   };
 
   const calculateTotals = (invoiceData: Partial<Invoice>): Partial<Invoice> => {
@@ -169,6 +184,16 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
     });
     
     setInvoice(recalculatedInvoice);
+    
+    // Validation en temps réel de la TVA
+    if (taxRate < 0 || taxRate > 100) {
+      setFieldErrors(prev => ({
+        ...prev,
+        tax: 'Le taux de TVA doit être entre 0 et 100%'
+      }));
+    } else {
+      setFieldErrors(prev => ({ ...prev, tax: undefined }));
+    }
   };
 
   const handleDiscountChange = (value: string) => {
@@ -180,6 +205,59 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
     });
     
     setInvoice(recalculatedInvoice);
+    
+    // Validation en temps réel de la remise
+    const errors: string[] = [];
+    if (discount < 0) {
+      errors.push('La remise ne peut pas être négative');
+    }
+    if (discount > (recalculatedInvoice.subtotal || 0)) {
+      errors.push('La remise ne peut pas être supérieure au sous-total');
+    }
+    
+    if (errors.length > 0) {
+      setFieldErrors(prev => ({
+        ...prev,
+        discount: errors.join(', ')
+      }));
+    } else {
+      setFieldErrors(prev => ({ ...prev, discount: undefined }));
+    }
+  };
+
+  // Fonction de validation en temps réel pour un article
+  const validateItemRealtime = (itemId: string, items: InvoiceItem[]) => {
+    const item = items.find(i => i.id === itemId);
+    if (!item) return;
+    
+    const errors: string[] = [];
+    
+    if (!item.product || !item.product.id) {
+      errors.push('Veuillez sélectionner un produit');
+    } else {
+      if (!item.product.description && !item.product.reference) {
+        errors.push('Le produit doit avoir une description ou une référence');
+      }
+      if (item.product.price === undefined || item.product.price === null || item.product.price < 0) {
+        errors.push('Le produit doit avoir un prix valide');
+      }
+    }
+    
+    if (!item.quantity || item.quantity <= 0) {
+      errors.push('La quantité doit être supérieure à 0');
+    }
+    
+    if (item.amount === undefined || item.amount === null || item.amount < 0) {
+      errors.push('Le montant calculé est invalide');
+    }
+    
+    setFieldErrors(prev => ({
+      ...prev,
+      items: {
+        ...prev.items,
+        [itemId]: errors.length > 0 ? errors : []
+      }
+    }));
   };
 
   const validateInvoice = (invoiceData: Partial<Invoice>): { isValid: boolean; errors: string[] } => {
@@ -361,7 +439,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
                       onValueChange={handleClientChange} 
                       value={invoice.clientId || invoice.client?.id}
                     >
-                      <SelectTrigger className="mt-1">
+                      <SelectTrigger className={`mt-1 ${fieldErrors.recipient ? 'border-destructive' : ''}`}>
                         <SelectValue placeholder="Sélectionner un client" />
                       </SelectTrigger>
                       <SelectContent>
@@ -372,6 +450,12 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
                         ))}
                       </SelectContent>
                     </Select>
+                    {fieldErrors.recipient && (
+                      <p className="text-sm text-destructive mt-1 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />
+                        {fieldErrors.recipient}
+                      </p>
+                    )}
                   </div>
 
                   {invoice.client && (
@@ -403,7 +487,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
                       onValueChange={handleVendorChange} 
                       value={invoice.vendorId || invoice.vendor?.id}
                     >
-                      <SelectTrigger className="mt-1">
+                      <SelectTrigger className={`mt-1 ${fieldErrors.recipient ? 'border-destructive' : ''}`}>
                         <SelectValue placeholder="Sélectionner un vendeur" />
                       </SelectTrigger>
                       <SelectContent>
@@ -414,6 +498,12 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
                         ))}
                       </SelectContent>
                     </Select>
+                    {fieldErrors.recipient && (
+                      <p className="text-sm text-destructive mt-1 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />
+                        {fieldErrors.recipient}
+                      </p>
+                    )}
                   </div>
 
                   {invoice.vendor && (
@@ -474,52 +564,73 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
                       </td>
                     </tr>
                   ) : (
-                    (invoice.items || []).map((item, index) => (
-                      <tr key={item.id} className="border-b">
-                        <td className="p-2 pl-4">
-                          <Select 
-                            onValueChange={(value) => handleProductChange(item.id, value)} 
-                            value={item.product?.id}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Choisir un produit" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {products.map(product => (
-                                <SelectItem key={product.id} value={product.id}>
-                                  {product.reference} - {product.description}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </td>
-                        <td className="p-2 text-right">
-                          {item.product?.price?.toLocaleString() || 0}
-                        </td>
-                        <td className="p-2 text-right">
-                          <Input
-                            type="number"
-                            min="1"
-                            value={item.quantity}
-                            onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value) || 1)}
-                            className="max-w-[80px] text-right ml-auto"
-                          />
-                        </td>
-                        <td className="p-2 text-right">
-                          {item.amount?.toLocaleString() || 0}
-                        </td>
-                        <td className="p-2 text-right">
-                          <Button 
-                            type="button" 
-                            variant="ghost" 
-                            size="icon"
-                            onClick={() => removeItem(index)}
-                          >
-                            <Trash className="h-4 w-4 text-red-500" />
-                          </Button>
-                        </td>
-                      </tr>
-                    ))
+                    (invoice.items || []).map((item, index) => {
+                      const itemErrors = fieldErrors.items?.[item.id] || [];
+                      const hasError = itemErrors.length > 0;
+                      
+                      return (
+                        <React.Fragment key={item.id}>
+                          <tr className="border-b">
+                            <td className="p-2 pl-4">
+                              <Select 
+                                onValueChange={(value) => handleProductChange(item.id, value)} 
+                                value={item.product?.id}
+                              >
+                                <SelectTrigger className={hasError ? 'border-destructive' : ''}>
+                                  <SelectValue placeholder="Choisir un produit" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {products.map(product => (
+                                    <SelectItem key={product.id} value={product.id}>
+                                      {product.reference} - {product.description}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </td>
+                            <td className="p-2 text-right">
+                              {item.product?.price?.toLocaleString() || 0}
+                            </td>
+                            <td className="p-2 text-right">
+                              <Input
+                                type="number"
+                                min="1"
+                                value={item.quantity}
+                                onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value) || 1)}
+                                className={`max-w-[80px] text-right ml-auto ${hasError ? 'border-destructive' : ''}`}
+                              />
+                            </td>
+                            <td className="p-2 text-right">
+                              {item.amount?.toLocaleString() || 0}
+                            </td>
+                            <td className="p-2 text-right">
+                              <Button 
+                                type="button" 
+                                variant="ghost" 
+                                size="icon"
+                                onClick={() => removeItem(index)}
+                              >
+                                <Trash className="h-4 w-4 text-red-500" />
+                              </Button>
+                            </td>
+                          </tr>
+                          {hasError && (
+                            <tr>
+                              <td colSpan={5} className="p-2 pl-4">
+                                <div className="text-sm text-destructive flex items-start gap-1">
+                                  <AlertCircle className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                                  <div>
+                                    {itemErrors.map((error, idx) => (
+                                      <div key={idx}>{error}</div>
+                                    ))}
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
+                      );
+                    })
                   )}
                 </tbody>
               </table>
@@ -547,27 +658,43 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
               
               <div className="flex items-center justify-between py-2">
                 <Label htmlFor="tax">TVA (%):</Label>
-                <Input
-                  id="tax"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  className="w-24 text-right"
-                  value={invoice.tax || 0}
-                  onChange={(e) => handleTaxChange(e.target.value)}
-                />
+                <div className="flex flex-col items-end gap-1">
+                  <Input
+                    id="tax"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    className={`w-24 text-right ${fieldErrors.tax ? 'border-destructive' : ''}`}
+                    value={invoice.tax || 0}
+                    onChange={(e) => handleTaxChange(e.target.value)}
+                  />
+                  {fieldErrors.tax && (
+                    <p className="text-xs text-destructive flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
+                      {fieldErrors.tax}
+                    </p>
+                  )}
+                </div>
               </div>
               
               <div className="flex items-center justify-between py-2">
                 <Label htmlFor="discount">Remise (FCFA):</Label>
-                <Input
-                  id="discount"
-                  type="number"
-                  min="0"
-                  className="w-24 text-right"
-                  value={invoice.discount || 0}
-                  onChange={(e) => handleDiscountChange(e.target.value)}
-                />
+                <div className="flex flex-col items-end gap-1">
+                  <Input
+                    id="discount"
+                    type="number"
+                    min="0"
+                    className={`w-24 text-right ${fieldErrors.discount ? 'border-destructive' : ''}`}
+                    value={invoice.discount || 0}
+                    onChange={(e) => handleDiscountChange(e.target.value)}
+                  />
+                  {fieldErrors.discount && (
+                    <p className="text-xs text-destructive flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
+                      {fieldErrors.discount}
+                    </p>
+                  )}
+                </div>
               </div>
               
               <Separator />
