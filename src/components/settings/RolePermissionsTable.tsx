@@ -1,78 +1,78 @@
-import React, { useState } from "react";
+import React from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { Role, RolePermissions, Permission } from "@/lib/types";
+import { Shield, Loader2 } from "lucide-react";
+import { useRolePermissions, AppRole, PermissionResource, PermissionAction } from "@/hooks/useRolePermissions";
 
-interface RolePermissionsTableProps {
-  initialRolePermissions: Record<Role, RolePermissions>;
-}
+const RolePermissionsTable: React.FC = () => {
+  const { permissions, loading, hasPermission, updatePermission } = useRolePermissions();
 
-const RolePermissionsTable: React.FC<RolePermissionsTableProps> = ({ initialRolePermissions }) => {
-  const [rolePermissions, setRolePermissions] = useState<Record<Role, RolePermissions>>(initialRolePermissions);
-  const { toast } = useToast();
-
-  const handlePermissionChange = (role: Role, module: keyof RolePermissions, action: keyof Permission) => {
-    setRolePermissions(prev => {
-      const newPermissions = { ...prev };
-      newPermissions[role][module][action] = !newPermissions[role][module][action];
-      return newPermissions;
-    });
+  const handlePermissionChange = async (
+    role: AppRole,
+    resource: PermissionResource,
+    action: PermissionAction
+  ) => {
+    const currentValue = hasPermission(role, resource, action);
+    await updatePermission(role, resource, action, !currentValue);
   };
 
-  const handleSavePermissions = () => {
-    // Here you would save to backend
-    toast({
-      title: "Permissions sauvegardées",
-      description: "Les permissions des rôles ont été mises à jour avec succès."
-    });
-  };
-
-  const moduleLabels: Record<keyof RolePermissions, string> = {
+  const resourceLabels: Record<PermissionResource, string> = {
     invoices: "Factures",
     quotes: "Devis",
     clients: "Clients",
     products: "Produits",
+    suppliers: "Fournisseurs",
     users: "Utilisateurs",
+    reports: "Rapports",
     settings: "Paramètres",
-    cashRegister: "Caisse", // Added missing property
-    sites: "Sites" // Added missing property
+    cash_registers: "Caisses",
+    collections: "Encaissements",
+    markets: "Marchés",
+    vendors: "Vendeurs"
   };
 
-  const actionLabels: Record<keyof Permission, string> = {
+  const actionLabels: Record<PermissionAction, string> = {
     create: "Créer",
     read: "Voir",
     update: "Modifier",
     delete: "Supprimer"
   };
 
-  const roleLabels: Record<Role, { label: string, color: string }> = {
+  const roleLabels: Record<AppRole, { label: string, color: string }> = {
     admin: { 
       label: "Administrateur", 
-      color: "bg-red-100 text-red-800 hover:bg-red-100" 
+      color: "bg-destructive/10 text-destructive" 
     },
     manager: { 
       label: "Gestionnaire", 
-      color: "bg-blue-100 text-blue-800 hover:bg-blue-100" 
+      color: "bg-primary/10 text-primary" 
     },
-    accountant: { 
-      label: "Comptable", 
-      color: "bg-green-100 text-green-800 hover:bg-green-100" 
-    },
-    cashier: { 
-      label: "Caissier", 
-      color: "bg-purple-100 text-purple-800 hover:bg-purple-100" 
+    user: { 
+      label: "Utilisateur", 
+      color: "bg-secondary/50 text-secondary-foreground" 
     },
     viewer: { 
       label: "Consultant", 
-      color: "bg-gray-100 text-gray-800 hover:bg-gray-100" 
+      color: "bg-muted text-muted-foreground" 
     }
   };
+
+  const resources = Object.keys(resourceLabels) as PermissionResource[];
+  const actions = Object.keys(actionLabels) as PermissionAction[];
+  const roles = Object.keys(roleLabels) as AppRole[];
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center p-8">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -87,67 +87,65 @@ const RolePermissionsTable: React.FC<RolePermissionsTableProps> = ({ initialRole
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="flex flex-wrap gap-2">
-          {Object.entries(roleLabels).map(([roleKey, { label, color }]) => (
+          {roles.map((role) => (
             <Badge 
-              key={roleKey}
+              key={role}
               variant="outline" 
-              className={`flex gap-1 font-normal items-center capitalize ${color}`}
+              className={`flex gap-1 font-normal items-center ${roleLabels[role].color}`}
             >
               <Avatar className="h-4 w-4 mr-1">
-                <AvatarFallback className="text-[8px]">
-                  {roleKey.substring(0, 1).toUpperCase()}
+                <AvatarFallback className="text-[8px] bg-transparent">
+                  {role.substring(0, 1).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              {label}
+              {roleLabels[role].label}
             </Badge>
           ))}
         </div>
         
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Module</TableHead>
-              <TableHead>Actions</TableHead>
-              {(Object.keys(roleLabels) as Role[]).map(role => (
-                <TableHead key={role}>
-                  {roleLabels[role].label}
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {Object.entries(moduleLabels).map(([moduleKey, moduleLabel]) => (
-              <>
-                {Object.entries(actionLabels).map(([actionKey, actionLabel], actionIndex) => (
-                  <TableRow key={`${moduleKey}-${actionKey}`}>
-                    {actionIndex === 0 && (
-                      <TableCell rowSpan={4} className="align-middle font-medium">
-                        {moduleLabel}
-                      </TableCell>
-                    )}
-                    <TableCell>{actionLabel}</TableCell>
-                    {(Object.keys(roleLabels) as Role[]).map(role => (
-                      <TableCell key={role}>
-                        <Checkbox 
-                          checked={rolePermissions[role][moduleKey as keyof RolePermissions][actionKey as keyof Permission]}
-                          onCheckedChange={() => handlePermissionChange(
-                            role, 
-                            moduleKey as keyof RolePermissions, 
-                            actionKey as keyof Permission
-                          )}
-                          disabled={role === 'admin'} // Admin has all permissions by default
-                        />
-                      </TableCell>
-                    ))}
-                  </TableRow>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[200px]">Ressource</TableHead>
+                <TableHead className="w-[100px]">Action</TableHead>
+                {roles.map(role => (
+                  <TableHead key={role} className="text-center">
+                    {roleLabels[role].label}
+                  </TableHead>
                 ))}
-              </>
-            ))}
-          </TableBody>
-        </Table>
-        
-        <div className="flex justify-end">
-          <Button onClick={handleSavePermissions}>Enregistrer les permissions</Button>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {resources.map((resource) => (
+                <>
+                  {actions.map((action, actionIndex) => (
+                    <TableRow key={`${resource}-${action}`}>
+                      {actionIndex === 0 && (
+                        <TableCell rowSpan={4} className="align-middle font-medium">
+                          {resourceLabels[resource]}
+                        </TableCell>
+                      )}
+                      <TableCell className="text-sm text-muted-foreground">
+                        {actionLabels[action]}
+                      </TableCell>
+                      {roles.map(role => (
+                        <TableCell key={role} className="text-center">
+                          <div className="flex justify-center">
+                            <Checkbox 
+                              checked={hasPermission(role, resource, action)}
+                              onCheckedChange={() => handlePermissionChange(role, resource, action)}
+                              disabled={role === 'admin'}
+                            />
+                          </div>
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </>
+              ))}
+            </TableBody>
+          </Table>
         </div>
       </CardContent>
     </Card>

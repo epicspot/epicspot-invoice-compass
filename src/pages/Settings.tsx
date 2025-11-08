@@ -12,61 +12,7 @@ import RolePermissionsTable from "@/components/settings/RolePermissionsTable";
 import SiteManagement from "@/components/settings/SiteManagement";
 import { VATRatesManagement } from "@/components/settings/VATRatesManagement";
 import { SystemSettings } from "@/components/settings/SystemSettings";
-import { Role, RolePermissions, Site } from "@/lib/types";
-
-// Mock data for role permissions
-const initialRolePermissions: Record<Role, RolePermissions> = {
-  admin: {
-    invoices: { create: true, read: true, update: true, delete: true },
-    quotes: { create: true, read: true, update: true, delete: true },
-    clients: { create: true, read: true, update: true, delete: true },
-    products: { create: true, read: true, update: true, delete: true },
-    users: { create: true, read: true, update: true, delete: true },
-    settings: { create: true, read: true, update: true, delete: true },
-    cashRegister: { create: true, read: true, update: true, delete: true },
-    sites: { create: true, read: true, update: true, delete: true }
-  },
-  manager: {
-    invoices: { create: true, read: true, update: true, delete: false },
-    quotes: { create: true, read: true, update: true, delete: false },
-    clients: { create: true, read: true, update: true, delete: false },
-    products: { create: true, read: true, update: true, delete: false },
-    users: { create: false, read: true, update: false, delete: false },
-    settings: { create: false, read: true, update: false, delete: false },
-    cashRegister: { create: true, read: true, update: true, delete: false },
-    sites: { create: false, read: true, update: false, delete: false }
-  },
-  accountant: {
-    invoices: { create: true, read: true, update: true, delete: false },
-    quotes: { create: false, read: true, update: false, delete: false },
-    clients: { create: false, read: true, update: true, delete: false },
-    products: { create: false, read: true, update: false, delete: false },
-    users: { create: false, read: false, update: false, delete: false },
-    settings: { create: false, read: false, update: false, delete: false },
-    cashRegister: { create: false, read: true, update: true, delete: false },
-    sites: { create: false, read: true, update: false, delete: false }
-  },
-  cashier: {
-    invoices: { create: true, read: true, update: false, delete: false },
-    quotes: { create: false, read: true, update: false, delete: false },
-    clients: { create: true, read: true, update: true, delete: false },
-    products: { create: false, read: true, update: false, delete: false },
-    users: { create: false, read: false, update: false, delete: false },
-    settings: { create: false, read: false, update: false, delete: false },
-    cashRegister: { create: true, read: true, update: true, delete: false },
-    sites: { create: false, read: true, update: false, delete: false }
-  },
-  viewer: {
-    invoices: { create: false, read: true, update: false, delete: false },
-    quotes: { create: false, read: true, update: false, delete: false },
-    clients: { create: false, read: true, update: false, delete: false },
-    products: { create: false, read: true, update: false, delete: false },
-    users: { create: false, read: false, update: false, delete: false },
-    settings: { create: false, read: false, update: false, delete: false },
-    cashRegister: { create: false, read: true, update: false, delete: false },
-    sites: { create: false, read: true, update: false, delete: false }
-  }
-};
+import { Site } from "@/lib/types";
 
 // Mock data for sites
 const initialSites: Site[] = [];
@@ -99,7 +45,7 @@ const Settings = () => {
         </TabsContent>
         
         <TabsContent value="roles" className="mt-6">
-          <RolePermissionsTable initialRolePermissions={initialRolePermissions} />
+          <RolePermissionsTable />
         </TabsContent>
 
         <TabsContent value="sites" className="mt-6">
