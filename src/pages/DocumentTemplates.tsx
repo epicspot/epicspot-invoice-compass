@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useDocumentTemplates, DocumentTemplate } from '@/hooks/useDocumentTemplates';
 import { TemplateEditor } from '@/components/TemplateEditor';
 import { Button } from '@/components/ui/button';
@@ -7,15 +7,17 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Edit, Trash2, FileText, FilePlus, FileCheck, Copy } from 'lucide-react';
+import { Plus, Edit, Trash2, FileText, FilePlus, FileCheck, Copy, Download, Upload } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 export default function DocumentTemplates() {
-  const { templates, loading, createTemplate, updateTemplate, deleteTemplate } = useDocumentTemplates();
+  const { templates, loading, createTemplate, updateTemplate, deleteTemplate, exportTemplate, importTemplate } = useDocumentTemplates();
   const [editingTemplate, setEditingTemplate] = useState<DocumentTemplate | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'contract' | 'amendment' | 'reception'>('contract');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const getDefaultTemplate = (type: string): DocumentTemplate => ({
     id: '',
@@ -107,6 +109,25 @@ export default function DocumentTemplates() {
     await createTemplate(newTemplate);
   };
 
+  const handleExport = (template: DocumentTemplate) => {
+    exportTemplate(template);
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    await importTemplate(file);
+    
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const getTemplatesByType = (type: string) => {
     return templates.filter(t => t.type === type);
   };
@@ -178,6 +199,13 @@ export default function DocumentTemplates() {
                         <Button
                           variant="ghost"
                           size="sm"
+                          onClick={() => handleExport(template)}
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => handleDuplicate(template)}
                         >
                           <Copy className="h-4 w-4" />
@@ -214,11 +242,26 @@ export default function DocumentTemplates() {
 
   return (
     <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Templates de documents</h1>
-        <p className="text-muted-foreground">
-          Personnalisez vos templates de documents contractuels
-        </p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Templates de documents</h1>
+          <p className="text-muted-foreground">
+            Personnalisez vos templates de documents contractuels
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Input
+            ref={fileInputRef}
+            type="file"
+            accept=".json"
+            onChange={handleImportFile}
+            className="hidden"
+          />
+          <Button variant="outline" onClick={handleImportClick}>
+            <Upload className="h-4 w-4 mr-2" />
+            Importer
+          </Button>
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>

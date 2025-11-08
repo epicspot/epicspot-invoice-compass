@@ -1406,6 +1406,7 @@ export type Database = {
           name: string
           sections: Json
           styles: Json
+          tags: string[] | null
           template_id: string
           version_number: number
         }
@@ -1419,6 +1420,7 @@ export type Database = {
           name: string
           sections: Json
           styles: Json
+          tags?: string[] | null
           template_id: string
           version_number: number
         }
@@ -1432,6 +1434,7 @@ export type Database = {
           name?: string
           sections?: Json
           styles?: Json
+          tags?: string[] | null
           template_id?: string
           version_number?: number
         }

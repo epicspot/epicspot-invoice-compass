@@ -15,6 +15,7 @@ export interface TemplateVersion {
   change_summary?: string;
   created_by?: string;
   created_at: string;
+  tags?: string[];
 }
 
 export interface ComparisonResult {
@@ -176,12 +177,66 @@ export function useTemplateVersions(templateId?: string) {
     };
   };
 
+  const addTagToVersion = async (versionId: string, tag: string) => {
+    try {
+      const version = versions.find(v => v.id === versionId);
+      if (!version) throw new Error('Version non trouvée');
+
+      const tags = version.tags || [];
+      if (tags.includes(tag)) {
+        toast.error('Ce tag existe déjà');
+        return { success: false };
+      }
+
+      const { error } = await supabase
+        .from('template_versions')
+        .update({ tags: [...tags, tag] })
+        .eq('id', versionId);
+
+      if (error) throw error;
+
+      toast.success('Tag ajouté');
+      await fetchVersions();
+      return { success: true };
+    } catch (error) {
+      console.error('Error adding tag:', error);
+      toast.error('Erreur lors de l\'ajout du tag');
+      return { success: false, error };
+    }
+  };
+
+  const removeTagFromVersion = async (versionId: string, tag: string) => {
+    try {
+      const version = versions.find(v => v.id === versionId);
+      if (!version) throw new Error('Version non trouvée');
+
+      const tags = (version.tags || []).filter(t => t !== tag);
+
+      const { error } = await supabase
+        .from('template_versions')
+        .update({ tags })
+        .eq('id', versionId);
+
+      if (error) throw error;
+
+      toast.success('Tag retiré');
+      await fetchVersions();
+      return { success: true };
+    } catch (error) {
+      console.error('Error removing tag:', error);
+      toast.error('Erreur lors du retrait du tag');
+      return { success: false, error };
+    }
+  };
+
   return {
     versions,
     loading,
     createManualVersion,
     restoreVersion,
     compareVersions,
+    addTagToVersion,
+    removeTagFromVersion,
     refetch: fetchVersions
   };
 }

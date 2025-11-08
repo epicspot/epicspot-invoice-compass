@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useTemplateVersions, TemplateVersion, ComparisonResult } from '@/hooks/useTemplateVersions';
 import { DocumentTemplate } from '@/hooks/useDocumentTemplates';
 import { Button } from '@/components/ui/button';
@@ -10,10 +10,11 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { History, RotateCcw, Save, GitCompare, Clock } from 'lucide-react';
+import { History, RotateCcw, Save, GitCompare, Clock, Tag, X, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { TemplateVersionDiff } from './TemplateVersionDiff';
 
 interface TemplateHistoryProps {
   template: DocumentTemplate;
@@ -21,13 +22,16 @@ interface TemplateHistoryProps {
 }
 
 export function TemplateHistory({ template, onRestore }: TemplateHistoryProps) {
-  const { versions, loading, createManualVersion, restoreVersion, compareVersions } = useTemplateVersions(template.id);
+  const { versions, loading, createManualVersion, restoreVersion, compareVersions, addTagToVersion, removeTagFromVersion } = useTemplateVersions(template.id);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [showCompareDialog, setShowCompareDialog] = useState(false);
   const [changeSummary, setChangeSummary] = useState('');
   const [selectedVersion1, setSelectedVersion1] = useState<TemplateVersion | null>(null);
   const [selectedVersion2, setSelectedVersion2] = useState<TemplateVersion | null>(null);
   const [comparisonData, setComparisonData] = useState<ComparisonResult | null>(null);
+  const [showTagDialog, setShowTagDialog] = useState(false);
+  const [selectedVersionForTag, setSelectedVersionForTag] = useState<TemplateVersion | null>(null);
+  const [newTag, setNewTag] = useState('');
 
   const handleSaveVersion = async () => {
     if (!changeSummary.trim()) {
@@ -70,6 +74,26 @@ export function TemplateHistory({ template, onRestore }: TemplateHistoryProps) {
     const result = compareVersions(selectedVersion1.id, selectedVersion2.id);
     setComparisonData(result);
     setShowCompareDialog(true);
+  };
+
+  const handleAddTag = async () => {
+    if (!selectedVersionForTag || !newTag.trim()) {
+      toast.error('Veuillez entrer un tag');
+      return;
+    }
+
+    await addTagToVersion(selectedVersionForTag.id, newTag.trim());
+    setNewTag('');
+    setShowTagDialog(false);
+  };
+
+  const handleRemoveTag = async (versionId: string, tag: string) => {
+    await removeTagFromVersion(versionId, tag);
+  };
+
+  const openTagDialog = (version: TemplateVersion) => {
+    setSelectedVersionForTag(version);
+    setShowTagDialog(true);
   };
 
   const getVersionBadge = (version: TemplateVersion) => {
@@ -126,9 +150,10 @@ export function TemplateHistory({ template, onRestore }: TemplateHistoryProps) {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-12"></TableHead>
+                  <TableHead className="w-12"></TableHead>
                     <TableHead>Version</TableHead>
                     <TableHead>Nom</TableHead>
+                    <TableHead>Tags</TableHead>
                     <TableHead>Modifications</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -157,6 +182,29 @@ export function TemplateHistory({ template, onRestore }: TemplateHistoryProps) {
                       </TableCell>
                       <TableCell>{getVersionBadge(version)}</TableCell>
                       <TableCell className="font-medium">{version.name}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {version.tags?.map((tag) => (
+                            <Badge key={tag} variant="secondary" className="text-xs">
+                              {tag}
+                              <button
+                                onClick={() => handleRemoveTag(version.id, tag)}
+                                className="ml-1 hover:text-destructive"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </Badge>
+                          ))}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openTagDialog(version)}
+                            className="h-5 px-2"
+                          >
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
                       <TableCell>
                         <span className="text-sm text-muted-foreground">
                           {version.change_summary || 'Aucune description'}
@@ -221,50 +269,69 @@ export function TemplateHistory({ template, onRestore }: TemplateHistoryProps) {
 
       {/* Compare Versions Dialog */}
       <Dialog open={showCompareDialog} onOpenChange={setShowCompareDialog}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-5xl max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>Comparer les versions</DialogTitle>
             <DialogDescription>
-              Sélectionnez deux versions pour voir les différences
+              Différences entre la version {selectedVersion1?.version_number} et la version {selectedVersion2?.version_number}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-
-            {comparisonData && comparisonData.hasChanges && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Différences détectées</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {comparisonData.differences.name && (
-                      <Badge variant="outline">Nom modifié</Badge>
-                    )}
-                    {comparisonData.differences.sections && (
-                      <Badge variant="outline">Sections modifiées</Badge>
-                    )}
-                    {comparisonData.differences.layout && (
-                      <Badge variant="outline">Mise en page modifiée</Badge>
-                    )}
-                    {comparisonData.differences.styles && (
-                      <Badge variant="outline">Styles modifiés</Badge>
-                    )}
-                    {comparisonData.differences.logo_url && (
-                      <Badge variant="outline">Logo modifié</Badge>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {comparisonData && !comparisonData.hasChanges && (
-              <p className="text-center text-muted-foreground py-4">
-                Aucune différence détectée
-              </p>
+          <div className="py-4">
+            {selectedVersion1 && selectedVersion2 && (
+              <TemplateVersionDiff version1={selectedVersion1} version2={selectedVersion2} />
             )}
           </div>
           <DialogFooter>
             <Button onClick={() => setShowCompareDialog(false)}>Fermer</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Tag Dialog */}
+      <Dialog open={showTagDialog} onOpenChange={setShowTagDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Ajouter un tag</DialogTitle>
+            <DialogDescription>
+              Marquez cette version avec un tag (stable, test, production, etc.)
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-tag">Tag</Label>
+              <Input
+                id="new-tag"
+                value={newTag}
+                onChange={(e) => setNewTag(e.target.value)}
+                placeholder="Ex: stable, production..."
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleAddTag();
+                  }
+                }}
+              />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {['stable', 'test', 'production', 'dev'].map((tag) => (
+                <Badge
+                  key={tag}
+                  variant="outline"
+                  className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
+                  onClick={() => setNewTag(tag)}
+                >
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowTagDialog(false)}>
+              Annuler
+            </Button>
+            <Button onClick={handleAddTag}>
+              <Tag className="h-4 w-4 mr-2" />
+              Ajouter
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

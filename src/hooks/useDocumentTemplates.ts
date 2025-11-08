@@ -153,6 +153,43 @@ export function useDocumentTemplates(type?: string) {
     return templates.find(t => t.type === templateType && t.is_default);
   };
 
+  const exportTemplate = (template: DocumentTemplate) => {
+    const dataStr = JSON.stringify(template, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `template-${template.name}-${new Date().toISOString().split('T')[0]}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast.success('Template exporté');
+  };
+
+  const importTemplate = async (file: File) => {
+    try {
+      const text = await file.text();
+      const templateData = JSON.parse(text);
+      
+      // Remove id and timestamps to create a new template
+      const { id, created_at, updated_at, created_by, ...newTemplateData } = templateData;
+      
+      const result = await createTemplate({
+        ...newTemplateData,
+        name: `${newTemplateData.name} (importé)`,
+        is_default: false
+      });
+
+      if (result.success) {
+        toast.success('Template importé avec succès');
+      }
+      return result;
+    } catch (error) {
+      console.error('Error importing template:', error);
+      toast.error('Erreur lors de l\'import du template');
+      return { success: false, error };
+    }
+  };
+
   return {
     templates,
     loading,
@@ -160,6 +197,8 @@ export function useDocumentTemplates(type?: string) {
     updateTemplate,
     deleteTemplate,
     getDefaultTemplate,
+    exportTemplate,
+    importTemplate,
     refetch: fetchTemplates
   };
 }
