@@ -85,6 +85,7 @@ const Sidebar = () => {
     { name: t('nav.quotes'), path: '/quotes', icon: FileCheck },
     { name: t('nav.clients'), path: '/clients', icon: Users },
     { name: 'Abonnements Internet', path: '/subscriptions', icon: Wifi },
+    { name: 'Factures Abonnements', path: '/subscriptions/invoices', icon: Receipt },
     { name: t('nav.leads'), path: '/leads', icon: Users2 },
     { name: t('nav.products'), path: '/products', icon: Package },
     { name: t('nav.inventory'), path: '/inventory', icon: PackageSearch },
