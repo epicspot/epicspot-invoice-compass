@@ -11,6 +11,7 @@ import DocumentSettingsForm from "@/components/settings/DocumentSettingsForm";
 import RolePermissionsTable from "@/components/settings/RolePermissionsTable";
 import SiteManagement from "@/components/settings/SiteManagement";
 import { VATRatesManagement } from "@/components/settings/VATRatesManagement";
+import { SystemSettings } from "@/components/settings/SystemSettings";
 import { Role, RolePermissions, Site } from "@/lib/types";
 
 // Mock data for role permissions
@@ -76,12 +77,13 @@ const Settings = () => {
       <h1 className="text-3xl font-bold">Paramètres</h1>
       
       <Tabs defaultValue="company">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="company">Entreprise</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
           <TabsTrigger value="vat">TVA</TabsTrigger>
           <TabsTrigger value="roles">Rôles & Permissions</TabsTrigger>
           <TabsTrigger value="sites">Sites</TabsTrigger>
+          <TabsTrigger value="system">Système</TabsTrigger>
         </TabsList>
         
         <TabsContent value="company" className="mt-6">
@@ -102,6 +104,10 @@ const Settings = () => {
 
         <TabsContent value="sites" className="mt-6">
           <SiteManagement initialSites={initialSites} />
+        </TabsContent>
+
+        <TabsContent value="system" className="mt-6">
+          <SystemSettings />
         </TabsContent>
       </Tabs>
     </div>
