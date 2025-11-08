@@ -50,6 +50,7 @@ const MarketDetails = lazy(() => import("./pages/MarketDetails"));
 const DocumentTemplates = lazy(() => import("./pages/DocumentTemplates"));
 const Monitoring = lazy(() => import("./pages/Monitoring"));
 const Logs = lazy(() => import("./pages/Logs"));
+const Supervision = lazy(() => import("./pages/Supervision"));
 import { AIAssistant } from "./components/AIAssistant";
 import Sidebar from "./components/Sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
@@ -129,6 +130,7 @@ const App = () => {
                             <Route path="/document-templates" element={<DocumentTemplates />} />
                             <Route path="/monitoring" element={<Monitoring />} />
                             <Route path="/logs" element={<Logs />} />
+                            <Route path="/supervision" element={<Supervision />} />
                             <Route path="*" element={<NotFound />} />
                           </Routes>
                         </Suspense>

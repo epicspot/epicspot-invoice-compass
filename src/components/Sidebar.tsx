@@ -30,7 +30,8 @@ import {
   Briefcase,
   Layout,
   Activity,
-  FileText as LogsIcon
+  FileText as LogsIcon,
+  TrendingUp
 } from 'lucide-react';
 import Logo from './Logo';
 import { useAuth } from '@/contexts/AuthContext';
@@ -93,6 +94,7 @@ const Sidebar = () => {
     { name: 'Templates Documents', path: '/document-templates', icon: Layout },
     { name: 'Monitoring', path: '/monitoring', icon: Activity },
     { name: 'Journal Système', path: '/logs', icon: LogsIcon },
+    { name: 'Supervision Globale', path: '/supervision', icon: TrendingUp },
     { name: t('nav.analytics'), path: '/analytics', icon: LineChart },
     { name: 'Analytics Avancé', path: '/advanced-analytics', icon: BarChart3 },
     { name: t('nav.cashRegisters'), path: '/cash-registers', icon: CreditCard },
