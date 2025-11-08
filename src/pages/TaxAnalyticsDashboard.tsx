@@ -1,20 +1,53 @@
 import { useState, useMemo } from 'react';
 import { useTaxDeclarations } from '@/hooks/useTaxDeclarations';
+import { useCompanyInfo } from '@/hooks/useCompanyInfo';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { TrendingUp, TrendingDown, DollarSign, FileText, Calendar, BarChart3 } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, FileText, Calendar, BarChart3, Download, FileSpreadsheet } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { format, startOfMonth, endOfMonth, subMonths, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { exportTaxAnalyticsToExcel, exportQuickTaxSummary } from '@/lib/utils/taxAnalyticsExcelUtils';
+import { toast } from 'sonner';
 
 const COLORS = ['#2563eb', '#16a34a', '#dc2626', '#ca8a04', '#7c3aed', '#ea580c'];
 
 export default function TaxAnalyticsDashboard() {
   const { declarations, loading } = useTaxDeclarations();
+  const { companyInfo } = useCompanyInfo();
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [comparisonYear, setComparisonYear] = useState(selectedYear - 1);
+
+  const handleExportComplete = () => {
+    try {
+      exportTaxAnalyticsToExcel(
+        monthlyData,
+        vatRateDistribution,
+        yearSummary,
+        selectedYear,
+        comparisonYear,
+        companyInfo
+      );
+      toast.success('Rapport Excel exporté avec succès');
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error('Erreur lors de l\'export Excel');
+    }
+  };
+
+  const handleQuickExport = () => {
+    try {
+      exportQuickTaxSummary(monthlyData, selectedYear, companyInfo);
+      toast.success('Résumé Excel exporté avec succès');
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error('Erreur lors de l\'export');
+    }
+  };
 
   // Get available years from declarations
   const availableYears = useMemo(() => {
@@ -131,6 +164,24 @@ export default function TaxAnalyticsDashboard() {
           <p className="text-muted-foreground">Analyses et statistiques détaillées de vos déclarations fiscales</p>
         </div>
         <div className="flex gap-4">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <FileSpreadsheet className="h-4 w-4" />
+                Exporter Excel
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleExportComplete}>
+                <Download className="h-4 w-4 mr-2" />
+                Rapport complet
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleQuickExport}>
+                <FileSpreadsheet className="h-4 w-4 mr-2" />
+                Résumé rapide
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(Number(v))}>
             <SelectTrigger className="w-32">
               <SelectValue placeholder="Année" />
