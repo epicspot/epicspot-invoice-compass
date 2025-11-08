@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Collection } from '@/lib/types';
 import { useErrorHandler } from './useErrorHandler';
+import { useRetry } from './useRetry';
 
 interface CollectionWithDetails extends Collection {
   invoiceNumber?: string;
@@ -13,38 +14,45 @@ export function useCollections() {
   const [collections, setCollections] = useState<CollectionWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const { handleError } = useErrorHandler();
+  const { executeWithRetry } = useRetry();
 
   const fetchCollections = async () => {
     try {
-      const { data, error } = await supabase
-        .from('collections')
-        .select(`
-          *,
-          invoices:invoice_id (
-            number,
-            clients:client_id (
-              name
+      const formattedCollections = await executeWithRetry(async () => {
+        const { data, error } = await supabase
+          .from('collections')
+          .select(`
+            *,
+            invoices:invoice_id (
+              number,
+              clients:client_id (
+                name
+              )
             )
-          )
-        `)
-        .order('created_at', { ascending: false });
+          `)
+          .order('created_at', { ascending: false });
 
-      if (error) throw error;
+        if (error) throw error;
 
-      const formattedCollections: CollectionWithDetails[] = (data || []).map((c: any) => ({
-        id: c.id,
-        invoiceId: c.invoice_id,
-        clientId: c.client_id,
-        amount: c.amount,
-        paymentMethod: c.payment_method,
-        reference: c.reference,
-        notes: c.notes,
-        collectedBy: c.collected_by,
-        createdAt: c.created_at,
-        invoiceNumber: c.invoices?.number,
-        clientName: c.invoices?.clients?.name,
-        collectorName: undefined,
-      }));
+        return (data || []).map((c: any) => ({
+          id: c.id,
+          invoiceId: c.invoice_id,
+          clientId: c.client_id,
+          amount: c.amount,
+          paymentMethod: c.payment_method,
+          reference: c.reference,
+          notes: c.notes,
+          collectedBy: c.collected_by,
+          createdAt: c.created_at,
+          invoiceNumber: c.invoices?.number,
+          clientName: c.invoices?.clients?.name,
+          collectorName: undefined,
+        }));
+      }, {
+        maxAttempts: 3,
+        initialDelay: 1000,
+      });
+
       setCollections(formattedCollections);
     } catch (error) {
       handleError(error, {

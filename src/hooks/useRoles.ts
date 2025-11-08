@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useRetry } from './useRetry';
+import { useErrorHandler } from './useErrorHandler';
 
 export type AppRole = 'admin' | 'manager' | 'user' | 'viewer';
 
@@ -15,6 +17,8 @@ export function useRoles(userId?: string) {
   const [roles, setRoles] = useState<UserRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const { executeWithRetry } = useRetry();
+  const { handleError } = useErrorHandler();
 
   useEffect(() => {
     fetchRoles();
@@ -23,18 +27,30 @@ export function useRoles(userId?: string) {
 
   const fetchRoles = async () => {
     try {
-      let query = supabase.from('user_roles').select('*');
-      
-      if (userId) {
-        query = query.eq('user_id', userId);
-      }
-      
-      const { data, error } = await query;
-      
-      if (error) throw error;
-      setRoles(data || []);
+      const data = await executeWithRetry(async () => {
+        let query = supabase.from('user_roles').select('*');
+        
+        if (userId) {
+          query = query.eq('user_id', userId);
+        }
+        
+        const { data, error } = await query;
+        
+        if (error) throw error;
+        return data || [];
+      }, {
+        maxAttempts: 3,
+        onRetry: (attempt, error) => {
+          console.log(`Retry fetching roles (attempt ${attempt}):`, error);
+        },
+      });
+
+      setRoles(data);
     } catch (error) {
-      console.error('Error fetching roles:', error);
+      handleError(error, {
+        severity: 'warning',
+        title: 'Erreur de chargement des rôles',
+      });
     } finally {
       setLoading(false);
     }
@@ -42,23 +58,33 @@ export function useRoles(userId?: string) {
 
   const checkAdmin = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setIsAdmin(false);
-        return;
-      }
+      const isAdminRole = await executeWithRetry(async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          return false;
+        }
 
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('role', 'admin')
-        .maybeSingle();
+        const { data, error } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .eq('role', 'admin')
+          .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') throw error;
-      setIsAdmin(!!data);
+        if (error && error.code !== 'PGRST116') throw error;
+        return !!data;
+      }, {
+        maxAttempts: 2,
+        retryableErrors: [], // Don't retry admin check on PGRST116
+      });
+
+      setIsAdmin(isAdminRole);
     } catch (error) {
-      console.error('Error checking admin status:', error);
+      handleError(error, {
+        severity: 'warning',
+        title: 'Erreur de vérification admin',
+        logToConsole: true,
+      });
       setIsAdmin(false);
     }
   };
