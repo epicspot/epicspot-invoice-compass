@@ -14,7 +14,7 @@ import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Column {
   key: string;
-  header: string;
+  header: string | (() => React.ReactNode);
   cell?: (item: any) => React.ReactNode;
 }
 
@@ -69,7 +69,9 @@ const DataTable: React.FC<DataTableProps> = ({
           <TableHeader>
             <TableRow>
               {columns.map((column) => (
-                <TableHead key={column.key}>{column.header}</TableHead>
+                <TableHead key={column.key}>
+                  {typeof column.header === 'function' ? column.header() : column.header}
+                </TableHead>
               ))}
               {actions && <TableHead>Actions</TableHead>}
             </TableRow>

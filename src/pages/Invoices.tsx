@@ -1,9 +1,11 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import DataTable from '@/components/DataTable';
 import { Invoice } from '@/lib/types';
-import { Plus, FileText, Edit, Trash, Printer, DollarSign } from 'lucide-react';
+import { Plus, FileText, Edit, Trash, Printer, DollarSign, Loader2 } from 'lucide-react';
+import jsPDF from 'jspdf';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -18,6 +20,7 @@ import { useInvoices } from '@/hooks/useInvoices';
 import { useCashRegisters } from '@/hooks/useCashRegisters';
 import { useCompanyInfo } from '@/hooks/useCompanyInfo';
 import { generateReceiptFromInvoice } from '@/lib/utils/receiptUtils';
+import { generateInvoicePDF } from '@/lib/utils/invoicePdfUtils';
 
 const columns = [
   { key: 'number', header: 'Numéro' },
@@ -70,6 +73,8 @@ const Invoices = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState<string | null>(null);
   const [paymentInvoice, setPaymentInvoice] = useState<Invoice | null>(null);
+  const [selectedInvoices, setSelectedInvoices] = useState<Set<string>>(new Set());
+  const [isPrintingBatch, setIsPrintingBatch] = useState(false);
   
   const handleCreateInvoice = async (invoiceData: Partial<Invoice>) => {
     const newInvoice = await createInvoice({
@@ -161,7 +166,157 @@ const Invoices = () => {
 
     setPaymentInvoice(null);
   };
+
+  const toggleInvoiceSelection = (invoiceId: string) => {
+    const newSelection = new Set(selectedInvoices);
+    if (newSelection.has(invoiceId)) {
+      newSelection.delete(invoiceId);
+    } else {
+      newSelection.add(invoiceId);
+    }
+    setSelectedInvoices(newSelection);
+  };
+
+  const toggleAllInvoices = () => {
+    if (selectedInvoices.size === invoices.length) {
+      setSelectedInvoices(new Set());
+    } else {
+      setSelectedInvoices(new Set(invoices.map(inv => inv.id)));
+    }
+  };
+
+  const handleBatchPrint = async () => {
+    if (selectedInvoices.size === 0) {
+      toast({
+        title: "Aucune facture sélectionnée",
+        description: "Veuillez sélectionner au moins une facture à imprimer.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsPrintingBatch(true);
+
+    try {
+      const invoicesToPrint = invoices.filter(inv => selectedInvoices.has(inv.id));
+      const doc = new jsPDF();
+      
+      for (let i = 0; i < invoicesToPrint.length; i++) {
+        const invoice = invoicesToPrint[i];
+        
+        if (i > 0) {
+          doc.addPage();
+        }
+
+        // En-tête entreprise
+        let yPosition = 20;
+        doc.setFontSize(18);
+        doc.setFont('helvetica', 'bold');
+        doc.text(companyInfo?.name || 'Entreprise', 14, yPosition);
+        yPosition += 8;
+
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        if (companyInfo?.address) {
+          doc.text(companyInfo.address, 14, yPosition);
+          yPosition += 5;
+        }
+        if (companyInfo?.phone) {
+          doc.text(`Tél: ${companyInfo.phone}`, 14, yPosition);
+          yPosition += 5;
+        }
+
+        // Titre FACTURE
+        doc.setFontSize(20);
+        doc.setFont('helvetica', 'bold');
+        doc.text('FACTURE', 200, 30, { align: 'right' });
+        
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`N° ${invoice.number}`, 200, 38, { align: 'right' });
+        doc.text(`Date: ${new Date(invoice.date).toLocaleDateString('fr-FR')}`, 200, 44, { align: 'right' });
+
+        // Client
+        yPosition = 60;
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Facturé à:', 14, yPosition);
+        yPosition += 6;
+        
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.text(invoice.client.name, 14, yPosition);
+        yPosition += 5;
+        if (invoice.client.address) {
+          doc.text(invoice.client.address, 14, yPosition);
+          yPosition += 5;
+        }
+
+        // Total
+        yPosition = 100;
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('TOTAL:', 140, yPosition);
+        doc.text(`${invoice.total.toLocaleString('fr-FR')} FCFA`, 200, yPosition, { align: 'right' });
+
+        // Statut
+        yPosition += 10;
+        doc.setFontSize(10);
+        const statusLabels = {
+          draft: 'Brouillon',
+          sent: 'Envoyée',
+          paid: 'Payée',
+          overdue: 'En retard',
+        };
+        doc.text(`Statut: ${statusLabels[invoice.status]}`, 14, yPosition);
+
+        // Pied de page
+        const pageHeight = doc.internal.pageSize.height;
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'italic');
+        doc.text(`Facture ${i + 1} sur ${invoicesToPrint.length}`, 105, pageHeight - 10, { align: 'center' });
+      }
+
+      doc.save(`Factures_lot_${new Date().toISOString().split('T')[0]}.pdf`);
+
+      toast({
+        title: "Impression réussie",
+        description: `${selectedInvoices.size} facture(s) imprimée(s) avec succès.`,
+      });
+
+      setSelectedInvoices(new Set());
+    } catch (error) {
+      console.error('Error printing batch:', error);
+      toast({
+        title: "Erreur d'impression",
+        description: "Une erreur s'est produite lors de l'impression des factures.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsPrintingBatch(false);
+    }
+  };
   
+  const selectColumn = {
+    key: 'select',
+    header: () => (
+      <Checkbox
+        checked={selectedInvoices.size === invoices.length && invoices.length > 0}
+        onCheckedChange={toggleAllInvoices}
+        aria-label="Sélectionner tout"
+      />
+    ),
+    cell: (item: Partial<Invoice>) => (
+      <Checkbox
+        checked={selectedInvoices.has(item.id || '')}
+        onCheckedChange={() => toggleInvoiceSelection(item.id || '')}
+        aria-label={`Sélectionner facture ${item.number}`}
+      />
+    ),
+  };
+
+  const columnsWithSelect = [selectColumn, ...columns];
+
   const actions = (invoice: Partial<Invoice>) => (
     <div className="flex justify-end">
       <DropdownMenu>
@@ -222,6 +377,11 @@ const Invoices = () => {
           </DropdownMenuItem>
           <DropdownMenuItem
             className="flex items-center gap-2 cursor-pointer"
+            onClick={() => {
+              if (invoice.id) {
+                generateInvoicePDF(invoice as Invoice, companyInfo);
+              }
+            }}
           >
             <Printer className="h-4 w-4" /> Imprimer
           </DropdownMenuItem>
@@ -264,14 +424,35 @@ const Invoices = () => {
           <FileText className="h-5 w-5" />
           Factures
         </h1>
-        <Button onClick={() => setIsCreating(true)}>
-          <Plus className="h-4 w-4 mr-2" /> Nouvelle facture
-        </Button>
+        <div className="flex gap-2">
+          {selectedInvoices.size > 0 && (
+            <Button 
+              onClick={handleBatchPrint} 
+              disabled={isPrintingBatch}
+              variant="outline"
+            >
+              {isPrintingBatch ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Impression...
+                </>
+              ) : (
+                <>
+                  <Printer className="h-4 w-4 mr-2" />
+                  Imprimer ({selectedInvoices.size})
+                </>
+              )}
+            </Button>
+          )}
+          <Button onClick={() => setIsCreating(true)}>
+            <Plus className="h-4 w-4 mr-2" /> Nouvelle facture
+          </Button>
+        </div>
       </div>
       
       <DataTable 
         data={invoices} 
-        columns={columns} 
+        columns={columnsWithSelect} 
         actions={actions}
       />
 
