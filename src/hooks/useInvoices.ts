@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Invoice } from '@/lib/types';
+import { useErrorHandler } from './useErrorHandler';
 
 export function useInvoices() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
+  const { handleError } = useErrorHandler();
 
   const fetchInvoices = async () => {
     try {
@@ -36,7 +38,10 @@ export function useInvoices() {
 
       setInvoices(mappedInvoices);
     } catch (error) {
-      console.error('Error fetching invoices:', error);
+      handleError(error, {
+        severity: 'warning',
+        title: 'Erreur de chargement des factures',
+      });
     } finally {
       setLoading(false);
     }
@@ -91,7 +96,10 @@ export function useInvoices() {
       await fetchInvoices();
       return invoiceData;
     } catch (error) {
-      console.error('Error creating invoice:', error);
+      handleError(error, {
+        severity: 'error',
+        title: 'Erreur de création de facture',
+      });
       throw error;
     }
   };

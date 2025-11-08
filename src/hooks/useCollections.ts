@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Collection } from '@/lib/types';
+import { useErrorHandler } from './useErrorHandler';
 
 interface CollectionWithDetails extends Collection {
   invoiceNumber?: string;
@@ -11,6 +12,7 @@ interface CollectionWithDetails extends Collection {
 export function useCollections() {
   const [collections, setCollections] = useState<CollectionWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
+  const { handleError } = useErrorHandler();
 
   const fetchCollections = async () => {
     try {
@@ -45,7 +47,10 @@ export function useCollections() {
       }));
       setCollections(formattedCollections);
     } catch (error) {
-      console.error('Error fetching collections:', error);
+      handleError(error, {
+        severity: 'warning',
+        title: 'Erreur de chargement',
+      });
     } finally {
       setLoading(false);
     }
@@ -75,7 +80,10 @@ export function useCollections() {
       await fetchCollections();
       return data;
     } catch (error) {
-      console.error('Error creating collection:', error);
+      handleError(error, {
+        severity: 'error',
+        title: 'Erreur de création',
+      });
       throw error;
     }
   };
@@ -97,7 +105,10 @@ export function useCollections() {
       if (error) throw error;
       await fetchCollections();
     } catch (error) {
-      console.error('Error updating collection:', error);
+      handleError(error, {
+        severity: 'error',
+        title: 'Erreur de mise à jour',
+      });
       throw error;
     }
   };
@@ -112,7 +123,10 @@ export function useCollections() {
       if (error) throw error;
       await fetchCollections();
     } catch (error) {
-      console.error('Error deleting collection:', error);
+      handleError(error, {
+        severity: 'error',
+        title: 'Erreur de suppression',
+      });
       throw error;
     }
   };

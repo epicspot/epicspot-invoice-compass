@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Client } from '@/lib/types';
+import { useErrorHandler } from './useErrorHandler';
 
 export function useClients() {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
+  const { handleError } = useErrorHandler();
 
   const fetchClients = async () => {
     try {
@@ -29,7 +31,10 @@ export function useClients() {
 
       setClients(formattedClients);
     } catch (error) {
-      console.error('Error fetching clients:', error);
+      handleError(error, {
+        severity: 'warning',
+        title: 'Erreur de chargement des clients',
+      });
     } finally {
       setLoading(false);
     }
@@ -60,7 +65,10 @@ export function useClients() {
       await fetchClients();
       return data;
     } catch (error) {
-      console.error('Error creating client:', error);
+      handleError(error, {
+        severity: 'error',
+        title: 'Erreur de création du client',
+      });
       throw error;
     }
   };
