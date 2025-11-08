@@ -39,6 +39,26 @@ export function useVendors() {
 
   useEffect(() => {
     fetchVendors();
+
+    // Subscribe to realtime changes
+    const channel = supabase
+      .channel('vendors-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'vendors'
+        },
+        () => {
+          fetchVendors();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const createVendor = async (vendor: Omit<Vendor, 'id' | 'totalDebt' | 'paidAmount' | 'remainingBalance' | 'active'>) => {

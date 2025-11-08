@@ -66,6 +66,26 @@ export function useCollections() {
 
   useEffect(() => {
     fetchCollections();
+
+    // Subscribe to realtime changes
+    const channel = supabase
+      .channel('collections-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'collections'
+        },
+        () => {
+          fetchCollections();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const createCollection = async (collection: Omit<Collection, 'id'>) => {

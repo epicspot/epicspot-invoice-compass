@@ -42,6 +42,37 @@ export function useQuotes() {
 
   useEffect(() => {
     fetchQuotes();
+
+    // Subscribe to realtime changes
+    const channel = supabase
+      .channel('quotes-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'quotes'
+        },
+        () => {
+          fetchQuotes();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'quote_items'
+        },
+        () => {
+          fetchQuotes();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const createQuote = async (quote: Omit<Quote, 'id' | 'number'>) => {

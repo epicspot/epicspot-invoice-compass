@@ -37,6 +37,26 @@ export function useSuppliers() {
 
   useEffect(() => {
     fetchSuppliers();
+
+    // Subscribe to realtime changes
+    const channel = supabase
+      .channel('suppliers-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'suppliers'
+        },
+        () => {
+          fetchSuppliers();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const addSupplier = async (supplier: Omit<Supplier, 'id' | 'createdAt'>) => {

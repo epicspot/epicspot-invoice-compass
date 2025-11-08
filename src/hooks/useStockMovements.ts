@@ -57,6 +57,37 @@ export function useStockMovements() {
 
   useEffect(() => {
     fetchMovements();
+
+    // Subscribe to realtime changes
+    const channel = supabase
+      .channel('stock-movements-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'stock_movements'
+        },
+        () => {
+          fetchMovements();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'product_stock'
+        },
+        () => {
+          fetchMovements();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const createMovement = async (movement: Omit<StockMovement, 'id' | 'date'>) => {
