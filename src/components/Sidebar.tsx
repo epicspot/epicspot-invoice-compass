@@ -25,7 +25,8 @@ import {
   Shield,
   Plug,
   Sparkles,
-  Wifi
+  Wifi,
+  Receipt
 } from 'lucide-react';
 import Logo from './Logo';
 import { useAuth } from '@/contexts/AuthContext';
@@ -95,6 +96,7 @@ const Sidebar = () => {
     { name: 'Fonctionnalités Avancées', path: '/advanced-features', icon: Sparkles },
     { name: t('nav.reminders'), path: '/reminders', icon: Bell },
     { name: t('nav.reports'), path: '/reports', icon: BarChart3 },
+    { name: 'Déclarations TVA', path: '/tax-declarations', icon: Receipt },
     { name: t('nav.users'), path: '/users', icon: UserCog },
     { name: t('nav.settings'), path: '/settings', icon: Settings },
   ];

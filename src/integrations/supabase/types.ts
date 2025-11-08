@@ -468,16 +468,19 @@ export type Database = {
           created_at: string | null
           id: string
           name: string
+          tax_rate: number
         }
         Insert: {
           created_at?: string | null
           id?: string
           name: string
+          tax_rate?: number
         }
         Update: {
           created_at?: string | null
           id?: string
           name?: string
+          tax_rate?: number
         }
         Relationships: []
       }
@@ -1102,6 +1105,57 @@ export type Database = {
           created_by?: string
           description?: string | null
           id?: string
+        }
+        Relationships: []
+      }
+      tax_declarations: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          details: Json | null
+          id: string
+          period_end: string
+          period_start: string
+          status: string
+          submitted_at: string | null
+          total_purchases: number
+          total_sales: number
+          updated_at: string | null
+          vat_collected: number
+          vat_due: number
+          vat_paid: number
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          details?: Json | null
+          id?: string
+          period_end: string
+          period_start: string
+          status?: string
+          submitted_at?: string | null
+          total_purchases?: number
+          total_sales?: number
+          updated_at?: string | null
+          vat_collected?: number
+          vat_due?: number
+          vat_paid?: number
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          details?: Json | null
+          id?: string
+          period_end?: string
+          period_start?: string
+          status?: string
+          submitted_at?: string | null
+          total_purchases?: number
+          total_sales?: number
+          updated_at?: string | null
+          vat_collected?: number
+          vat_due?: number
+          vat_paid?: number
         }
         Relationships: []
       }
