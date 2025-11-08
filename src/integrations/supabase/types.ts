@@ -463,6 +463,200 @@ export type Database = {
         }
         Relationships: []
       }
+      market_documents: {
+        Row: {
+          document_type: string
+          file_name: string | null
+          file_size: number | null
+          file_url: string | null
+          id: string
+          market_id: string | null
+          title: string
+          uploaded_at: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          document_type: string
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
+          id?: string
+          market_id?: string | null
+          title: string
+          uploaded_at?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          document_type?: string
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
+          id?: string
+          market_id?: string | null
+          title?: string
+          uploaded_at?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_documents_market_id_fkey"
+            columns: ["market_id"]
+            isOneToOne: false
+            referencedRelation: "markets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      market_milestones: {
+        Row: {
+          amount: number
+          completion_date: string | null
+          created_at: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          invoice_id: string | null
+          market_id: string | null
+          percentage: number | null
+          status: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          amount?: number
+          completion_date?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          invoice_id?: string | null
+          market_id?: string | null
+          percentage?: number | null
+          status?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          completion_date?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          invoice_id?: string | null
+          market_id?: string | null
+          percentage?: number | null
+          status?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_milestones_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "market_milestones_market_id_fkey"
+            columns: ["market_id"]
+            isOneToOne: false
+            referencedRelation: "markets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      markets: {
+        Row: {
+          actual_amount: number
+          client_id: string | null
+          created_at: string | null
+          created_by: string | null
+          delivery_terms: string | null
+          deposit_amount: number | null
+          deposit_percentage: number | null
+          description: string | null
+          documents: Json | null
+          end_date: string | null
+          estimated_amount: number
+          id: string
+          payment_terms: string | null
+          reference: string
+          responsible_user_id: string | null
+          site_id: string | null
+          specifications: Json | null
+          start_date: string | null
+          status: string
+          title: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          actual_amount?: number
+          client_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          delivery_terms?: string | null
+          deposit_amount?: number | null
+          deposit_percentage?: number | null
+          description?: string | null
+          documents?: Json | null
+          end_date?: string | null
+          estimated_amount?: number
+          id?: string
+          payment_terms?: string | null
+          reference: string
+          responsible_user_id?: string | null
+          site_id?: string | null
+          specifications?: Json | null
+          start_date?: string | null
+          status?: string
+          title: string
+          type?: string
+          updated_at?: string | null
+        }
+        Update: {
+          actual_amount?: number
+          client_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          delivery_terms?: string | null
+          deposit_amount?: number | null
+          deposit_percentage?: number | null
+          description?: string | null
+          documents?: Json | null
+          end_date?: string | null
+          estimated_amount?: number
+          id?: string
+          payment_terms?: string | null
+          reference?: string
+          responsible_user_id?: string | null
+          site_id?: string | null
+          specifications?: Json | null
+          start_date?: string | null
+          status?: string
+          title?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "markets_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "markets_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_categories: {
         Row: {
           created_at: string | null

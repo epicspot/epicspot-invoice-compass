@@ -26,7 +26,8 @@ import {
   Plug,
   Sparkles,
   Wifi,
-  Receipt
+  Receipt,
+  Briefcase
 } from 'lucide-react';
 import Logo from './Logo';
 import { useAuth } from '@/contexts/AuthContext';
@@ -85,6 +86,7 @@ const Sidebar = () => {
     { name: t('nav.inventory'), path: '/inventory', icon: PackageSearch },
     { name: t('nav.suppliers'), path: '/suppliers', icon: Truck },
     { name: t('nav.purchaseOrders'), path: '/purchase-orders', icon: ShoppingBag },
+    { name: 'Marchés', path: '/markets', icon: Briefcase },
     { name: t('nav.analytics'), path: '/analytics', icon: LineChart },
     { name: 'Analytics Avancé', path: '/advanced-analytics', icon: BarChart3 },
     { name: t('nav.cashRegisters'), path: '/cash-registers', icon: CreditCard },
