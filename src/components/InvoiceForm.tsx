@@ -440,29 +440,44 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
                   <span className="text-sm font-medium text-muted-foreground">
                     Complétude
                   </span>
-                  <span className={`text-sm font-bold ${status.percentage === 100 ? 'text-primary' : 'text-muted-foreground'}`}>
+                  <span className={`text-sm font-bold transition-all duration-500 ${
+                    status.percentage === 100 
+                      ? 'text-primary scale-110' 
+                      : 'text-muted-foreground'
+                  }`}>
                     {status.percentage}%
                   </span>
                 </div>
-                <Progress 
-                  value={status.percentage} 
-                  className="h-2"
-                />
-                <p className="text-xs text-muted-foreground">
+                <div className="relative">
+                  <Progress 
+                    value={status.percentage} 
+                    className="h-2 transition-all duration-700 ease-out"
+                  />
+                  {status.percentage === 100 && (
+                    <div className="absolute inset-0 rounded-full bg-primary/20 animate-pulse" />
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground animate-fade-in">
                   {status.completionScore} sur {status.totalCriteria} critères validés
                 </p>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Destinataire */}
-                <div className={`flex items-start gap-3 p-3 rounded-md ${status.recipient ? 'bg-primary/10' : 'bg-muted'}`}>
+                <div className={`flex items-start gap-3 p-3 rounded-md transition-all duration-500 ${
+                  status.recipient 
+                    ? 'bg-primary/10 scale-[1.02] shadow-sm' 
+                    : 'bg-muted scale-100'
+                }`}>
                   {status.recipient ? (
-                    <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                    <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5 animate-scale-in" />
                   ) : (
                     <XCircle className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-medium ${status.recipient ? 'text-primary' : 'text-muted-foreground'}`}>
+                    <p className={`text-sm font-medium transition-colors duration-300 ${
+                      status.recipient ? 'text-primary' : 'text-muted-foreground'
+                    }`}>
                       Destinataire
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
@@ -472,14 +487,20 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
                 </div>
 
                 {/* Articles */}
-                <div className={`flex items-start gap-3 p-3 rounded-md ${status.items ? 'bg-primary/10' : 'bg-muted'}`}>
+                <div className={`flex items-start gap-3 p-3 rounded-md transition-all duration-500 ${
+                  status.items 
+                    ? 'bg-primary/10 scale-[1.02] shadow-sm' 
+                    : 'bg-muted scale-100'
+                }`}>
                   {status.items ? (
-                    <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                    <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5 animate-scale-in" />
                   ) : (
                     <XCircle className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-medium ${status.items ? 'text-primary' : 'text-muted-foreground'}`}>
+                    <p className={`text-sm font-medium transition-colors duration-300 ${
+                      status.items ? 'text-primary' : 'text-muted-foreground'
+                    }`}>
                       Articles
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
@@ -492,14 +513,20 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
                 </div>
 
                 {/* Montants */}
-                <div className={`flex items-start gap-3 p-3 rounded-md ${status.amounts ? 'bg-primary/10' : 'bg-muted'}`}>
+                <div className={`flex items-start gap-3 p-3 rounded-md transition-all duration-500 ${
+                  status.amounts 
+                    ? 'bg-primary/10 scale-[1.02] shadow-sm' 
+                    : 'bg-muted scale-100'
+                }`}>
                   {status.amounts ? (
-                    <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                    <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5 animate-scale-in" />
                   ) : (
                     <XCircle className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-medium ${status.amounts ? 'text-primary' : 'text-muted-foreground'}`}>
+                    <p className={`text-sm font-medium transition-colors duration-300 ${
+                      status.amounts ? 'text-primary' : 'text-muted-foreground'
+                    }`}>
                       Montants
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
