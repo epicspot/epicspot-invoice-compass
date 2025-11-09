@@ -54,10 +54,15 @@ function createWindow() {
 
   // Charger l'application
   if (app.isPackaged) {
-    // En production, charger depuis les fichiers buildés
-    const indexPath = path.join(process.resourcesPath, 'dist', 'index.html');
+    // En production, charger depuis les fichiers buildés dans resources
+    const indexPath = path.join(__dirname, '..', '..', 'dist', 'index.html');
+    console.log('Loading from:', indexPath);
     mainWindow.loadFile(indexPath).catch((err) => {
       console.error('Erreur de chargement:', err);
+      // Fallback: essayer depuis process.resourcesPath
+      const fallbackPath = path.join(process.resourcesPath, 'dist', 'index.html');
+      console.log('Trying fallback:', fallbackPath);
+      mainWindow.loadFile(fallbackPath);
     });
   } else {
     // En développement, charger depuis le serveur Vite
