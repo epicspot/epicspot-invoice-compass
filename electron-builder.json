@@ -26,9 +26,7 @@
       "to": "dist"
     }
   ],
-  "asarUnpack": [
-    "backend/**/*"
-  ],
+  "asarUnpack": ["backend/**/*"],
   "win": {
     "target": [
       {
