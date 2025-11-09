@@ -111,12 +111,14 @@ export function useInvoices() {
 
       if (invoiceError) throw invoiceError;
 
-      const itemsToInsert = invoice.items.map(item => ({
-        invoice_id: invoiceData.id,
-        product_id: item.product.id,
-        quantity: item.quantity,
-        amount: item.amount,
-      }));
+      const itemsToInsert = invoice.items
+        .filter(item => item.product && item.product.id)
+        .map(item => ({
+          invoice_id: invoiceData.id,
+          product_id: item.product.id,
+          quantity: item.quantity,
+          amount: item.amount,
+        }));
 
       const { error: itemsError } = await supabase
         .from('invoice_items')

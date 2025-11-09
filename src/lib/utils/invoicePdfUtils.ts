@@ -48,11 +48,17 @@ export const generateInvoicePDF = (invoice: Invoice, companyInfo: any) => {
   
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
-  doc.text(invoice.client.name, 14, yPosition);
-  yPosition += 5;
-  doc.text(invoice.client.address, 14, yPosition);
-  yPosition += 5;
-  doc.text(`Tél: ${invoice.client.phone}`, 14, yPosition);
+  if (invoice.client) {
+    doc.text(invoice.client.name || '-', 14, yPosition);
+    yPosition += 5;
+    if (invoice.client.address) {
+      doc.text(invoice.client.address, 14, yPosition);
+      yPosition += 5;
+    }
+    if (invoice.client.phone) {
+      doc.text(`Tél: ${invoice.client.phone}`, 14, yPosition);
+    }
+  }
   yPosition += 10;
 
   // Table des articles

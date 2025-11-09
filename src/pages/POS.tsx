@@ -53,7 +53,7 @@ const POS = () => {
   const addToCart = (product: Product) => {
     // Vérifier le stock disponible
     const availableStock = getCurrentStock(product.id, siteId);
-    const currentQtyInCart = cart.find(item => item.product.id === product.id)?.quantity || 0;
+    const currentQtyInCart = cart.find(item => item.product?.id === product.id)?.quantity || 0;
     
     if (availableStock <= currentQtyInCart) {
       toast({
@@ -64,11 +64,11 @@ const POS = () => {
       return;
     }
     
-    const existingItem = cart.find(item => item.product.id === product.id);
+    const existingItem = cart.find(item => item.product?.id === product.id);
     
     if (existingItem) {
       setCart(cart.map(item =>
-        item.product.id === product.id
+        item.product?.id === product.id
           ? { ...item, quantity: item.quantity + 1, amount: (item.quantity + 1) * product.price }
           : item
       ));
@@ -89,7 +89,7 @@ const POS = () => {
         
         // Vérifier le stock disponible pour l'augmentation
         if (delta > 0) {
-          const availableStock = getCurrentStock(item.product.id, siteId);
+          const availableStock = item.product?.id ? getCurrentStock(item.product.id, siteId) : 0;
           if (newQuantity > availableStock) {
             toast({
               title: "Stock insuffisant",
@@ -104,7 +104,7 @@ const POS = () => {
           return null;
         }
         
-        return { ...item, quantity: newQuantity, amount: newQuantity * item.product.price };
+        return { ...item, quantity: newQuantity, amount: newQuantity * (item.product?.price || 0) };
       }
       return item;
     }).filter(Boolean) as InvoiceItem[]);
@@ -117,7 +117,7 @@ const POS = () => {
   const calculateTotals = () => {
     const subtotal = cart.reduce((sum, item) => sum + item.amount, 0);
     const tax = cart.reduce((sum, item) => {
-      const taxRate = item.product.taxRate || 0;
+      const taxRate = item.product?.taxRate || 0;
       return sum + (item.amount * taxRate / 100);
     }, 0);
     const total = subtotal + tax;
@@ -217,7 +217,7 @@ const POS = () => {
     // Update stock
     for (const item of cart) {
       await createMovement({
-        productId: item.product.id,
+        productId: item.product?.id || '',
         siteId,
         quantity: -item.quantity,
         type: 'sale',

@@ -48,11 +48,17 @@ export const generateQuotePDF = (quote: Quote, companyInfo: any) => {
   
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
-  doc.text(quote.client.name, 14, yPosition);
-  yPosition += 5;
-  doc.text(quote.client.address, 14, yPosition);
-  yPosition += 5;
-  doc.text(`Tél: ${quote.client.phone}`, 14, yPosition);
+  if (quote.client) {
+    doc.text(quote.client.name || '-', 14, yPosition);
+    yPosition += 5;
+    if (quote.client.address) {
+      doc.text(quote.client.address, 14, yPosition);
+      yPosition += 5;
+    }
+    if (quote.client.phone) {
+      doc.text(`Tél: ${quote.client.phone}`, 14, yPosition);
+    }
+  }
   yPosition += 10;
 
   // Table des articles

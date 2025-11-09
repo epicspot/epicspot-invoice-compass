@@ -355,11 +355,13 @@ const Invoices = () => {
         
         doc.setFontSize(9);
         doc.setFont('helvetica', 'normal');
-        doc.text(invoice.client.name, 14, yPosition);
-        yPosition += 5;
-        if (invoice.client.address) {
-          doc.text(invoice.client.address, 14, yPosition);
+        if (invoice.client) {
+          doc.text(invoice.client.name || '-', 14, yPosition);
           yPosition += 5;
+          if (invoice.client.address) {
+            doc.text(invoice.client.address, 14, yPosition);
+            yPosition += 5;
+          }
         }
 
         // Total

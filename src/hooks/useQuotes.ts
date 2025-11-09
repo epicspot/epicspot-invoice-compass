@@ -102,12 +102,14 @@ export function useQuotes() {
 
       if (quoteError) throw quoteError;
 
-      const itemsToInsert = quote.items.map(item => ({
-        quote_id: quoteData.id,
-        product_id: item.product.id,
-        quantity: item.quantity,
-        amount: item.amount,
-      }));
+      const itemsToInsert = quote.items
+        .filter(item => item.product && item.product.id)
+        .map(item => ({
+          quote_id: quoteData.id,
+          product_id: item.product.id,
+          quantity: item.quantity,
+          amount: item.amount,
+        }));
 
       const { error: itemsError } = await supabase
         .from('quote_items')

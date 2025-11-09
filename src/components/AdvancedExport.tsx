@@ -64,7 +64,7 @@ export function AdvancedExport() {
         const filtered: any = {};
         selectedFields.forEach((field) => {
           if (field === 'client' && item.client) {
-            filtered[field] = item.client.name;
+            filtered[field] = item.client?.name || '-';
           } else {
             filtered[field] = item[field];
           }
