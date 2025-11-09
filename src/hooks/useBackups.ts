@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useLogger } from '@/hooks/useLogger';
+import type { Database } from '@/integrations/supabase/types';
+
+type BackupRow = Database['public']['Tables']['system_backups']['Row'];
 
 export interface Backup {
   id: string;
@@ -18,7 +20,6 @@ export const useBackups = () => {
   const [backups, setBackups] = useState<Backup[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const { log } = useLogger();
 
   const fetchBackups = async () => {
     try {
@@ -30,11 +31,11 @@ export const useBackups = () => {
 
       if (error) throw error;
 
-      setBackups(data || []);
-      log('info', 'backup', 'Backups récupérées avec succès');
+      setBackups((data || []) as Backup[]);
+      console.log('[Backups] Backups récupérées avec succès');
     } catch (error: any) {
       console.error('Error fetching backups:', error);
-      log('error', 'backup', 'Erreur lors de la récupération des backups', error);
+      console.log('[Backups] Erreur lors de la récupération des backups', error);
       toast({
         title: 'Erreur',
         description: 'Impossible de charger les sauvegardes',
@@ -47,7 +48,7 @@ export const useBackups = () => {
 
   const createBackup = async (type: 'auto' | 'manual' = 'manual') => {
     try {
-      log('info', 'backup', `Création d'une sauvegarde ${type}...`);
+      console.log(`[Backups] Création d'une sauvegarde ${type}...`);
       
       const { data, error } = await supabase.functions.invoke('create-backup', {
         body: { backup_type: type }
@@ -60,13 +61,13 @@ export const useBackups = () => {
         description: `Sauvegarde ${type === 'auto' ? 'automatique' : 'manuelle'} créée avec succès`,
       });
 
-      log('success', 'backup', `Sauvegarde ${type} créée`, data);
+      console.log(`[Backups] Sauvegarde ${type} créée`, data);
       await fetchBackups();
       
       return data;
     } catch (error: any) {
       console.error('Error creating backup:', error);
-      log('error', 'backup', 'Erreur lors de la création de la sauvegarde', error);
+      console.log('[Backups] Erreur lors de la création de la sauvegarde', error);
       toast({
         title: 'Erreur',
         description: error.message || 'Impossible de créer la sauvegarde',
@@ -78,7 +79,7 @@ export const useBackups = () => {
 
   const deleteBackup = async (id: string) => {
     try {
-      log('info', 'backup', `Suppression de la sauvegarde ${id}...`);
+      console.log(`[Backups] Suppression de la sauvegarde ${id}...`);
       
       const { error } = await supabase
         .from('system_backups')
@@ -92,11 +93,11 @@ export const useBackups = () => {
         description: 'Sauvegarde supprimée avec succès',
       });
 
-      log('success', 'backup', 'Sauvegarde supprimée', { id });
+      console.log('[Backups] Sauvegarde supprimée', { id });
       await fetchBackups();
     } catch (error: any) {
       console.error('Error deleting backup:', error);
-      log('error', 'backup', 'Erreur lors de la suppression de la sauvegarde', error);
+      console.log('[Backups] Erreur lors de la suppression de la sauvegarde', error);
       toast({
         title: 'Erreur',
         description: error.message || 'Impossible de supprimer la sauvegarde',
@@ -108,7 +109,7 @@ export const useBackups = () => {
 
   const restoreBackup = async (backup: Backup) => {
     try {
-      log('info', 'backup', `Restauration de la sauvegarde ${backup.id}...`);
+      console.log(`[Backups] Restauration de la sauvegarde ${backup.id}...`);
       
       // This would require a restore edge function
       // For now, we'll just show a warning
@@ -118,10 +119,10 @@ export const useBackups = () => {
         variant: 'destructive',
       });
 
-      log('warn', 'backup', 'Tentative de restauration manuelle', { backup_id: backup.id });
+      console.log('[Backups] Tentative de restauration manuelle', { backup_id: backup.id });
     } catch (error: any) {
       console.error('Error restoring backup:', error);
-      log('error', 'backup', 'Erreur lors de la restauration', error);
+      console.log('[Backups] Erreur lors de la restauration', error);
       toast({
         title: 'Erreur',
         description: error.message || 'Impossible de restaurer la sauvegarde',
@@ -144,14 +145,14 @@ export const useBackups = () => {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      log('success', 'backup', 'Sauvegarde téléchargée', { backup_id: backup.id });
+      console.log('[Backups] Sauvegarde téléchargée', { backup_id: backup.id });
       toast({
         title: 'Succès',
         description: 'Sauvegarde téléchargée avec succès',
       });
     } catch (error: any) {
       console.error('Error downloading backup:', error);
-      log('error', 'backup', 'Erreur lors du téléchargement', error);
+      console.log('[Backups] Erreur lors du téléchargement', error);
       toast({
         title: 'Erreur',
         description: 'Impossible de télécharger la sauvegarde',

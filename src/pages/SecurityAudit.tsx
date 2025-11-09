@@ -1,6 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AuditTrail } from '@/components/AuditTrail';
 import { RoleManagement } from '@/components/RoleManagement';
+import { BackupManagement } from '@/components/BackupManagement';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Shield, History, Users, Download, Database } from 'lucide-react';
@@ -86,59 +87,7 @@ export default function SecurityAudit() {
         </TabsContent>
 
         <TabsContent value="backups" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Gestion des sauvegardes</CardTitle>
-              <CardDescription>
-                Sauvegardes automatiques et manuelles de vos données
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Backup automatique</CardTitle>
-                    <CardDescription>Sauvegarde quotidienne à 2h du matin</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-2xl font-bold text-green-500">✓ Activé</div>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Dernière sauvegarde: Aujourd'hui à 02:00
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Rétention</CardTitle>
-                    <CardDescription>Durée de conservation des backups</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div>
-                      <div className="text-2xl font-bold">30 jours</div>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Les backups sont conservés pendant 30 jours
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <div className="p-4 bg-muted rounded-lg">
-                <h3 className="font-semibold mb-2">📋 Informations</h3>
-                <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• Les backups incluent toutes les données de l'application</li>
-                  <li>• Les sauvegardes sont chiffrées et stockées en sécurité</li>
-                  <li>• Restauration possible en moins de 24h sur demande</li>
-                  <li>• Les backups manuels ne sont pas comptés dans la rétention</li>
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
+          <BackupManagement />
         </TabsContent>
       </Tabs>
     </div>
