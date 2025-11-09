@@ -1,6 +1,8 @@
 {
   "appId": "com.epicspot.gestion",
   "productName": "EPICSPOT Gestion Commerciale",
+  "npmRebuild": false,
+  "npmArgs": ["--no-optional"],
   "directories": {
     "output": "release",
     "buildResources": "build"
