@@ -11,6 +11,7 @@ import { InvoiceItem, Invoice } from '@/lib/types';
 import { FileText, Plus, Trash, Printer, AlertCircle, CheckCircle2, XCircle, Clock } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import { useClients } from '@/hooks/useClients';
 import { useVendors } from '@/hooks/useVendors';
 import { useProducts } from '@/hooks/useProducts';
@@ -369,6 +370,16 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
       (!invoice.tax || (invoice.tax >= 0 && invoice.tax <= 100)) &&
       (!invoice.discount || (invoice.discount >= 0 && invoice.discount <= (invoice.subtotal || 0)));
     
+    // Calcul du pourcentage de complétude
+    let completionScore = 0;
+    const totalCriteria = 3;
+    
+    if (hasRecipient) completionScore++;
+    if (itemsValid) completionScore++;
+    if (amountsValid) completionScore++;
+    
+    const percentage = Math.round((completionScore / totalCriteria) * 100);
+    
     return {
       recipient: hasRecipient,
       items: itemsValid,
@@ -377,7 +388,10 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
         total: (invoice.items || []).length
       },
       amounts: amountsValid,
-      isComplete: hasRecipient && itemsValid && amountsValid
+      isComplete: hasRecipient && itemsValid && amountsValid,
+      percentage,
+      completionScore,
+      totalCriteria
     };
   };
 
@@ -418,6 +432,25 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
                     <span className="text-sm font-medium">En cours</span>
                   </div>
                 )}
+              </div>
+              
+              {/* Barre de progression */}
+              <div className="space-y-2 mb-6">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Complétude
+                  </span>
+                  <span className={`text-sm font-bold ${status.percentage === 100 ? 'text-primary' : 'text-muted-foreground'}`}>
+                    {status.percentage}%
+                  </span>
+                </div>
+                <Progress 
+                  value={status.percentage} 
+                  className="h-2"
+                />
+                <p className="text-xs text-muted-foreground">
+                  {status.completionScore} sur {status.totalCriteria} critères validés
+                </p>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
