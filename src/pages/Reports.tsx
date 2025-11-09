@@ -125,12 +125,15 @@ const Reports = () => {
   
   filteredInvoices.forEach(inv => {
     inv.items?.forEach(item => {
-      const current = productSales.get(item.product.id) || { count: 0, revenue: 0, product: item.product };
-      productSales.set(item.product.id, {
-        count: current.count + item.quantity,
-        revenue: current.revenue + item.amount,
-        product: item.product
-      });
+      // Vérifier que le produit existe et a un ID avant d'y accéder
+      if (item.product && item.product.id) {
+        const current = productSales.get(item.product.id) || { count: 0, revenue: 0, product: item.product };
+        productSales.set(item.product.id, {
+          count: current.count + item.quantity,
+          revenue: current.revenue + item.amount,
+          product: item.product
+        });
+      }
     });
   });
 
@@ -142,7 +145,8 @@ const Reports = () => {
   const clientRevenue = new Map<string, { total: number; invoices: number; client: any }>();
   
   filteredInvoices.forEach(inv => {
-    if (inv.client && inv.status === 'paid') {
+    // Vérifier que le client existe, a un ID et que la facture est payée
+    if (inv.client && inv.client.id && inv.status === 'paid') {
       const current = clientRevenue.get(inv.client.id) || { total: 0, invoices: 0, client: inv.client };
       clientRevenue.set(inv.client.id, {
         total: current.total + (inv.total || 0),
