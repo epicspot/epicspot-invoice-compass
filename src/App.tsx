@@ -46,6 +46,7 @@ const Subscriptions = lazy(() => import("./pages/Subscriptions"));
 const SubscriptionInvoices = lazy(() => import("./pages/SubscriptionInvoices"));
 const TaxDeclarations = lazy(() => import("./pages/TaxDeclarations"));
 const TaxAnalyticsDashboard = lazy(() => import("./pages/TaxAnalyticsDashboard"));
+const Install = lazy(() => import("./pages/Install"));
 const Markets = lazy(() => import("./pages/Markets"));
 const MarketDetails = lazy(() => import("./pages/MarketDetails"));
 const DocumentTemplates = lazy(() => import("./pages/DocumentTemplates"));
@@ -129,7 +130,8 @@ const App = () => {
                             <Route path="/users" element={<Users />} />
                             <Route path="/settings" element={<Settings />} />
                             <Route path="/tax-declarations" element={<TaxDeclarations />} />
-                            <Route path="/tax-analytics" element={<TaxAnalyticsDashboard />} />
+            <Route path="/tax-analytics" element={<TaxAnalyticsDashboard />} />
+            <Route path="/install" element={<Install />} />
                             <Route path="/markets" element={<Markets />} />
                             <Route path="/markets/:id" element={<MarketDetails />} />
                             <Route path="/document-templates" element={<DocumentTemplates />} />
