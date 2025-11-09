@@ -14,7 +14,7 @@ function startBackend() {
   const env = {
     ...process.env,
     PORT: '3000',
-    FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:8080',
+    FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:5112',
   };
 
   if (app.isPackaged) {
@@ -60,7 +60,7 @@ function createWindow() {
     });
   } else {
     // En développement, charger depuis le serveur Vite
-    mainWindow.loadURL('http://localhost:8080').catch((err) => {
+    mainWindow.loadURL('http://localhost:5112').catch((err) => {
       console.error('Erreur de chargement:', err);
     });
   }
