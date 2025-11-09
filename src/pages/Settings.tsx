@@ -13,6 +13,7 @@ import SiteManagement from "@/components/settings/SiteManagement";
 import { VATRatesManagement } from "@/components/settings/VATRatesManagement";
 import { SystemSettings } from "@/components/settings/SystemSettings";
 import EmailTemplatesManagement from "@/components/settings/EmailTemplatesManagement";
+import { SystemAnalyzer } from "@/components/SystemAnalyzer";
 import { Site } from "@/lib/types";
 
 // Mock data for sites
@@ -21,7 +22,10 @@ const initialSites: Site[] = [];
 const Settings = () => {
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-3xl font-bold">Paramètres</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Paramètres</h1>
+        <SystemAnalyzer />
+      </div>
       
       <Tabs defaultValue="company">
         <TabsList className="grid w-full grid-cols-7">
