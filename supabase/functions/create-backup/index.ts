@@ -43,10 +43,26 @@ serve(async (req) => {
 
     // Collect data from critical tables for backup
     const tables = [
+      'clients',
+      'products',
+      'invoices',
+      'invoice_items',
+      'quotes',
+      'quote_items',
+      'suppliers',
+      'purchase_orders',
+      'purchase_order_items',
+      'collections',
+      'leads',
+      'markets',
+      'subscriptions',
+      'cash_registers',
+      'cash_transactions',
+      'stock_movements',
       'user_roles',
       'audit_log',
       'document_signatures',
-      'system_backups'
+      'reminders'
     ]
 
     const backupData: any = {
@@ -70,6 +86,10 @@ serve(async (req) => {
       }
     }
 
+    // Calculate backup size
+    const backupJson = JSON.stringify(backupData);
+    const sizeBytes = new Blob([backupJson]).size;
+
     // Store backup in system_backups table
     const { data: backup, error: backupError } = await supabaseClient
       .from('system_backups')
@@ -77,6 +97,8 @@ serve(async (req) => {
         backup_type: backup_type || 'manual',
         backup_data: backupData,
         created_by: user.id,
+        size_bytes: sizeBytes,
+        tables_count: Object.keys(backupData.tables).length,
         description: `Backup ${backup_type === 'auto' ? 'automatique' : 'manuel'} - ${new Date().toLocaleDateString('fr-FR')}`
       })
       .select()

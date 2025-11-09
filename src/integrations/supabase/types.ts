@@ -1544,6 +1544,8 @@ export type Database = {
           created_by: string
           description: string | null
           id: string
+          size_bytes: number | null
+          tables_count: number | null
         }
         Insert: {
           backup_data: Json
@@ -1552,6 +1554,8 @@ export type Database = {
           created_by: string
           description?: string | null
           id?: string
+          size_bytes?: number | null
+          tables_count?: number | null
         }
         Update: {
           backup_data?: Json
@@ -1560,6 +1564,8 @@ export type Database = {
           created_by?: string
           description?: string | null
           id?: string
+          size_bytes?: number | null
+          tables_count?: number | null
         }
         Relationships: []
       }
