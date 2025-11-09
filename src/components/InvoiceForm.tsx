@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { InvoiceItem, Invoice } from '@/lib/types';
-import { FileText, Plus, Trash, Printer, AlertCircle } from 'lucide-react';
+import { FileText, Plus, Trash, Printer, AlertCircle, CheckCircle2, XCircle, Clock } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent } from '@/components/ui/card';
 import { useClients } from '@/hooks/useClients';
@@ -348,6 +348,41 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
     return amount.toLocaleString() + ' FCFA';
   };
 
+  // Calculer l'état de complétude en temps réel
+  const getCompletionStatus = () => {
+    const hasRecipient = !!(invoice.client || invoice.clientId || invoice.vendor || invoice.vendorId);
+    
+    const hasItems = (invoice.items || []).length > 0;
+    const validItems = (invoice.items || []).filter(item => {
+      return item.product && 
+             item.product.id && 
+             (item.product.description || item.product.reference) &&
+             item.product.price >= 0 &&
+             item.quantity > 0 &&
+             item.amount >= 0;
+    });
+    const itemsValid = hasItems && validItems.length === (invoice.items || []).length;
+    
+    const amountsValid = 
+      (invoice.total || 0) > 0 &&
+      (invoice.subtotal || 0) >= 0 &&
+      (!invoice.tax || (invoice.tax >= 0 && invoice.tax <= 100)) &&
+      (!invoice.discount || (invoice.discount >= 0 && invoice.discount <= (invoice.subtotal || 0)));
+    
+    return {
+      recipient: hasRecipient,
+      items: itemsValid,
+      itemsCount: {
+        valid: validItems.length,
+        total: (invoice.items || []).length
+      },
+      amounts: amountsValid,
+      isComplete: hasRecipient && itemsValid && amountsValid
+    };
+  };
+
+  const status = getCompletionStatus();
+
   return (
     <>
       {!showPreview ? (
@@ -366,6 +401,82 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
               </Button>
             </div>
           </div>
+
+          {/* Récapitulatif de validation en temps réel */}
+          <Card className={`border-2 ${status.isComplete ? 'border-primary/30 bg-primary/5' : 'border-muted'}`}>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-semibold">État de la facture</h3>
+                {status.isComplete ? (
+                  <div className="flex items-center gap-2 text-primary">
+                    <CheckCircle2 className="h-5 w-5" />
+                    <span className="text-sm font-medium">Complète</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Clock className="h-5 w-5" />
+                    <span className="text-sm font-medium">En cours</span>
+                  </div>
+                )}
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Destinataire */}
+                <div className={`flex items-start gap-3 p-3 rounded-md ${status.recipient ? 'bg-primary/10' : 'bg-muted'}`}>
+                  {status.recipient ? (
+                    <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                  ) : (
+                    <XCircle className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm font-medium ${status.recipient ? 'text-primary' : 'text-muted-foreground'}`}>
+                      Destinataire
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {status.recipient ? 'Client/Vendeur sélectionné' : 'Aucun destinataire'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Articles */}
+                <div className={`flex items-start gap-3 p-3 rounded-md ${status.items ? 'bg-primary/10' : 'bg-muted'}`}>
+                  {status.items ? (
+                    <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                  ) : (
+                    <XCircle className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm font-medium ${status.items ? 'text-primary' : 'text-muted-foreground'}`}>
+                      Articles
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {status.itemsCount.total === 0 
+                        ? 'Aucun article'
+                        : `${status.itemsCount.valid}/${status.itemsCount.total} valides`
+                      }
+                    </p>
+                  </div>
+                </div>
+
+                {/* Montants */}
+                <div className={`flex items-start gap-3 p-3 rounded-md ${status.amounts ? 'bg-primary/10' : 'bg-muted'}`}>
+                  {status.amounts ? (
+                    <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                  ) : (
+                    <XCircle className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm font-medium ${status.amounts ? 'text-primary' : 'text-muted-foreground'}`}>
+                      Montants
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {status.amounts ? `Total: ${formatCurrency(invoice.total || 0)}` : 'Montants invalides'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Alert d'erreurs de validation */}
           {validationErrors.length > 0 && (
