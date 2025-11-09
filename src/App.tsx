@@ -54,6 +54,7 @@ const Logs = lazy(() => import("./pages/Logs"));
 const Supervision = lazy(() => import("./pages/Supervision"));
 import { AIAssistant } from "./components/AIAssistant";
 import { AlertSystemProvider } from "./components/AlertSystemProvider";
+import { DataValidator } from "./components/DataValidator";
 import Sidebar from "./components/Sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
@@ -150,6 +151,8 @@ const App = () => {
             <PWAInstallPrompt />
             <PWAUpdatePrompt />
             <OfflineIndicator />
+            <AIAssistant />
+            <DataValidator />
           </TooltipProvider>
         </BrowserRouter>
         </AlertSystemProvider>
