@@ -2,6 +2,7 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import dotenv from 'dotenv';
 import db from './database.js';
+import { APP_CONFIG } from './config.js';
 
 // Import routes
 import authRoutes from './routes/auth.js';
@@ -28,7 +29,7 @@ const fastify = Fastify({
 
 // Configuration CORS
 await fastify.register(cors, {
-  origin: process.env.FRONTEND_URL || 'http://localhost:5112',
+  origin: process.env.FRONTEND_URL || APP_CONFIG.FRONTEND_URL,
   credentials: true
 });
 
@@ -60,9 +61,9 @@ fastify.register(collectionRoutes, { prefix: '/api/collections' });
 // Démarrer le serveur
 const start = async () => {
   try {
-    const port = process.env.PORT || 3000;
+    const port = process.env.PORT || APP_CONFIG.BACKEND_PORT;
     await fastify.listen({ port, host: '0.0.0.0' });
-    console.log(`🚀 Serveur démarré sur http://localhost:${port}`);
+    console.log(`🚀 Serveur démarré sur ${APP_CONFIG.BACKEND_URL}`);
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);

@@ -2,6 +2,7 @@ import { app, BrowserWindow } from 'electron';
 import path from 'path';
 import { spawn } from 'child_process';
 import { fileURLToPath, pathToFileURL } from 'url';
+import { APP_CONFIG } from '../config.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,8 +14,8 @@ let backendProcess;
 function startBackend() {
   const env = {
     ...process.env,
-    PORT: '3000',
-    FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:5112',
+    PORT: APP_CONFIG.BACKEND_PORT.toString(),
+    FRONTEND_URL: process.env.FRONTEND_URL || APP_CONFIG.FRONTEND_URL,
   };
 
   if (app.isPackaged) {
@@ -48,7 +49,7 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.js')
     },
     icon: path.join(__dirname, '..', 'public', 'favicon.ico'),
-    title: 'EPICSPOT - Gestion Commerciale'
+    title: APP_CONFIG.APP_NAME
   });
 
   // Charger l'application
@@ -60,7 +61,7 @@ function createWindow() {
     });
   } else {
     // En développement, charger depuis le serveur Vite
-    mainWindow.loadURL('http://localhost:5112').catch((err) => {
+    mainWindow.loadURL(APP_CONFIG.FRONTEND_URL).catch((err) => {
       console.error('Erreur de chargement:', err);
     });
   }
