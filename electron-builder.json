@@ -8,7 +8,8 @@
   "files": [
     "dist/**/*",
     "electron/**/*",
-    "!backend/**/*"
+    "!backend/**/*",
+    "!node_modules/fsevents/**/*"
   ],
   "extraResources": [
     {
