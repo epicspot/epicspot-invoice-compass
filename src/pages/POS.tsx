@@ -25,7 +25,7 @@ const POS = () => {
   const [siteId, setSiteId] = useState<string>('');
   
   const { products } = useProducts();
-  const { clients } = useClients();
+  const { clients, createClient } = useClients();
   const { createInvoice } = useInvoices();
   const { createMovement } = useStockMovements();
   const { getStock } = useProductStock(siteId);
@@ -205,10 +205,34 @@ const POS = () => {
       paymentNotes += ` - Chèque N°${checkNumber} - Banque: ${checkBank} - Date: ${new Date(checkDate).toLocaleDateString('fr-FR')}`;
     }
 
-    // Create invoice
+    // Déterminer le client effectif (client sélectionné ou client comptoir)
+    let effectiveClient: Client | null = selectedClient;
+    let walkInClientId: string | undefined;
+
+    if (!effectiveClient) {
+      // Rechercher un client comptoir existant
+      const existingWalkIn = clients.find(c => c.code === 'COMPTOIR' || c.name?.toLowerCase() === 'client comptoir');
+      if (existingWalkIn) {
+        walkInClientId = existingWalkIn.id;
+      } else {
+        // Créer un client comptoir minimal si aucun n'existe
+        const created = await createClient({
+          name: 'Client comptoir',
+          address: '-',
+          phone: '-',
+          email: '',
+          taxInfo: undefined,
+          taxCenter: undefined,
+          siteId,
+        });
+        walkInClientId = created.id;
+      }
+    }
+
     const invoice = await createInvoice({
       date: new Date().toISOString(),
-      client: selectedClient || undefined,
+      client: effectiveClient || undefined,
+      clientId: effectiveClient?.id || walkInClientId,
       items: cart,
       subtotal,
       tax,
