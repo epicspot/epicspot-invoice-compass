@@ -20,11 +20,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { generateReceipt } from '@/lib/utils/receiptUtils';
 
 const POS = () => {
+  const siteId = 'default';
+  
   const { products } = useProducts();
   const { clients } = useClients();
   const { createInvoice } = useInvoices();
   const { createMovement } = useStockMovements();
-  const { getStock } = useProductStock();
+  const { getStock } = useProductStock(siteId);
   const { cashRegisters, addTransaction } = useCashRegisters();
   const { companyInfo } = useCompanyInfo();
   
@@ -42,8 +44,6 @@ const POS = () => {
   const [checkBank, setCheckBank] = useState('');
   const [checkDate, setCheckDate] = useState(new Date().toISOString().split('T')[0]);
   const [generateReceiptEnabled, setGenerateReceiptEnabled] = useState(true);
-
-  const siteId = 'default';
   const openRegisters = cashRegisters.filter(r => r.status === 'open');
 
   // Filter products by search query
