@@ -25,21 +25,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Vérifier la session au chargement
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        loadUserProfile(session.user);
-      }
-      setIsLoading(false);
-    });
-
-    // Écouter les changements d'authentification
+    // Écouter les changements d'authentification AVANT de vérifier la session
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         loadUserProfile(session.user);
       } else {
         setUser(null);
       }
+      setIsLoading(false);
+    });
+
+    // Vérifier la session au chargement
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        loadUserProfile(session.user);
+      }
+      setIsLoading(false);
     });
 
     return () => subscription.unsubscribe();
