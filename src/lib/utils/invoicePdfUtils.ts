@@ -3,15 +3,37 @@ import autoTable from 'jspdf-autotable';
 import { Invoice } from '@/lib/types';
 import { formatFCFA } from '@/lib/utils';
 
-export const generateInvoicePDF = (invoice: Invoice, companyInfo: any) => {
+export const generateInvoicePDF = async (invoice: Invoice, companyInfo: any) => {
   const doc = new jsPDF();
   let yPosition = 20;
+
+  // Logo de l'entreprise (si disponible)
+  if (companyInfo.logo) {
+    try {
+      const logoWidth = 40;
+      const logoHeight = 20;
+      doc.addImage(companyInfo.logo, 'PNG', 14, yPosition, logoWidth, logoHeight);
+      yPosition += logoHeight + 5;
+    } catch (error) {
+      console.error('Erreur lors du chargement du logo:', error);
+    }
+  }
 
   // En-tête entreprise
   doc.setFontSize(18);
   doc.setFont('helvetica', 'bold');
   doc.text(companyInfo.name || 'Entreprise', 14, yPosition);
   yPosition += 8;
+
+  // Devise de l'entreprise
+  if (companyInfo.slogan) {
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(100);
+    doc.text(companyInfo.slogan, 14, yPosition);
+    doc.setTextColor(0);
+    yPosition += 6;
+  }
 
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
@@ -31,6 +53,7 @@ export const generateInvoicePDF = (invoice: Invoice, companyInfo: any) => {
   // Titre FACTURE
   doc.setFontSize(20);
   doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0);
   doc.text('FACTURE', 200, 30, { align: 'right' });
   
   doc.setFontSize(10);
@@ -38,7 +61,7 @@ export const generateInvoicePDF = (invoice: Invoice, companyInfo: any) => {
   doc.text(`N° ${invoice.number}`, 200, 38, { align: 'right' });
   doc.text(`Date: ${new Date(invoice.date).toLocaleDateString('fr-FR')}`, 200, 44, { align: 'right' });
 
-  yPosition = 60;
+  yPosition = Math.max(yPosition, 60);
 
   // Informations client
   doc.setFontSize(11);
@@ -84,6 +107,7 @@ export const generateInvoicePDF = (invoice: Invoice, companyInfo: any) => {
   // Totaux
   const totalsX = 140;
   doc.setFontSize(10);
+  doc.setTextColor(0);
   
   doc.text('Sous-total:', totalsX, yPosition);
   doc.text(formatFCFA(invoice.subtotal), 200, yPosition, { align: 'right' });
@@ -121,17 +145,36 @@ export const generateInvoicePDF = (invoice: Invoice, companyInfo: any) => {
     yPosition += splitNotes.length * 5;
   }
 
-  // Slogan en bas de page
+  // Section signatures
   const pageHeight = doc.internal.pageSize.height;
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'italic');
-  doc.setTextColor(100);
+  const signatureY = pageHeight - 60;
   
-  if (companyInfo.slogan) {
-    doc.text(companyInfo.slogan, 105, pageHeight - 20, { align: 'center' });
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0);
+  
+  // Signature client
+  doc.text('Signature Client', 30, signatureY);
+  doc.line(15, signatureY + 20, 85, signatureY + 20);
+  
+  // Signature entreprise
+  doc.text('Signature Entreprise', 135, signatureY);
+  doc.line(125, signatureY + 20, 195, signatureY + 20);
+  
+  if (companyInfo.signatory) {
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text(companyInfo.signatory, 160, signatureY + 25, { align: 'center' });
+    if (companyInfo.signatory_title) {
+      doc.setFont('helvetica', 'italic');
+      doc.text(companyInfo.signatory_title, 160, signatureY + 30, { align: 'center' });
+    }
   }
-  
+
+  // Pied de page
+  doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100);
   doc.text('Merci pour votre confiance', 105, pageHeight - 14, { align: 'center' });
   
   if (companyInfo.taxId) {
