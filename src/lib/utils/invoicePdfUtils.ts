@@ -98,8 +98,20 @@ export const generateInvoicePDF = async (invoice: Invoice, companyInfo: any) => 
     head: [['Référence', 'Description', 'P.U', 'Qté', 'Montant']],
     body: tableData,
     theme: 'grid',
-    styles: { fontSize: 9 },
-    headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+    styles: { 
+      fontSize: 9,
+      halign: 'left'
+    },
+    headStyles: { 
+      fillColor: [41, 128, 185], 
+      textColor: 255,
+      fontStyle: 'bold'
+    },
+    columnStyles: {
+      2: { halign: 'right' }, // P.U
+      3: { halign: 'center' }, // Qté
+      4: { halign: 'right' } // Montant
+    }
   });
 
   yPosition = (doc as any).lastAutoTable.finalY + 10;
@@ -108,6 +120,7 @@ export const generateInvoicePDF = async (invoice: Invoice, companyInfo: any) => 
   const totalsX = 140;
   doc.setFontSize(10);
   doc.setTextColor(0);
+  doc.setFont('helvetica', 'normal');
   
   doc.text('Sous-total:', totalsX, yPosition);
   doc.text(formatFCFA(invoice.subtotal), 200, yPosition, { align: 'right' });
