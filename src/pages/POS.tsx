@@ -11,6 +11,7 @@ import { useProducts } from '@/hooks/useProducts';
 import { useClients } from '@/hooks/useClients';
 import { useInvoices } from '@/hooks/useInvoices';
 import { useStockMovements } from '@/hooks/useStockMovements';
+import { useProductStock } from '@/hooks/useProductStock';
 import { useCashRegisters } from '@/hooks/useCashRegisters';
 import { useCompanyInfo } from '@/hooks/useCompanyInfo';
 import { Product, Client, InvoiceItem } from '@/lib/types';
@@ -22,7 +23,8 @@ const POS = () => {
   const { products } = useProducts();
   const { clients } = useClients();
   const { createInvoice } = useInvoices();
-  const { createMovement, getCurrentStock } = useStockMovements();
+  const { createMovement } = useStockMovements();
+  const { getStock } = useProductStock();
   const { cashRegisters, addTransaction } = useCashRegisters();
   const { companyInfo } = useCompanyInfo();
   
@@ -52,7 +54,7 @@ const POS = () => {
 
   const addToCart = (product: Product) => {
     // Vérifier le stock disponible
-    const availableStock = getCurrentStock(product.id, siteId);
+    const availableStock = getStock(product.id, siteId);
     const currentQtyInCart = cart.find(item => item.product?.id === product.id)?.quantity || 0;
     
     if (availableStock <= currentQtyInCart) {
@@ -89,7 +91,7 @@ const POS = () => {
         
         // Vérifier le stock disponible pour l'augmentation
         if (delta > 0) {
-          const availableStock = item.product?.id ? getCurrentStock(item.product.id, siteId) : 0;
+          const availableStock = item.product?.id ? getStock(item.product.id, siteId) : 0;
           if (newQuantity > availableStock) {
             toast({
               title: "Stock insuffisant",
@@ -277,7 +279,7 @@ const POS = () => {
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {filteredProducts.map(product => {
-            const stock = getCurrentStock(product.id, siteId);
+            const stock = getStock(product.id, siteId);
             const isOutOfStock = stock <= 0;
             
             return (
