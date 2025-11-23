@@ -14,13 +14,15 @@ import { useStockMovements } from '@/hooks/useStockMovements';
 import { useProductStock } from '@/hooks/useProductStock';
 import { useCashRegisters } from '@/hooks/useCashRegisters';
 import { useCompanyInfo } from '@/hooks/useCompanyInfo';
+import { useSites } from '@/hooks/useSites';
 import { Product, Client, InvoiceItem } from '@/lib/types';
-import { ShoppingCart, Trash2, Plus, Minus, Search, Receipt, CreditCard, DollarSign } from 'lucide-react';
+import { ShoppingCart, Trash2, Plus, Minus, Search, Receipt, CreditCard, DollarSign, Building2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { generateReceipt } from '@/lib/utils/receiptUtils';
 
 const POS = () => {
-  const siteId = 'default';
+  const { sites } = useSites();
+  const [siteId, setSiteId] = useState<string>('');
   
   const { products } = useProducts();
   const { clients } = useClients();
@@ -29,6 +31,13 @@ const POS = () => {
   const { getStock } = useProductStock(siteId);
   const { cashRegisters, addTransaction } = useCashRegisters();
   const { companyInfo } = useCompanyInfo();
+  
+  // Set default site when sites are loaded
+  React.useEffect(() => {
+    if (sites.length > 0 && !siteId) {
+      setSiteId(sites[0].id);
+    }
+  }, [sites, siteId]);
   
   const [cart, setCart] = useState<InvoiceItem[]>([]);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
@@ -261,10 +270,28 @@ const POS = () => {
       {/* Products Section */}
       <div className="flex-1 p-6 overflow-auto">
         <div className="mb-4">
-          <h1 className="text-2xl font-bold mb-4 flex items-center gap-2">
-            <ShoppingCart className="h-6 w-6" />
-            Point de Vente (POS)
-          </h1>
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <ShoppingCart className="h-6 w-6" />
+              Point de Vente (POS)
+            </h1>
+            
+            <div className="flex items-center gap-2">
+              <Building2 className="h-4 w-4 text-muted-foreground" />
+              <Select value={siteId} onValueChange={setSiteId}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Sélectionner un site" />
+                </SelectTrigger>
+                <SelectContent>
+                  {sites.map((site) => (
+                    <SelectItem key={site.id} value={site.id}>
+                      {site.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
           
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
