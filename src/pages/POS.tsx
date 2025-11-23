@@ -208,13 +208,7 @@ const POS = () => {
     // Create invoice
     const invoice = await createInvoice({
       date: new Date().toISOString(),
-      client: selectedClient || {
-        id: 'walk-in',
-        name: 'Client comptoir',
-        address: '-',
-        phone: '-',
-        code: 'COMPTOIR'
-      },
+      client: selectedClient || undefined,
       items: cart,
       subtotal,
       tax,
