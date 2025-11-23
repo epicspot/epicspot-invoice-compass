@@ -512,7 +512,7 @@ const Invoices = () => {
           </DropdownMenuItem>
           <DropdownMenuItem
             className="flex items-center gap-2 cursor-pointer"
-            onClick={() => {
+            onClick={async () => {
               if (invoice.id) {
                 // Valider la facture avant l'impression
                 const validation = validateInvoiceForPayment(invoice as Invoice);
@@ -535,7 +535,7 @@ const Invoices = () => {
                   return;
                 }
                 
-                generateInvoicePDF(invoice as Invoice, companyInfo);
+                await generateInvoicePDF(invoice as Invoice, companyInfo);
               }
             }}
           >
