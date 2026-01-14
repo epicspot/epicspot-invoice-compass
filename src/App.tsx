@@ -54,6 +54,7 @@ const DocumentTemplates = lazy(() => import("./pages/DocumentTemplates"));
 const Monitoring = lazy(() => import("./pages/Monitoring"));
 const Logs = lazy(() => import("./pages/Logs"));
 const Supervision = lazy(() => import("./pages/Supervision"));
+const RoleManagement = lazy(() => import("./pages/RoleManagement"));
 import { AIAssistant } from "./components/AIAssistant";
 import { AlertSystemProvider } from "./components/AlertSystemProvider";
 import { DataValidator } from "./components/DataValidator";
@@ -129,6 +130,7 @@ const App = () => {
                             <Route path="/reminders" element={<Reminders />} />
                             <Route path="/reports" element={<Reports />} />
                             <Route path="/users" element={<AdminRoute><Users /></AdminRoute>} />
+                            <Route path="/roles" element={<AdminRoute><RoleManagement /></AdminRoute>} />
                             <Route path="/settings" element={<AdminRoute requiredRoles={['admin', 'manager']}><Settings /></AdminRoute>} />
                             <Route path="/tax-declarations" element={<TaxDeclarations />} />
             <Route path="/tax-analytics" element={<TaxAnalyticsDashboard />} />

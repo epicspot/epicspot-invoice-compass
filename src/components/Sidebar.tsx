@@ -110,6 +110,7 @@ const Sidebar = () => {
     { name: 'Déclarations TVA', path: '/tax-declarations', icon: Receipt },
     { name: 'Dashboard TVA', path: '/tax-analytics', icon: BarChart3 },
     { name: t('nav.users'), path: '/users', icon: UserCog },
+    { name: 'Gestion des Rôles', path: '/roles', icon: Shield },
     { name: t('nav.settings'), path: '/settings', icon: Settings },
   ];
 
