@@ -7,6 +7,7 @@ import { useRef, useEffect } from "react";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import AdminRoute from "@/components/AdminRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { PWAUpdatePrompt } from "@/components/PWAUpdatePrompt";
@@ -121,23 +122,23 @@ const App = () => {
                             <Route path="/subscriptions/invoices" element={<SubscriptionInvoices />} />
                             <Route path="/collections" element={<Collections />} />
                             <Route path="/collections/dashboard" element={<CollectionsDashboard />} />
-                            <Route path="/security" element={<SecurityAudit />} />
+                            <Route path="/security" element={<AdminRoute><SecurityAudit /></AdminRoute>} />
                             <Route path="/advanced-analytics" element={<AdvancedAnalytics />} />
                             <Route path="/integrations" element={<Integrations />} />
                             <Route path="/advanced-features" element={<AdvancedFeatures />} />
                             <Route path="/reminders" element={<Reminders />} />
                             <Route path="/reports" element={<Reports />} />
-                            <Route path="/users" element={<Users />} />
-                            <Route path="/settings" element={<Settings />} />
+                            <Route path="/users" element={<AdminRoute><Users /></AdminRoute>} />
+                            <Route path="/settings" element={<AdminRoute requiredRoles={['admin', 'manager']}><Settings /></AdminRoute>} />
                             <Route path="/tax-declarations" element={<TaxDeclarations />} />
             <Route path="/tax-analytics" element={<TaxAnalyticsDashboard />} />
             <Route path="/install" element={<Install />} />
                             <Route path="/markets" element={<Markets />} />
                             <Route path="/markets/:id" element={<MarketDetails />} />
                             <Route path="/document-templates" element={<DocumentTemplates />} />
-                            <Route path="/monitoring" element={<Monitoring />} />
-                            <Route path="/logs" element={<Logs />} />
-                            <Route path="/supervision" element={<Supervision />} />
+                            <Route path="/monitoring" element={<AdminRoute><Monitoring /></AdminRoute>} />
+                            <Route path="/logs" element={<AdminRoute><Logs /></AdminRoute>} />
+                            <Route path="/supervision" element={<AdminRoute><Supervision /></AdminRoute>} />
                             <Route path="*" element={<NotFound />} />
                           </Routes>
                         </Suspense>
